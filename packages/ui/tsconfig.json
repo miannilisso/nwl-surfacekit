@@ -1,0 +1,17 @@
+{
+  "extends": "@nwl/typescript-config/react-library.json",
+  "compilerOptions": {
+    "paths": {
+      "@nwl/surfacekit/*": [
+        "./src/*"
+      ]
+    }
+  },
+  "include": [
+    "."
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
+}

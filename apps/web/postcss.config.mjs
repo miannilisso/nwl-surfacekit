@@ -1,0 +1,1 @@
+export { default } from "@nwl/surfacekit/postcss.config";
