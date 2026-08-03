@@ -47,3 +47,4 @@ next-env.d.ts
 # local env files
 issues.txt
 shadcn.sh
+shadcn-v2.sh
