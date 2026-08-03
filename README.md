@@ -1,65 +1,77 @@
 # nwl-surfacekit
 
-nwl-surfacekit is a polished monorepo scaffold for building a versioned design system and UI library with Next.js, shadcn/ui, Tailwind CSS v4, semantic design tokens, and accessible primitives.
+nwl-surfacekit is a pnpm workspace for a Next.js product surface and a shared `@nwl/surfacekit` UI package. The current implementation uses Tailwind CSS v4 tokens, shadcn source conventions, Base UI primitives, Storybook, Vitest, Playwright smoke/visual checks, and axe accessibility checks.
 
-## What this scaffold includes
-
-- A monorepo layout with a Next.js app and a shared UI package.
-- A design-system-ready package surface for components, utilities, and primitives.
-- Tailwind CSS v4 with semantic CSS-variable tokens and RTL support.
-- A base component foundation built with shadcn/ui patterns, class-variance-authority, and utility helpers.
-- A structure that is ready for Storybook, testing, accessibility checks, and release automation.
-
-## Recommended SurfaceKit stack
-
-```text
-@nwl/surfacekit
-├── shadcn/ui component source
-├── Base UI primitives
-├── Tailwind CSS v4
-├── Semantic CSS-variable design tokens
-├── class-variance-authority
-├── TanStack Table
-├── React Hook Form
-├── Zod
-├── Storybook
-└── axe accessibility checks + Playwright visual and interaction tests
-```
-
-## Repository structure
+## Current Structure
 
 ```text
 apps/
-  web/                # Next.js application shell and demo surface
+  web/                         # Next.js App Router demo surface
+    app/(marketing)/           # Public route family using WebShell
+    app/(playground)/          # Component/pattern route family using AppShell
+    stories/                   # Storybook stories for package components and patterns
 packages/
-  ui/                 # Shared design-system package
+  ui/                          # Shared SurfaceKit package
+    src/components/button/     # Single button source and tests
+    src/components/card/       # Card source and tests
+    src/patterns/              # AppShell, AuthShell, WebShell and tests
 ```
 
-## Getting started
+## Dependency Management
+
+Package versions are centralized in `pnpm-workspace.yaml` using pnpm catalog conventions. Workspace manifests should reference shared dependency versions with `catalog:` unless a workspace package is referenced with `workspace:*`.
+
+When adding a runtime or test dependency, install it with pnpm and keep the catalog as the source of truth. Do not add undeclared transitive imports.
+
+## Component Conventions
+
+- Component source lives in folder-based modules, for example `packages/ui/src/components/button/button.tsx`.
+- The deprecated duplicate `packages/ui/src/components/button.tsx` source is removed.
+- shadcn-style component source is kept in `packages/ui`; `apps/web/components.json` points generation aliases back to `@nwl/surfacekit` to avoid app-local duplicates.
+- Base UI primitives are used for interactive primitives. The button uses `@base-ui/react/button` with shadcn-style variants and Base UI's `render` composition API.
+- Component and pattern tests stay next to their source files.
+
+## Web App Routes
+
+- `/` and `/marketing` are the marketing route family and use `WebShell`.
+- `/playground` is the component and pattern playground route family and uses `AppShell`.
+- The app consumes package exports from `@nwl/surfacekit` rather than copying UI source into the app.
+
+## Storybook
+
+Storybook is configured at `apps/web/.storybook`. The Vite config explicitly includes `@vitejs/plugin-react` so TSX stories use the React JSX runtime correctly and do not fail with `React is not defined`.
 
 ```bash
-pnpm install
-pnpm dev
+pnpm storybook
+pnpm build-storybook
 ```
 
-The web app runs from the app workspace, while the shared UI package is the foundation for reusable components and styling.
+## Verification
 
-## Development workflow
+Use the focused gates while developing:
 
-- Build and type-check the workspace with `pnpm build` and `pnpm typecheck`.
-- Add components and primitives to the shared package so the app consumes them consistently.
-- Keep styling centralized in the UI package and let the app compose against those primitives.
-- Extend the scaffold with Storybook, tests, and CI checks as the library grows.
+```bash
+pnpm typecheck
+pnpm build:packages
+pnpm --filter web build
+pnpm test:components
+pnpm test:a11y
+pnpm build-storybook
+pnpm test:visual
+pnpm test:browser
+pnpm test
+pnpm test:env
+```
 
-## SurfaceKit CI expectations
+`pnpm verify` runs the full workspace verification chain. Playwright browser checks require installed browsers:
 
-- Type-check and package-build.
-- Component tests.
-- Accessibility checks.
-- Storybook or equivalent documentation build.
-- Visual regression in light and dark themes.
-- Supported-browser smoke tests.
+```bash
+pnpm exec playwright install
+```
 
-## Versioning
+The current browser gates cover:
 
-This scaffold is prepared as a versioned library foundation. The shared package is exposed as `@nwl/surfacekit` and can be published and versioned independently as the component system matures.
+- axe WCAG 2 A/AA checks on `/`, `/marketing`, and `/playground`.
+- Chromium visual regression snapshots for `/playground` in light and dark themes.
+- Chromium, Firefox, and WebKit smoke checks for the marketing and playground route families.
+- Client bundle scanning for server-only environment variable markers after a web build.

@@ -1,3 +1,6 @@
+import type { ComponentProps } from "react"
+import type { Meta, StoryObj } from "@storybook/react"
+
 import {
   Card,
   CardContent,
@@ -13,12 +16,14 @@ const meta = {
   args: {
     children: "SurfaceKit Card",
   },
-}
+} satisfies Meta<typeof Card>
 
 export default meta
 
-export const Default = {
-  render: (args: React.ComponentProps<typeof Card>) => (
+type Story = StoryObj<typeof meta>
+
+export const Default: Story = {
+  render: (args: ComponentProps<typeof Card>) => (
     <Card {...args}>
       <CardHeader>
         <CardTitle>Card title</CardTitle>

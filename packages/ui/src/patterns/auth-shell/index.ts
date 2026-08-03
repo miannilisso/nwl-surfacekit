@@ -1,1 +1,1 @@
-export * from "./auth-shell.js"
+export * from "./auth-shell"

@@ -11,9 +11,9 @@
   },
   "iconLibrary": "lucide",
   "aliases": {
-    "components": "@/components",
-    "hooks": "@/hooks",
-    "lib": "@/lib",
+    "components": "@nwl/surfacekit/components",
+    "hooks": "@nwl/surfacekit/hooks",
+    "lib": "@nwl/surfacekit/lib",
     "utils": "@nwl/surfacekit/lib/utils",
     "ui": "@nwl/surfacekit/components"
   },

@@ -2,7 +2,7 @@ import "@testing-library/jest-dom/vitest"
 import { render, screen } from "@testing-library/react"
 import { describe, expect, it } from "vitest"
 
-import { AuthPanel, AuthShell } from "./auth-shell.js"
+import { AuthPanel, AuthShell } from "./auth-shell"
 
 describe("AuthShell", () => {
   it("renders the shell content and supporting panel", () => {

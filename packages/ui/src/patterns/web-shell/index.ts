@@ -1,1 +1,1 @@
-export * from "./web-shell.js"
+export * from "./web-shell"

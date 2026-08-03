@@ -1,3 +1,5 @@
+import type { Meta, StoryObj } from "@storybook/react"
+
 import { Button } from "@nwl/surfacekit/components/button"
 
 const meta = {
@@ -6,14 +8,23 @@ const meta = {
   args: {
     children: "SurfaceKit Button",
   },
-}
+} satisfies Meta<typeof Button>
 
 export default meta
 
-export const Default = {}
+type Story = StoryObj<typeof meta>
 
-export const Outline = {
+export const Default: Story = {}
+
+export const Outline: Story = {
   args: {
     variant: "outline",
+  },
+}
+
+export const Destructive: Story = {
+  args: {
+    children: "Delete record",
+    variant: "destructive",
   },
 }

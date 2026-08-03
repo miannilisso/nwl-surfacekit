@@ -1,3 +1,3 @@
-export * from "./auth-shell/index.js"
-export * from "./app-shell/index.js"
-export * from "./web-shell/index.js"
+export * from "./auth-shell"
+export * from "./app-shell"
+export * from "./web-shell"

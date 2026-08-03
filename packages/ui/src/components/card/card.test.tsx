@@ -2,7 +2,7 @@ import "@testing-library/jest-dom/vitest"
 import { render, screen } from "@testing-library/react"
 import { describe, expect, it } from "vitest"
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./card.js"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./card"
 
 describe("Card", () => {
   it("renders the card structure and content", () => {

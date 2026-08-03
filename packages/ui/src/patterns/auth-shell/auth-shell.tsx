@@ -1,30 +1,34 @@
-import { cn } from "../../lib/utils.js"
+import { cn } from "../../lib/utils"
 
 interface AuthShellProps extends React.ComponentProps<"section"> {
   title: string
   subtitle?: string
+  aside?: React.ReactNode
 }
 
-function AuthShell({ title, subtitle, className, children, ...props }: AuthShellProps) {
+function AuthShell({ title, subtitle, aside, className, children, ...props }: AuthShellProps) {
   return (
     <section
       data-slot="auth-shell"
-      className={cn("grid min-h-screen gap-6 bg-background p-6 md:grid-cols-[1.2fr_0.8fr]", className)}
+      className={cn("grid min-h-screen bg-background text-foreground md:grid-cols-[minmax(0,1fr)_minmax(22rem,0.72fr)]", className)}
       {...props}
     >
-      <div className="flex flex-col justify-center gap-4 rounded-3xl border border-border bg-card p-8 shadow-sm">
-        <div className="space-y-2">
-          <h1 className="text-3xl font-semibold tracking-tight">{title}</h1>
-          {subtitle ? <p className="text-sm text-muted-foreground">{subtitle}</p> : null}
-        </div>
-        <div className="rounded-2xl border border-dashed border-border bg-background/60 p-6">
-          {children}
+      <div className="flex min-h-screen flex-col justify-center px-6 py-10 sm:px-10 lg:px-16">
+        <div className="w-full max-w-md space-y-8">
+          <div className="space-y-2">
+            <p className="text-sm font-medium text-primary">SurfaceKit</p>
+            <h1 className="text-3xl font-semibold tracking-tight">{title}</h1>
+            {subtitle ? <p className="text-sm text-muted-foreground">{subtitle}</p> : null}
+          </div>
+          <div>{children}</div>
         </div>
       </div>
-      <div className="flex items-center justify-center rounded-3xl bg-muted/70 p-6">
-        <AuthPanel title="Secure access" subtitle="Use your work account to continue">
-          <p className="text-sm text-muted-foreground">Single Sign-On and passwordless sign-in ready.</p>
-        </AuthPanel>
+      <div className="hidden min-h-screen border-l border-border bg-muted/50 p-10 md:flex md:items-end">
+        {aside ?? (
+          <AuthPanel title="Secure access" subtitle="SSO, passkeys, and passwordless flows ready for product teams.">
+            <p className="text-sm text-muted-foreground">Built from accessible Base UI primitives and tokenized shadcn source.</p>
+          </AuthPanel>
+        )}
       </div>
     </section>
   )
@@ -39,7 +43,7 @@ function AuthPanel({ title, subtitle, className, children, ...props }: AuthPanel
   return (
     <div
       data-slot="auth-panel"
-      className={cn("w-full max-w-sm rounded-3xl border border-border bg-background p-6 shadow-sm", className)}
+      className={cn("w-full max-w-sm rounded-lg border border-border bg-card p-6 shadow-sm", className)}
       {...props}
     >
       <div className="space-y-2">
