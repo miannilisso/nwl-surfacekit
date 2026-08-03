@@ -43,4 +43,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local env files
 issues.txt
+shadcn.sh
