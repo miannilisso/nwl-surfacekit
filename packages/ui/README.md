@@ -12,6 +12,12 @@ Shared UI package for nwl-surfacekit.
 - `@nwl/surfacekit/patterns/web-shell`
 - `@nwl/surfacekit/lib/utils`
 
+## Package exports
+
+- Components: `@nwl/surfacekit/components/<component>`
+- Patterns: `@nwl/surfacekit/patterns/<pattern>`
+- Utility helpers: `@nwl/surfacekit/lib/<util>`
+
 ## Source Conventions
 
 Components use folder-based source with colocated tests:
@@ -36,7 +42,125 @@ The package currently exports three shell patterns:
 
 Each pattern has a colocated Vitest test and a Storybook story under `apps/web/stories`.
 
+- All package UI components now include scaffolded Vitest test files and Storybook stories. `button` and `card` continue to be the only components with full render assertions and custom story variants.
+
+## Component list
+
+- accordion
+- alert
+- alert-dialog
+- aspect-ratio
+- attachment
+- avatar
+- badge
+- breadcrumb
+- bubble
+- button
+- button-group
+- calendar
+- card
+- carousel
+- chart
+- checkbox
+- collapsible
+- combobox
+- command
+- context-menu
+- dialog
+- direction
+- drawer
+- dropdown-menu
+- empty
+- field
+- hover-card
+- input
+- input-group
+- input-otp
+- item
+- kbd
+- label
+- marker
+- menubar
+- message
+- message-scroller
+- native-select
+- navigation-menu
+- pagination
+- popover
+- progress
+- radio-group
+- resizable
+- scroll-area
+- select
+- separator
+- sheet
+- sidebar
+- skeleton
+- slider
+- spinner
+- switch
+- table
+- tabs
+- textarea
+- toast
+- toggle
+- toggle-group
+- tooltip
+
+## Pattern list
+
+- app-shell
+- auth-shell
+- web-shell
+
+## Example usage
+
+```tsx
+import { Button } from "@nwl/surfacekit/components/button"
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from "@nwl/surfacekit/components/card"
+import {
+  AppShell,
+  AppTopbar,
+  AppSidebar,
+} from "@nwl/surfacekit/patterns/app-shell"
+
+export default function Page() {
+  return (
+    <AppShell
+      topbar={<AppTopbar>SurfaceKit</AppTopbar>}
+      sidebar={<AppSidebar>Navigation</AppSidebar>}
+    >
+      <Card>
+        <CardHeader>
+          <CardTitle>Shared UI</CardTitle>
+          <CardDescription>Reusable components and patterns.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button>Get started</Button>
+        </CardContent>
+      </Card>
+    </AppShell>
+  )
+}
+```
+
 ## Local Checks
+
+```bash
+pnpm --filter @nwl/surfacekit typecheck
+pnpm --filter @nwl/surfacekit build
+pnpm test:components
+```
+
+## More docs
+
+See `packages/ui/USAGE.md` for package consumer usage, import patterns, and example snippets.
 
 ```bash
 pnpm --filter @nwl/surfacekit typecheck
