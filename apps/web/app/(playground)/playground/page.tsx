@@ -65,11 +65,7 @@ import {
   MessageScrollerButton,
 } from "@nwl/surfacekit/components/message-scroller"
 import { Table } from "@nwl/surfacekit/components/table"
-import {
-  Toaster,
-  toast,
-  type ToastManagerWithPush,
-} from "@nwl/surfacekit/components/toast"
+import { Toaster, toast } from "@nwl/surfacekit/components/toast"
 import { Calendar } from "@nwl/surfacekit/components/calendar"
 
 // Components - Feedback
@@ -155,25 +151,11 @@ function DirectionDemo() {
   )
 }
 
-// Type-safe interface for toast manager with push method
-type ToastAPI = ToastManagerWithPush
-
 function ToastDemo() {
   const handleShowToast = () => {
-    // The base-ui toast manager supports the push method at runtime
-    // even though the type definitions don't expose it
-    const toastAPI = toast as unknown as ToastAPI
-    toastAPI.push({
-      render({ id }: { id: string }) {
-        return (
-          <div className="flex flex-col gap-1">
-            <div className="font-medium">Success! {id}</div>
-            <p className="text-sm text-muted-foreground">
-              Toast notification triggered!
-            </p>
-          </div>
-        )
-      },
+    toast.add({
+      title: "Success!",
+      description: "Toast notification triggered!",
       type: "success",
     })
   }

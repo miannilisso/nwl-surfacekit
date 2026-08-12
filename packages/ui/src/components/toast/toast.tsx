@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { Toast as ToastPrimitive } from "@base-ui/react/toast"
+import type { ToastManager as BaseToastManager } from "@base-ui/react/toast"
 
 import { cn } from "@nwl/surfacekit/lib/utils"
 import { Button } from "@nwl/surfacekit/components/button"
@@ -16,13 +17,13 @@ import {
 
 const toast = ToastPrimitive.createToastManager()
 
-// Type for the toast manager with the push method
-export type ToastManagerWithPush = typeof toast & {
-  push: (config: {
-    render: (params: { id: string }) => React.ReactNode
-    type?: string
-  }) => void
-}
+export type ToastManager<Data extends object = Record<string, unknown>> =
+  BaseToastManager<Data>
+
+/** @deprecated Use `ToastManager`; the public manager exposes add, update, close, and promise. */
+export type ToastManagerWithPush<
+  Data extends object = Record<string, unknown>,
+> = ToastManager<Data>
 
 function ToastProvider({ ...props }: ToastPrimitive.Provider.Props) {
   return <ToastPrimitive.Provider {...props} />

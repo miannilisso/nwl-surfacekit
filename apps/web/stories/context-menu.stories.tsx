@@ -1,41 +1,107 @@
 import type { Meta, StoryObj } from "@storybook/react-vite"
-import { Suspense, type ComponentProps } from "react"
+import { expect, userEvent, waitFor, within } from "storybook/test"
 import {
   ContextMenu,
+  ContextMenuCheckboxItem,
   ContextMenuContent,
   ContextMenuItem,
+  ContextMenuRadioGroup,
+  ContextMenuRadioItem,
+  ContextMenuSeparator,
+  ContextMenuSub,
+  ContextMenuSubContent,
+  ContextMenuSubTrigger,
   ContextMenuTrigger,
 } from "@nwl/surfacekit/components/context-menu"
 
-const meta: Meta<typeof ContextMenu> = {
-  title: "SurfaceKit/Context Menu",
-  component: ContextMenu,
-  args: {
-    children: (
-      <>
-        <ContextMenuTrigger>
-          <button className="rounded-xl border px-3 py-1 text-sm">
-            Right click me
-          </button>
-        </ContextMenuTrigger>
-        <ContextMenuContent>
-          <ContextMenuItem>Item one</ContextMenuItem>
-          <ContextMenuItem>Item two</ContextMenuItem>
-        </ContextMenuContent>
-      </>
-    ),
-  },
-  render: (args: ComponentProps<typeof ContextMenu>) => (
-    <div className="p-4">
-      <Suspense fallback={null}>
-        <ContextMenu {...args} />
-      </Suspense>
-    </div>
-  ),
+function ContextExample({
+  checkbox = false,
+  radio = false,
+  submenu = false,
+}: {
+  checkbox?: boolean
+  radio?: boolean
+  submenu?: boolean
+}) {
+  return (
+    <ContextMenu>
+      <ContextMenuTrigger
+        render={
+          <div
+            tabIndex={0}
+            className="grid h-40 w-80 place-items-center rounded-2xl border border-dashed text-sm text-muted-foreground"
+          />
+        }
+      >
+        Right-click this workspace
+      </ContextMenuTrigger>
+      <ContextMenuContent>
+        <ContextMenuItem>Open</ContextMenuItem>
+        <ContextMenuItem disabled>Export</ContextMenuItem>
+        {checkbox && (
+          <>
+            <ContextMenuSeparator />
+            <ContextMenuCheckboxItem checked>Autosave</ContextMenuCheckboxItem>
+          </>
+        )}
+        {radio && (
+          <>
+            <ContextMenuSeparator />
+            <ContextMenuRadioGroup value="team">
+              <ContextMenuRadioItem value="personal">
+                Personal
+              </ContextMenuRadioItem>
+              <ContextMenuRadioItem value="team">Team</ContextMenuRadioItem>
+            </ContextMenuRadioGroup>
+          </>
+        )}
+        {submenu && (
+          <>
+            <ContextMenuSeparator />
+            <ContextMenuSub>
+              <ContextMenuSubTrigger>Share</ContextMenuSubTrigger>
+              <ContextMenuSubContent>
+                <ContextMenuItem>Email</ContextMenuItem>
+                <ContextMenuItem>Copy link</ContextMenuItem>
+              </ContextMenuSubContent>
+            </ContextMenuSub>
+          </>
+        )}
+      </ContextMenuContent>
+    </ContextMenu>
+  )
 }
-
+const meta = {
+  title: "SurfaceKit/Components/Command & Menus/Context Menu",
+  component: ContextExample,
+  tags: ["autodocs"],
+  parameters: {
+    layout: "centered",
+    docs: {
+      description: {
+        component:
+          "Provides contextual actions from the pointer context-menu gesture with full keyboard menu behavior and choice variants.",
+      },
+    },
+  },
+} satisfies Meta<typeof ContextExample>
 export default meta
-
 type Story = StoryObj<typeof meta>
-
-export const Default = {}
+export const Default: Story = {
+  play: async ({ canvasElement }) => {
+    const trigger = within(canvasElement).getByText(
+      "Right-click this workspace"
+    )
+    await userEvent.pointer({ target: trigger, keys: "[MouseRight]" })
+    await expect(
+      within(canvasElement.ownerDocument.body).getByRole("menuitem", {
+        name: "Open",
+      })
+    ).toBeVisible()
+    await userEvent.keyboard("{Escape}")
+    await waitFor(() => expect(trigger).toHaveFocus())
+  },
+}
+export const Checkbox: Story = { args: { checkbox: true } }
+export const Radio: Story = { args: { radio: true } }
+export const Submenu: Story = { args: { submenu: true } }
