@@ -13,13 +13,30 @@ const portrait =
   "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' fill='%235b5bd6'/%3E%3Ccircle cx='48' cy='38' r='18' fill='%23fff'/%3E%3Cpath d='M16 96c3-25 16-36 32-36s29 11 32 36' fill='%23fff'/%3E%3C/svg%3E"
 
 const meta = {
-  title: "SurfaceKit/Avatar",
+  title: "SurfaceKit/Components/Data Display/Avatar",
   component: Avatar,
-  parameters: { layout: "centered" },
+  tags: ["autodocs"],
+  parameters: {
+    layout: "centered",
+    docs: {
+      description: {
+        component:
+          "Represents a person or entity with an image, initials, grouping, and status.",
+      },
+    },
+  },
 } satisfies Meta<typeof Avatar>
 
 export default meta
 type Story = StoryObj<typeof meta>
+
+export const Default: Story = {
+  render: () => (
+    <Avatar role="img" aria-label="Ada Lovelace">
+      <AvatarFallback>AL</AvatarFallback>
+    </Avatar>
+  ),
+}
 
 export const Image: Story = {
   render: () => (

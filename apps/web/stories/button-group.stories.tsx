@@ -8,13 +8,31 @@ import {
 } from "@nwl/surfacekit/components/button-group"
 
 const meta = {
-  title: "SurfaceKit/Button Group",
+  title: "SurfaceKit/Components/Form Inputs/Button Group",
   component: ButtonGroup,
-  parameters: { layout: "centered" },
+  tags: ["autodocs"],
+  parameters: {
+    layout: "centered",
+    docs: {
+      description: {
+        component:
+          "Visually and semantically groups related controls in horizontal or vertical arrangements.",
+      },
+    },
+  },
 } satisfies Meta<typeof ButtonGroup>
 
 export default meta
 type Story = StoryObj<typeof meta>
+
+export const Default: Story = {
+  render: () => (
+    <ButtonGroup aria-label="Document actions">
+      <Button variant="outline">Preview</Button>
+      <Button variant="outline">Publish</Button>
+    </ButtonGroup>
+  ),
+}
 
 export const Horizontal: Story = {
   render: () => (

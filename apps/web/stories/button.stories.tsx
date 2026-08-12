@@ -4,9 +4,18 @@ import { expect, fn, userEvent, within } from "storybook/test"
 import { Button } from "@nwl/surfacekit/components/button"
 
 const meta = {
-  title: "SurfaceKit/Button",
+  title: "SurfaceKit/Components/Form Inputs/Button",
   component: Button,
-  parameters: { layout: "centered" },
+  tags: ["autodocs"],
+  parameters: {
+    layout: "centered",
+    docs: {
+      description: {
+        component:
+          "Invokes actions with accessible disabled behavior, variants, sizes, and element composition.",
+      },
+    },
+  },
   args: {
     children: "Save changes",
     onClick: fn(),

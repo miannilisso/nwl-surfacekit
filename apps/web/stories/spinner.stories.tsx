@@ -4,9 +4,18 @@ import { Button } from "@nwl/surfacekit/components/button"
 import { Spinner } from "@nwl/surfacekit/components/spinner"
 
 const meta = {
-  title: "SurfaceKit/Spinner",
+  title: "SurfaceKit/Components/Feedback/Spinner",
   component: Spinner,
-  parameters: { layout: "centered" },
+  tags: ["autodocs"],
+  parameters: {
+    layout: "centered",
+    docs: {
+      description: {
+        component:
+          "Communicates indeterminate progress with a contextual accessible name.",
+      },
+    },
+  },
 } satisfies Meta<typeof Spinner>
 
 export default meta

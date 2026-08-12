@@ -3,9 +3,17 @@ import type { Meta, StoryObj } from "@storybook/react-vite"
 import { AspectRatio } from "@nwl/surfacekit/components/aspect-ratio"
 
 const meta = {
-  title: "SurfaceKit/Aspect Ratio",
+  title: "SurfaceKit/Components/Layout & Utilities/Aspect Ratio",
   component: AspectRatio,
-  parameters: { layout: "centered" },
+  tags: ["autodocs"],
+  parameters: {
+    layout: "centered",
+    docs: {
+      description: {
+        component: "Constrains responsive content to a caller-defined ratio.",
+      },
+    },
+  },
   args: { ratio: 16 / 9 },
   render: (args) => (
     <div className="w-80 overflow-hidden rounded-lg border bg-muted">

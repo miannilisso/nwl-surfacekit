@@ -12,9 +12,18 @@ import {
 } from "@nwl/surfacekit/components/card"
 
 const meta = {
-  title: "SurfaceKit/Card",
+  title: "SurfaceKit/Components/Data Display/Card",
   component: Card,
-  parameters: { layout: "centered" },
+  tags: ["autodocs"],
+  parameters: {
+    layout: "centered",
+    docs: {
+      description: {
+        component:
+          "Groups related content, context, actions, and footers in a flexible surface.",
+      },
+    },
+  },
   decorators: [
     (Story) => (
       <div className="w-96 max-w-[calc(100vw-2rem)]">

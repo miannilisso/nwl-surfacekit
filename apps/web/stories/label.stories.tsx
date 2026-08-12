@@ -3,9 +3,18 @@ import type { Meta, StoryObj } from "@storybook/react-vite"
 import { Label } from "@nwl/surfacekit/components/label"
 
 const meta = {
-  title: "SurfaceKit/Label",
+  title: "SurfaceKit/Components/Form Inputs/Label",
   component: Label,
-  parameters: { layout: "centered" },
+  tags: ["autodocs"],
+  parameters: {
+    layout: "centered",
+    docs: {
+      description: {
+        component:
+          "Provides an accessible name and interaction target for form controls.",
+      },
+    },
+  },
 } satisfies Meta<typeof Label>
 
 export default meta

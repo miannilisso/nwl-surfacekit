@@ -3,9 +3,18 @@ import type { Meta, StoryObj } from "@storybook/react-vite"
 import { Badge } from "@nwl/surfacekit/components/badge"
 
 const meta = {
-  title: "SurfaceKit/Badge",
+  title: "SurfaceKit/Components/Data Display/Badge",
   component: Badge,
-  parameters: { layout: "centered" },
+  tags: ["autodocs"],
+  parameters: {
+    layout: "centered",
+    docs: {
+      description: {
+        component:
+          "Adds compact status, category, or metadata labels to dense interfaces.",
+      },
+    },
+  },
   args: { children: "Production" },
 } satisfies Meta<typeof Badge>
 

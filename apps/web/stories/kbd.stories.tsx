@@ -3,14 +3,25 @@ import type { Meta, StoryObj } from "@storybook/react-vite"
 import { Kbd, KbdGroup } from "@nwl/surfacekit/components/kbd"
 
 const meta = {
-  title: "SurfaceKit/Kbd",
+  title: "SurfaceKit/Components/Layout & Utilities/Kbd",
   component: Kbd,
-  parameters: { layout: "centered" },
+  tags: ["autodocs"],
+  parameters: {
+    layout: "centered",
+    docs: {
+      description: {
+        component:
+          "Displays individual keys and grouped keyboard shortcuts with valid semantics.",
+      },
+    },
+  },
   args: { children: "K" },
 } satisfies Meta<typeof Kbd>
 
 export default meta
 type Story = StoryObj<typeof meta>
+
+export const Default: Story = {}
 
 export const Single: Story = {}
 

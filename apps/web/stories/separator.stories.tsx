@@ -3,13 +3,26 @@ import type { Meta, StoryObj } from "@storybook/react-vite"
 import { Separator } from "@nwl/surfacekit/components/separator"
 
 const meta = {
-  title: "SurfaceKit/Separator",
+  title: "SurfaceKit/Components/Layout & Utilities/Separator",
   component: Separator,
-  parameters: { layout: "centered" },
+  tags: ["autodocs"],
+  parameters: {
+    layout: "centered",
+    docs: {
+      description: {
+        component:
+          "Separates related content horizontally or vertically with semantic orientation.",
+      },
+    },
+  },
 } satisfies Meta<typeof Separator>
 
 export default meta
 type Story = StoryObj<typeof meta>
+
+export const Default: Story = {
+  render: () => <Separator className="w-72" aria-label="Content divider" />,
+}
 
 export const Horizontal: Story = {
   render: () => (
