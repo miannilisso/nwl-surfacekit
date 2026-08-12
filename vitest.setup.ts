@@ -59,3 +59,10 @@ for (const [name, implementation] of [
     })
   }
 }
+
+if (!document.elementFromPoint) {
+  Object.defineProperty(document, "elementFromPoint", {
+    configurable: true,
+    value: () => null,
+  })
+}

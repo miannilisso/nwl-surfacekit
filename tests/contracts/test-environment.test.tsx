@@ -10,6 +10,7 @@ describe("SurfaceKit test environment", () => {
     expect(window.matchMedia("(min-width: 768px)").matches).toBe(false)
     expect(globalThis.ResizeObserver).toBeTypeOf("function")
     expect(Element.prototype.scrollIntoView).toBeTypeOf("function")
+    expect(document.elementFromPoint).toBeTypeOf("function")
   })
 
   it("wraps components in the default direction provider", () => {

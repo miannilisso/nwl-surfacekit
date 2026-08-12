@@ -1,22 +1,45 @@
 import type { Meta, StoryObj } from "@storybook/react-vite"
-import { Suspense, type ComponentProps } from "react"
+import { expect, userEvent, within } from "storybook/test"
+
+import { Label } from "@nwl/surfacekit/components/label"
 import { Switch } from "@nwl/surfacekit/components/switch"
 
-const meta: Meta<typeof Switch> = {
-  title: "SurfaceKit/Switch",
+const meta = {
+  title: "SurfaceKit/Components/Form Inputs/Switch",
   component: Switch,
-  args: { defaultChecked: true },
-  render: (args: ComponentProps<typeof Switch>) => (
-    <div className="p-4">
-      <Suspense fallback={null}>
-        <Switch {...args} />
-      </Suspense>
+  tags: ["autodocs"],
+  parameters: {
+    layout: "centered",
+    docs: {
+      description: {
+        component:
+          "Turns a setting on or off with an immediately applied state.",
+      },
+    },
+  },
+  render: (args) => (
+    <div className="flex items-center gap-2">
+      <Switch id="alerts-switch" {...args} />
+      <Label htmlFor="alerts-switch">Enable alerts</Label>
     </div>
   ),
-}
+} satisfies Meta<typeof Switch>
 
 export default meta
-
 type Story = StoryObj<typeof meta>
 
-export const Default = {}
+export const Default: Story = {}
+
+export const Off: Story = {
+  play: async ({ canvasElement }) => {
+    const control = within(canvasElement).getByRole("switch", {
+      name: "Enable alerts",
+    })
+    await userEvent.click(control)
+    await expect(control).toBeChecked()
+  },
+}
+
+export const On: Story = { args: { defaultChecked: true } }
+
+export const Disabled: Story = { args: { disabled: true } }
