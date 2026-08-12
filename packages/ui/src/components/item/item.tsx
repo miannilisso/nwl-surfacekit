@@ -4,31 +4,32 @@ import { useRender } from "@base-ui/react/use-render"
 import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@nwl/surfacekit/lib/utils"
-import { Separator } from "@nwl/surfacekit/components/separator"
+
+const ItemGroupContext = React.createContext(false)
 
 function ItemGroup({ className, ...props }: React.ComponentProps<"div">) {
   return (
-    <div
-      role="list"
-      data-slot="item-group"
-      className={cn(
-        "group/item-group flex w-full flex-col gap-4 has-data-[size=sm]:gap-2.5 has-data-[size=xs]:gap-2",
-        className
-      )}
-      {...props}
-    />
+    <ItemGroupContext.Provider value>
+      <div
+        role="list"
+        data-slot="item-group"
+        className={cn(
+          "group/item-group flex w-full flex-col gap-4 has-data-[size=sm]:gap-2.5 has-data-[size=xs]:gap-2",
+          className
+        )}
+        {...props}
+      />
+    </ItemGroupContext.Provider>
   )
 }
 
-function ItemSeparator({
-  className,
-  ...props
-}: React.ComponentProps<typeof Separator>) {
+function ItemSeparator({ className, ...props }: React.ComponentProps<"div">) {
   return (
-    <Separator
+    <div
       data-slot="item-separator"
-      orientation="horizontal"
-      className={cn("my-2", className)}
+      data-orientation="horizontal"
+      role="presentation"
+      className={cn("my-2 h-px w-full shrink-0 bg-border", className)}
       {...props}
     />
   )
@@ -63,10 +64,13 @@ function Item({
   render,
   ...props
 }: useRender.ComponentProps<"div"> & VariantProps<typeof itemVariants>) {
+  const isGrouped = React.useContext(ItemGroupContext)
+
   return useRender({
     defaultTagName: "div",
     props: mergeProps<"div">(
       {
+        role: isGrouped && !render ? "listitem" : undefined,
         className: cn(itemVariants({ variant, size, className })),
       },
       props
