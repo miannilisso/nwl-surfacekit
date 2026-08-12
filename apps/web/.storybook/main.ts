@@ -1,10 +1,11 @@
 import type { StorybookConfig } from "@storybook/react-vite"
 import react from "@vitejs/plugin-react"
+import path from "node:path"
 import { mergeConfig } from "vite"
 
 const config: StorybookConfig = {
-  stories: ["../stories/**/*.stories.@(ts|tsx)"],
-  addons: ["@storybook/addon-essentials", "@storybook/addon-a11y"],
+  stories: ["../stories/**/*.stories.{ts,tsx}"],
+  addons: ["@storybook/addon-a11y", "@storybook/addon-vitest"],
   features: {
     developmentModeForBuild: true,
   },
@@ -15,6 +16,21 @@ const config: StorybookConfig = {
   viteFinal: async (config) =>
     mergeConfig(config, {
       plugins: [react()],
+      resolve: {
+        alias: [
+          {
+            find: "@nwl/surfacekit/globals.css",
+            replacement: path.resolve(
+              process.cwd(),
+              "packages/ui/src/styles/globals.css"
+            ),
+          },
+          {
+            find: "@nwl/surfacekit",
+            replacement: path.resolve(process.cwd(), "packages/ui/src"),
+          },
+        ],
+      },
       build: {
         chunkSizeWarningLimit: 1000,
         rollupOptions: {

@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react"
+import type { Meta, StoryObj } from "@storybook/react-vite"
 import { Suspense, type ComponentProps } from "react"
 import {
   AlertDialog,
@@ -18,7 +18,9 @@ const meta: Meta<typeof AlertDialog> = {
         <AlertDialogTrigger>Open dialog</AlertDialogTrigger>
         <AlertDialogContent>
           <AlertDialogTitle>Dialog title</AlertDialogTitle>
-          <AlertDialogDescription>This is the dialog content.</AlertDialogDescription>
+          <AlertDialogDescription>
+            This is the dialog content.
+          </AlertDialogDescription>
         </AlertDialogContent>
       </>
     ),

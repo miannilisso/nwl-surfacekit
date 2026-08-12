@@ -1,6 +1,10 @@
-import type { Meta, StoryObj } from "@storybook/react"
+import type { Meta, StoryObj } from "@storybook/react-vite"
 import { Suspense, type ComponentProps } from "react"
-import { Drawer, DrawerContent, DrawerTrigger } from "@nwl/surfacekit/components/drawer"
+import {
+  Drawer,
+  DrawerContent,
+  DrawerTrigger,
+} from "@nwl/surfacekit/components/drawer"
 
 const meta: Meta<typeof Drawer> = {
   title: "SurfaceKit/Drawer",

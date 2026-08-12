@@ -6,7 +6,7 @@
 
 **Architecture:** Marketing pages are Server Components that consume catalog metadata and delegate only interactive previews to narrow Client Components. A shared route fixture drives Playwright smoke, accessibility, and visual suites. CI builds once, serves the production Next.js output, executes Storybook and browser evidence, and rejects unsupported claims or generated artifacts.
 
-**Tech Stack:** Next.js 16.3.0, React 19.2.8, SurfaceKit WebShell and enterprise patterns, Playwright 1.62.1 on Chromium/Firefox/WebKit, axe-core 4.12.1, Vitest 4.1.10, Storybook 8.6.18, GitHub Actions, pnpm 11.18.0, Node.js 20+.
+**Tech Stack:** Next.js 16.3.0, React 19.2.8, SurfaceKit WebShell and enterprise patterns, Playwright 1.62.1 on Chromium/Firefox/WebKit, axe-core 4.12.1, Vitest 4.1.10, Storybook 10.5.7, GitHub Actions, pnpm 11.18.0, Node.js 20.19+.
 
 ## Global Constraints
 

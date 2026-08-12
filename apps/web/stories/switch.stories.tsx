@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react"
+import type { Meta, StoryObj } from "@storybook/react-vite"
 import { Suspense, type ComponentProps } from "react"
 import { Switch } from "@nwl/surfacekit/components/switch"
 

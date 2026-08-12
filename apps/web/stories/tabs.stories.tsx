@@ -1,6 +1,11 @@
-import type { Meta, StoryObj } from "@storybook/react"
+import type { Meta, StoryObj } from "@storybook/react-vite"
 import { Suspense, type ComponentProps } from "react"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@nwl/surfacekit/components/tabs"
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@nwl/surfacekit/components/tabs"
 
 const meta: Meta<typeof Tabs> = {
   title: "SurfaceKit/Tabs",

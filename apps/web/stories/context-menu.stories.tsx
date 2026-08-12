@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react"
+import type { Meta, StoryObj } from "@storybook/react-vite"
 import { Suspense, type ComponentProps } from "react"
 import {
   ContextMenu,
@@ -14,7 +14,9 @@ const meta: Meta<typeof ContextMenu> = {
     children: (
       <>
         <ContextMenuTrigger>
-          <button className="rounded-xl border px-3 py-1 text-sm">Right click me</button>
+          <button className="rounded-xl border px-3 py-1 text-sm">
+            Right click me
+          </button>
         </ContextMenuTrigger>
         <ContextMenuContent>
           <ContextMenuItem>Item one</ContextMenuItem>

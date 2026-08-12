@@ -6,7 +6,7 @@
 
 **Architecture:** Tests remain colocated with package implementations and assert public DOM, interaction, focus, and callback contracts. Storybook remains in `apps/web`, with every story independently executable through the Storybook test runner. A repository contract test enforces exact source/test/story equality and rejects the old export-count scaffold.
 
-**Tech Stack:** React 19.2.8, TypeScript 5.9.3, Vitest 4.1.10, React Testing Library 16.3.2, `@testing-library/user-event` 14.6.4, Storybook 8.6.18, Storybook test runner 0.23.0, axe-playwright 2.2.2, http-server 14.1.1, Base UI 1.6.0, Tailwind CSS 4.3.3, pnpm 11.18.0.
+**Tech Stack:** React 19.2.8, TypeScript 5.9.3, Vitest 4.1.10, React Testing Library 16.3.2, `@testing-library/user-event` 14.6.4, Storybook 10.5.7, `@storybook/addon-vitest` 10.5.7, `@vitest/browser-playwright` 4.1.10, Base UI 1.6.0, Tailwind CSS 4.3.3, pnpm 11.18.0, Node.js 20.19+.
 
 ## Global Constraints
 
@@ -29,7 +29,7 @@
 - `tests/contracts/surface-package-coverage.test.ts` — exact source/test/story set comparison and scaffold rejection.
 - `tests/contracts/test-environment.test.tsx` — proves required browser polyfills and provider helpers.
 - `packages/ui/src/test/render.tsx` — minimal shared render helper for direction and tooltip providers.
-- `apps/web/.storybook/test-runner.ts` — runs every story, its play function, console-error checks, and axe.
+- `vitest.storybook.config.ts` — runs every story and its play function in real Chromium with Storybook accessibility checks.
 
 ### Modify
 
@@ -125,13 +125,14 @@ Expected: FAIL on the first scaffolded component test containing `Object.keys(Co
 Add these exact catalog entries and root dev dependencies:
 
 ```yaml
-"@storybook/test": "8.6.18"
-"@storybook/test-runner": "0.23.0"
+"@storybook/addon-a11y": "10.5.7"
+"@storybook/addon-vitest": "10.5.7"
+"@storybook/react-vite": "10.5.7"
+"storybook": "10.5.7"
+"@testing-library/dom": "10.4.1"
 "@testing-library/user-event": "14.6.4"
+"@vitest/browser-playwright": "4.1.10"
 "@vitest/coverage-v8": "4.1.10"
-"axe-playwright": "2.2.2"
-"http-server": "14.1.1"
-"start-server-and-test": "3.0.12"
 ```
 
 Run: `pnpm install`
@@ -175,34 +176,7 @@ Typecheck the installed Vitest configuration before proceeding. If Vitest 4.1.10
 
 - [ ] **Step 5: Configure executable Storybook checks**
 
-Create `apps/web/.storybook/test-runner.ts`:
-
-```ts
-import type { TestRunnerConfig } from "@storybook/test-runner"
-import { checkA11y, injectAxe } from "axe-playwright"
-
-const config: TestRunnerConfig = {
-  async preVisit(page) {
-    await injectAxe(page)
-  },
-  async postVisit(page) {
-    await checkA11y(page, "#storybook-root", {
-      detailedReport: true,
-      detailedReportOptions: { html: true },
-      axeOptions: {
-        runOnly: {
-          type: "tag",
-          values: ["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"],
-        },
-      },
-    })
-  },
-}
-
-export default config
-```
-
-Set `parameters.a11y.context` to `#storybook-root`, retain the same WCAG tags in `apps/web/.storybook/preview.ts`, and enable `features.developmentModeForBuild` in `main.ts` so asynchronous story updates are settled during built-story checks.
+Register `@storybook/addon-vitest` and `@storybook/addon-a11y`, configure `vitest.storybook.config.ts` as an isolated Vitest 4 browser project using Playwright Chromium, set `parameters.a11y.context` to `body`, set `parameters.a11y.test` to `error`, retain the WCAG A/AA tags in `apps/web/.storybook/preview.ts`, and enable `features.developmentModeForBuild` in `main.ts` so asynchronous story updates settle before accessibility assertions.
 
 - [ ] **Step 6: Add stable root scripts**
 
@@ -211,9 +185,7 @@ Set `parameters.a11y.context` to `#storybook-root`, retain the same WCAG tags in
   "test:components": "vitest --run packages/ui/src",
   "test:components:coverage": "vitest --run packages/ui/src --coverage",
   "test:contracts": "vitest --run tests/contracts",
-  "storybook:serve": "http-server storybook-static -a 127.0.0.1 -p 6006 -c-1",
-  "test:storybook:run": "test-storybook --config-dir apps/web/.storybook --url http://127.0.0.1:6006 --ci --failOnConsole",
-  "test:storybook": "pnpm build-storybook && start-test storybook:serve http://127.0.0.1:6006 test:storybook:run"
+  "test:storybook": "vitest --config vitest.storybook.config.ts --run"
 }
 ```
 
@@ -321,7 +293,7 @@ git commit -m "test: stabilize SurfaceKit browser primitives"
 
 **Interfaces:**
 
-- Consumes: `renderSurface`, Testing Library role queries, Storybook CSF3, `@storybook/test`.
+- Consumes: `renderSurface`, Testing Library role queries, Storybook CSF3, `storybook/test`.
 - Produces: behavioral and story coverage for 11 modules and all of their public runtime subcomponents.
 
 - [ ] **Step 1: Replace the 11 shallow suites with the exact contracts below**

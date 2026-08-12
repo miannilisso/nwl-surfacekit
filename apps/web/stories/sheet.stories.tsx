@@ -1,6 +1,10 @@
-import type { Meta, StoryObj } from "@storybook/react"
+import type { Meta, StoryObj } from "@storybook/react-vite"
 import { Suspense, type ComponentProps } from "react"
-import { Sheet, SheetContent, SheetTrigger } from "@nwl/surfacekit/components/sheet"
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+} from "@nwl/surfacekit/components/sheet"
 
 const meta: Meta<typeof Sheet> = {
   title: "SurfaceKit/Sheet",

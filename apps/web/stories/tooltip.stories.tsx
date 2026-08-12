@@ -1,6 +1,10 @@
-import type { Meta, StoryObj } from "@storybook/react"
+import type { Meta, StoryObj } from "@storybook/react-vite"
 import { Suspense, type ComponentProps } from "react"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@nwl/surfacekit/components/tooltip"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@nwl/surfacekit/components/tooltip"
 
 const meta: Meta<typeof Tooltip> = {
   title: "SurfaceKit/Tooltip",
@@ -9,7 +13,9 @@ const meta: Meta<typeof Tooltip> = {
     children: (
       <>
         <TooltipTrigger>
-          <button className="rounded-xl border px-3 py-1 text-sm">Hover me</button>
+          <button className="rounded-xl border px-3 py-1 text-sm">
+            Hover me
+          </button>
         </TooltipTrigger>
         <TooltipContent>Tooltip preview</TooltipContent>
       </>

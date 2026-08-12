@@ -1,6 +1,9 @@
-import type { Meta, StoryObj } from "@storybook/react"
+import type { Meta, StoryObj } from "@storybook/react-vite"
 import { Suspense, type ComponentProps } from "react"
-import { RadioGroup, RadioGroupItem } from "@nwl/surfacekit/components/radio-group"
+import {
+  RadioGroup,
+  RadioGroupItem,
+} from "@nwl/surfacekit/components/radio-group"
 
 const meta: Meta<typeof RadioGroup> = {
   title: "SurfaceKit/Radio Group",

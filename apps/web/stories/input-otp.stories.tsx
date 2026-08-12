@@ -1,4 +1,4 @@
-import type { Meta } from "@storybook/react"
+import type { Meta } from "@storybook/react-vite"
 import { Suspense, type ComponentProps } from "react"
 import { InputOTP } from "@nwl/surfacekit/components/input-otp"
 

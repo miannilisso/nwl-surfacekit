@@ -1,11 +1,11 @@
 import "@nwl/surfacekit/globals.css"
-import type { Preview } from "@storybook/react"
+import type { Preview } from "@storybook/react-vite"
 
 const preview: Preview = {
   parameters: {
     controls: { expanded: true },
     a11y: {
-      context: "#storybook-root",
+      context: "body",
       config: {},
       options: {
         runOnly: {
@@ -13,6 +13,7 @@ const preview: Preview = {
           values: ["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"],
         },
       },
+      test: "error",
     },
   },
 }
