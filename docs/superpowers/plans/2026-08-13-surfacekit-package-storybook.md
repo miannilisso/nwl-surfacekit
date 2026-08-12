@@ -6,7 +6,7 @@
 
 **Architecture:** Tests remain colocated with package implementations and assert public DOM, interaction, focus, and callback contracts. Storybook remains in `apps/web`, with every story independently executable through the Storybook test runner. A repository contract test enforces exact source/test/story equality and rejects the old export-count scaffold.
 
-**Tech Stack:** React 19.2.8, TypeScript 5.9.3, Vitest 4.1.10, React Testing Library 16.3.2, `@testing-library/user-event` 14.6.4, Storybook 8.6.18, Storybook test runner 0.23.0, axe-playwright 2.2.2, Base UI 1.6.0, Tailwind CSS 4.3.3, pnpm 11.18.0.
+**Tech Stack:** React 19.2.8, TypeScript 5.9.3, Vitest 4.1.10, React Testing Library 16.3.2, `@testing-library/user-event` 14.6.4, Storybook 8.6.18, Storybook test runner 0.23.0, axe-playwright 2.2.2, http-server 14.1.1, Base UI 1.6.0, Tailwind CSS 4.3.3, pnpm 11.18.0.
 
 ## Global Constraints
 
@@ -130,6 +130,7 @@ Add these exact catalog entries and root dev dependencies:
 "@testing-library/user-event": "14.6.4"
 "@vitest/coverage-v8": "4.1.10"
 "axe-playwright": "2.2.2"
+"http-server": "14.1.1"
 "start-server-and-test": "3.0.12"
 ```
 
@@ -210,8 +211,9 @@ Set `parameters.a11y.context` to `#storybook-root`, retain the same WCAG tags in
   "test:components": "vitest --run packages/ui/src",
   "test:components:coverage": "vitest --run packages/ui/src --coverage",
   "test:contracts": "vitest --run tests/contracts",
+  "storybook:serve": "http-server storybook-static -a 127.0.0.1 -p 6006 -c-1",
   "test:storybook:run": "test-storybook --config-dir apps/web/.storybook --url http://127.0.0.1:6006 --ci --failOnConsole",
-  "test:storybook": "start-test storybook http://127.0.0.1:6006 test:storybook:run"
+  "test:storybook": "pnpm build-storybook && start-test storybook:serve http://127.0.0.1:6006 test:storybook:run"
 }
 ```
 
@@ -898,6 +900,7 @@ type StepUpDialogAdditions = {
 
 type DataTableToolbarAdditions = {
   searchValue?: string
+  searchLabel?: string
   onSearchValueChange?: (value: string) => void
   onCreate?: () => void
   busy?: boolean
@@ -969,7 +972,7 @@ Expected: PASS at 90/90/90/85 global and 75/75/75/70 per-file floors. If a thres
 
 - [ ] **Step 3: Run executable Storybook checks**
 
-Run: `pnpm build-storybook && pnpm test:storybook`
+Run: `pnpm test:storybook`
 
 Expected: every story renders, every play function passes, browser console output is clean, and axe reports no detected WCAG A/AA violations. Fix story fixtures first; change production code only behind a failing package regression test.
 
@@ -991,7 +994,7 @@ Automated accessibility checks detect a subset of WCAG issues and do not replace
 
 - [ ] **Step 5: Run the complete Phase 1 gate**
 
-Run: `pnpm lint && pnpm typecheck && pnpm test:contracts && pnpm test:components:coverage && pnpm build-storybook && pnpm test:storybook`
+Run: `pnpm lint && pnpm typecheck && pnpm test:contracts && pnpm test:components:coverage && pnpm test:storybook`
 
 Expected: exit 0 for every command, zero failed tests, zero coverage-threshold misses, zero story console errors, and zero detected axe violations.
 

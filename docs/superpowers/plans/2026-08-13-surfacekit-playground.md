@@ -632,7 +632,7 @@ To add a SurfaceKit module:
 
 - [ ] **Step 2: Run all Phase 1 and Phase 2 checks**
 
-Run: `pnpm lint && pnpm typecheck && pnpm test:contracts && pnpm test:components:coverage && pnpm build-storybook && pnpm test:storybook && pnpm build && pnpm playwright test tests/e2e/playground.spec.ts`
+Run: `pnpm lint && pnpm typecheck && pnpm test:contracts && pnpm test:components:coverage && pnpm test:storybook && pnpm build && pnpm playwright test tests/e2e/playground.spec.ts`
 
 Expected: every command exits 0. All eight playground routes render across Chromium, Firefox, and WebKit; direct anchors exist for all 70 modules; the declared workflows pass.
 
