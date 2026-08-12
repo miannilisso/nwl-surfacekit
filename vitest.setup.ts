@@ -51,6 +51,7 @@ for (const [name, implementation] of [
   ["setPointerCapture", () => undefined],
   ["releasePointerCapture", () => undefined],
   ["hasPointerCapture", () => false],
+  ["getAnimations", () => []],
 ] as const) {
   if (!(name in Element.prototype)) {
     Object.defineProperty(Element.prototype, name, {
