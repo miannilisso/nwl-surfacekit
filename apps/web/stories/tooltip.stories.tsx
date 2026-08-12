@@ -1,17 +1,26 @@
 import type { Meta, StoryObj } from "@storybook/react"
-import { Suspense, type ComponentType } from "react"
-import * as ComponentModule from "@nwl/surfacekit/components/tooltip"
+import { Suspense, type ComponentProps } from "react"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@nwl/surfacekit/components/tooltip"
 
-const Component = (Object.values(ComponentModule)[0] ?? (() => null)) as ComponentType<Record<string, unknown>>
-
-const meta: Meta<typeof Component> = {
+const meta: Meta<typeof Tooltip> = {
   title: "SurfaceKit/Tooltip",
-  component: Component,
-  args: {},
-  render: (args: Record<string, unknown>) => (
-    <Suspense fallback={null}>
-      <Component {...args} />
-    </Suspense>
+  component: Tooltip,
+  args: {
+    children: (
+      <>
+        <TooltipTrigger>
+          <button className="rounded-xl border px-3 py-1 text-sm">Hover me</button>
+        </TooltipTrigger>
+        <TooltipContent>Tooltip preview</TooltipContent>
+      </>
+    ),
+  },
+  render: (args: ComponentProps<typeof Tooltip>) => (
+    <div className="p-4">
+      <Suspense fallback={null}>
+        <Tooltip {...args} />
+      </Suspense>
+    </div>
   ),
 }
 
@@ -19,4 +28,4 @@ export default meta
 
 type Story = StoryObj<typeof meta>
 
-export const Default: Story = {}
+export const Default = {}

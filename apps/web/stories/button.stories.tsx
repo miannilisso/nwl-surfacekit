@@ -14,7 +14,7 @@ export default meta
 
 type Story = StoryObj<typeof meta>
 
-export const Default: Story = {}
+export const Default = {}
 
 export const Outline: Story = {
   args: {

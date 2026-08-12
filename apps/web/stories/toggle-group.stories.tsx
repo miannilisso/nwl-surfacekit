@@ -1,17 +1,17 @@
 import type { Meta, StoryObj } from "@storybook/react"
-import { Suspense, type ComponentType } from "react"
-import * as ComponentModule from "@nwl/surfacekit/components/toggle-group"
+import { Suspense, type ComponentProps } from "react"
+import { ToggleGroup } from "@nwl/surfacekit/components/toggle-group"
 
-const Component = (Object.values(ComponentModule)[0] ?? (() => null)) as ComponentType<Record<string, unknown>>
-
-const meta: Meta<typeof Component> = {
+const meta: Meta<typeof ToggleGroup> = {
   title: "SurfaceKit/Toggle Group",
-  component: Component,
-  args: {},
-  render: (args: Record<string, unknown>) => (
-    <Suspense fallback={null}>
-      <Component {...args} />
-    </Suspense>
+  component: ToggleGroup,
+  args: { children: "SurfaceKit Component" },
+  render: (args: ComponentProps<typeof ToggleGroup>) => (
+    <div className="p-4">
+      <Suspense fallback={null}>
+        <ToggleGroup {...args} />
+      </Suspense>
+    </div>
   ),
 }
 
@@ -19,4 +19,4 @@ export default meta
 
 type Story = StoryObj<typeof meta>
 
-export const Default: Story = {}
+export const Default = {}

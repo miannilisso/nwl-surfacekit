@@ -1,17 +1,17 @@
 import type { Meta, StoryObj } from "@storybook/react"
-import { Suspense, type ComponentType } from "react"
-import * as ComponentModule from "@nwl/surfacekit/components/navigation-menu"
+import { Suspense, type ComponentProps } from "react"
+import { NavigationMenu } from "@nwl/surfacekit/components/navigation-menu"
 
-const Component = (Object.values(ComponentModule)[0] ?? (() => null)) as ComponentType<Record<string, unknown>>
-
-const meta: Meta<typeof Component> = {
+const meta: Meta<typeof NavigationMenu> = {
   title: "SurfaceKit/Navigation Menu",
-  component: Component,
-  args: {},
-  render: (args: Record<string, unknown>) => (
-    <Suspense fallback={null}>
-      <Component {...args} />
-    </Suspense>
+  component: NavigationMenu,
+  args: { children: "SurfaceKit Component" },
+  render: (args: ComponentProps<typeof NavigationMenu>) => (
+    <div className="p-4">
+      <Suspense fallback={null}>
+        <NavigationMenu {...args} />
+      </Suspense>
+    </div>
   ),
 }
 
@@ -19,4 +19,4 @@ export default meta
 
 type Story = StoryObj<typeof meta>
 
-export const Default: Story = {}
+export const Default = {}

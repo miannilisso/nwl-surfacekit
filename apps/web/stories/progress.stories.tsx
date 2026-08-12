@@ -1,17 +1,17 @@
 import type { Meta, StoryObj } from "@storybook/react"
-import { Suspense, type ComponentType } from "react"
-import * as ComponentModule from "@nwl/surfacekit/components/progress"
+import { Suspense, type ComponentProps } from "react"
+import { Progress } from "@nwl/surfacekit/components/progress"
 
-const Component = (Object.values(ComponentModule)[0] ?? (() => null)) as ComponentType<Record<string, unknown>>
-
-const meta: Meta<typeof Component> = {
+const meta: Meta<typeof Progress> = {
   title: "SurfaceKit/Progress",
-  component: Component,
-  args: {},
-  render: (args: Record<string, unknown>) => (
-    <Suspense fallback={null}>
-      <Component {...args} />
-    </Suspense>
+  component: Progress,
+  args: { value: 62 },
+  render: (args: ComponentProps<typeof Progress>) => (
+    <div className="p-4">
+      <Suspense fallback={null}>
+        <Progress {...args} />
+      </Suspense>
+    </div>
   ),
 }
 
@@ -19,4 +19,4 @@ export default meta
 
 type Story = StoryObj<typeof meta>
 
-export const Default: Story = {}
+export const Default = {}

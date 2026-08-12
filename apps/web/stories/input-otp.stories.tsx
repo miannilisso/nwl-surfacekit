@@ -1,22 +1,20 @@
-import type { Meta, StoryObj } from "@storybook/react"
-import { Suspense, type ComponentType } from "react"
-import * as ComponentModule from "@nwl/surfacekit/components/input-otp"
+import type { Meta } from "@storybook/react"
+import { Suspense, type ComponentProps } from "react"
+import { InputOTP } from "@nwl/surfacekit/components/input-otp"
 
-const Component = (Object.values(ComponentModule)[0] ?? (() => null)) as ComponentType<Record<string, unknown>>
-
-const meta: Meta<typeof Component> = {
+const meta: Meta<typeof InputOTP> = {
   title: "SurfaceKit/Input Otp",
-  component: Component,
-  args: {},
-  render: (args: Record<string, unknown>) => (
-    <Suspense fallback={null}>
-      <Component {...args} />
-    </Suspense>
+  component: InputOTP,
+  args: { defaultValue: ["1", "2", "3", "4"] },
+  render: (args: ComponentProps<typeof InputOTP>) => (
+    <div className="p-4">
+      <Suspense fallback={null}>
+        <InputOTP {...args} />
+      </Suspense>
+    </div>
   ),
 }
 
 export default meta
 
-type Story = StoryObj<typeof meta>
-
-export const Default: Story = {}
+export const Default = {}

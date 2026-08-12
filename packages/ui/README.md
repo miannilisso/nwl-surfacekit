@@ -34,11 +34,18 @@ Component styles follow shadcn source conventions with Tailwind CSS v4 tokens. I
 
 ## Patterns
 
-The package currently exports three shell patterns:
+The package currently exports enterprise-ready layout and utility patterns:
 
 - `AppShell`, `AppTopbar`, and `AppSidebar` for authenticated product surfaces.
 - `AuthShell` and `AuthPanel` for sign-in and account access layouts.
 - `WebShell`, `WebShellHeader`, `WebShellFooter`, and `WebHero` for marketing/public pages.
+- `PermissionGate` for permission-required workflows.
+- `StepUpDialog` for second-factor and verification prompts.
+- `ErrorSummary` for validation and system error reporting.
+- `ResourceStatus` for live resource and capacity dashboards.
+- `DataTableToolbar` for table search/action toolbars.
+- `ConfirmDangerAction` for destructive action confirmation.
+- `IncidentBanner` for service-impact and outage notifications.
 
 Each pattern has a colocated Vitest test and a Storybook story under `apps/web/stories`.
 
@@ -112,6 +119,13 @@ Each pattern has a colocated Vitest test and a Storybook story under `apps/web/s
 - app-shell
 - auth-shell
 - web-shell
+- permission-gate
+- step-up-dialog
+- error-summary
+- resource-status
+- data-table-toolbar
+- confirm-danger-action
+- incident-banner
 
 ## Example usage
 

@@ -1,17 +1,28 @@
 import type { Meta, StoryObj } from "@storybook/react"
-import { Suspense, type ComponentType } from "react"
-import * as ComponentModule from "@nwl/surfacekit/components/collapsible"
+import { Suspense, type ComponentProps } from "react"
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@nwl/surfacekit/components/collapsible"
 
-const Component = (Object.values(ComponentModule)[0] ?? (() => null)) as ComponentType<Record<string, unknown>>
-
-const meta: Meta<typeof Component> = {
+const meta: Meta<typeof Collapsible> = {
   title: "SurfaceKit/Collapsible",
-  component: Component,
-  args: {},
-  render: (args: Record<string, unknown>) => (
-    <Suspense fallback={null}>
-      <Component {...args} />
-    </Suspense>
+  component: Collapsible,
+  args: {
+    children: (
+      <>
+        <CollapsibleTrigger>Toggle content</CollapsibleTrigger>
+        <CollapsibleContent>Collapsible content preview.</CollapsibleContent>
+      </>
+    ),
+  },
+  render: (args: ComponentProps<typeof Collapsible>) => (
+    <div className="p-4">
+      <Suspense fallback={null}>
+        <Collapsible {...args} />
+      </Suspense>
+    </div>
   ),
 }
 
@@ -19,4 +30,4 @@ export default meta
 
 type Story = StoryObj<typeof meta>
 
-export const Default: Story = {}
+export const Default = {}

@@ -26,6 +26,13 @@ Use shell patterns for layout and page scaffolding:
 import { AppShell, AppTopbar, AppSidebar } from "@nwl/surfacekit/patterns/app-shell"
 import { AuthShell, AuthPanel } from "@nwl/surfacekit/patterns/auth-shell"
 import { WebShell, WebShellHeader, WebShellFooter, WebHero } from "@nwl/surfacekit/patterns/web-shell"
+import { PermissionGate } from "@nwl/surfacekit/patterns/permission-gate"
+import { StepUpDialog } from "@nwl/surfacekit/patterns/step-up-dialog"
+import { ErrorSummary } from "@nwl/surfacekit/patterns/error-summary"
+import { ResourceStatus } from "@nwl/surfacekit/patterns/resource-status"
+import { DataTableToolbar } from "@nwl/surfacekit/patterns/data-table-toolbar"
+import { ConfirmDangerAction } from "@nwl/surfacekit/patterns/confirm-danger-action"
+import { IncidentBanner } from "@nwl/surfacekit/patterns/incident-banner"
 ```
 
 ## Example

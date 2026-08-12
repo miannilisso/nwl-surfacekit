@@ -1,17 +1,21 @@
 import type { Meta, StoryObj } from "@storybook/react"
-import { Suspense, type ComponentType } from "react"
-import * as ComponentModule from "@nwl/surfacekit/components/message-scroller"
+import { Suspense, type ComponentProps } from "react"
+import { MessageScroller } from "@nwl/surfacekit/components/message-scroller"
 
-const Component = (Object.values(ComponentModule)[0] ?? (() => null)) as ComponentType<Record<string, unknown>>
-
-const meta: Meta<typeof Component> = {
+const meta: Meta<typeof MessageScroller> = {
   title: "SurfaceKit/Message Scroller",
-  component: Component,
-  args: {},
-  render: (args: Record<string, unknown>) => (
-    <Suspense fallback={null}>
-      <Component {...args} />
-    </Suspense>
+  component: MessageScroller,
+  args: {
+    children: (
+      <div className="h-36 w-full bg-muted/30 p-4">Scroll content preview</div>
+    ),
+  },
+  render: (args: ComponentProps<typeof MessageScroller>) => (
+    <div className="p-4">
+      <Suspense fallback={null}>
+        <MessageScroller {...args} />
+      </Suspense>
+    </div>
   ),
 }
 
@@ -19,4 +23,4 @@ export default meta
 
 type Story = StoryObj<typeof meta>
 
-export const Default: Story = {}
+export const Default = {}

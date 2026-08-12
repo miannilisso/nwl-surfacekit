@@ -1,17 +1,25 @@
 import type { Meta, StoryObj } from "@storybook/react"
-import { Suspense, type ComponentType } from "react"
-import * as ComponentModule from "@nwl/surfacekit/components/sheet"
+import { Suspense, type ComponentProps } from "react"
+import { Sheet, SheetContent, SheetTrigger } from "@nwl/surfacekit/components/sheet"
 
-const Component = (Object.values(ComponentModule)[0] ?? (() => null)) as ComponentType<Record<string, unknown>>
-
-const meta: Meta<typeof Component> = {
+const meta: Meta<typeof Sheet> = {
   title: "SurfaceKit/Sheet",
-  component: Component,
-  args: {},
-  render: (args: Record<string, unknown>) => (
-    <Suspense fallback={null}>
-      <Component {...args} />
-    </Suspense>
+  component: Sheet,
+  args: {
+    defaultOpen: true,
+    children: (
+      <>
+        <SheetTrigger>Open sheet</SheetTrigger>
+        <SheetContent>Sheet content preview.</SheetContent>
+      </>
+    ),
+  },
+  render: (args: ComponentProps<typeof Sheet>) => (
+    <div className="p-4">
+      <Suspense fallback={null}>
+        <Sheet {...args} />
+      </Suspense>
+    </div>
   ),
 }
 
@@ -19,4 +27,4 @@ export default meta
 
 type Story = StoryObj<typeof meta>
 
-export const Default: Story = {}
+export const Default = {}

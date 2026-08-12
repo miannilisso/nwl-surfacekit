@@ -1,17 +1,35 @@
 import type { Meta, StoryObj } from "@storybook/react"
-import { Suspense, type ComponentType } from "react"
-import * as ComponentModule from "@nwl/surfacekit/components/select"
+import { Suspense, type ComponentProps } from "react"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@nwl/surfacekit/components/select"
 
-const Component = (Object.values(ComponentModule)[0] ?? (() => null)) as ComponentType<Record<string, unknown>>
-
-const meta: Meta<typeof Component> = {
+const meta: Meta<typeof Select> = {
   title: "SurfaceKit/Select",
-  component: Component,
-  args: {},
-  render: (args: Record<string, unknown>) => (
-    <Suspense fallback={null}>
-      <Component {...args} />
-    </Suspense>
+  component: Select,
+  args: {
+    children: (
+      <>
+        <SelectTrigger>
+          <SelectValue placeholder="Choose an option" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="one">One</SelectItem>
+          <SelectItem value="two">Two</SelectItem>
+        </SelectContent>
+      </>
+    ),
+  },
+  render: (args: ComponentProps<typeof Select>) => (
+    <div className="p-4">
+      <Suspense fallback={null}>
+        <Select {...args} />
+      </Suspense>
+    </div>
   ),
 }
 
@@ -19,4 +37,4 @@ export default meta
 
 type Story = StoryObj<typeof meta>
 
-export const Default: Story = {}
+export const Default = {}

@@ -1,17 +1,34 @@
 import type { Meta, StoryObj } from "@storybook/react"
-import { Suspense, type ComponentType } from "react"
-import * as ComponentModule from "@nwl/surfacekit/components/dropdown-menu"
+import { Suspense, type ComponentProps } from "react"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@nwl/surfacekit/components/dropdown-menu"
 
-const Component = (Object.values(ComponentModule)[0] ?? (() => null)) as ComponentType<Record<string, unknown>>
-
-const meta: Meta<typeof Component> = {
+const meta: Meta<typeof DropdownMenu> = {
   title: "SurfaceKit/Dropdown Menu",
-  component: Component,
-  args: {},
-  render: (args: Record<string, unknown>) => (
-    <Suspense fallback={null}>
-      <Component {...args} />
-    </Suspense>
+  component: DropdownMenu,
+  args: {
+    children: (
+      <>
+        <DropdownMenuTrigger>
+          <button className="rounded-xl border px-3 py-1 text-sm">Open</button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <DropdownMenuItem>First</DropdownMenuItem>
+          <DropdownMenuItem>Second</DropdownMenuItem>
+        </DropdownMenuContent>
+      </>
+    ),
+  },
+  render: (args: ComponentProps<typeof DropdownMenu>) => (
+    <div className="p-4">
+      <Suspense fallback={null}>
+        <DropdownMenu {...args} />
+      </Suspense>
+    </div>
   ),
 }
 
@@ -19,4 +36,4 @@ export default meta
 
 type Story = StoryObj<typeof meta>
 
-export const Default: Story = {}
+export const Default = {}

@@ -1,17 +1,35 @@
 import type { Meta, StoryObj } from "@storybook/react"
-import { Suspense, type ComponentType } from "react"
-import * as ComponentModule from "@nwl/surfacekit/components/popover"
+import { Suspense, type ComponentProps } from "react"
+import {
+  Popover,
+  PopoverContent,
+  PopoverDescription,
+  PopoverTrigger,
+  PopoverTitle,
+} from "@nwl/surfacekit/components/popover"
 
-const Component = (Object.values(ComponentModule)[0] ?? (() => null)) as ComponentType<Record<string, unknown>>
-
-const meta: Meta<typeof Component> = {
+const meta: Meta<typeof Popover> = {
   title: "SurfaceKit/Popover",
-  component: Component,
-  args: {},
-  render: (args: Record<string, unknown>) => (
-    <Suspense fallback={null}>
-      <Component {...args} />
-    </Suspense>
+  component: Popover,
+  args: {
+    children: (
+      <>
+        <PopoverTrigger>
+          <button className="rounded-xl border px-3 py-1 text-sm">Show</button>
+        </PopoverTrigger>
+        <PopoverContent>
+          <PopoverTitle>Popover title</PopoverTitle>
+          <PopoverDescription>Popover description text.</PopoverDescription>
+        </PopoverContent>
+      </>
+    ),
+  },
+  render: (args: ComponentProps<typeof Popover>) => (
+    <div className="p-4">
+      <Suspense fallback={null}>
+        <Popover {...args} />
+      </Suspense>
+    </div>
   ),
 }
 
@@ -19,4 +37,4 @@ export default meta
 
 type Story = StoryObj<typeof meta>
 
-export const Default: Story = {}
+export const Default = {}

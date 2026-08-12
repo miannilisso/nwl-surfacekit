@@ -1,17 +1,32 @@
 import type { Meta, StoryObj } from "@storybook/react"
-import { Suspense, type ComponentType } from "react"
-import * as ComponentModule from "@nwl/surfacekit/components/combobox"
+import { Suspense, type ComponentProps } from "react"
+import {
+  Combobox,
+  ComboboxContent,
+  ComboboxInput,
+  ComboboxItem,
+} from "@nwl/surfacekit/components/combobox"
 
-const Component = (Object.values(ComponentModule)[0] ?? (() => null)) as ComponentType<Record<string, unknown>>
-
-const meta: Meta<typeof Component> = {
+const meta: Meta<typeof Combobox> = {
   title: "SurfaceKit/Combobox",
-  component: Component,
-  args: {},
-  render: (args: Record<string, unknown>) => (
-    <Suspense fallback={null}>
-      <Component {...args} />
-    </Suspense>
+  component: Combobox,
+  args: {
+    children: (
+      <>
+        <ComboboxInput placeholder="Search..." />
+        <ComboboxContent>
+          <ComboboxItem value="apple">Apple</ComboboxItem>
+          <ComboboxItem value="banana">Banana</ComboboxItem>
+        </ComboboxContent>
+      </>
+    ),
+  },
+  render: (args: ComponentProps<typeof Combobox>) => (
+    <div className="p-4">
+      <Suspense fallback={null}>
+        <Combobox {...args} />
+      </Suspense>
+    </div>
   ),
 }
 
@@ -19,4 +34,4 @@ export default meta
 
 type Story = StoryObj<typeof meta>
 
-export const Default: Story = {}
+export const Default = {}

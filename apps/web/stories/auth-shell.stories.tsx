@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react"
 
 import { Button } from "@nwl/surfacekit/components/button"
 import { AuthPanel, AuthShell } from "@nwl/surfacekit/patterns/auth-shell"
+import { ErrorSummary } from "@nwl/surfacekit/patterns/error-summary"
 
 const meta = {
   title: "SurfaceKit/Patterns/AuthShell",
@@ -19,9 +20,21 @@ export const Default: Story = {
   },
   render: () => (
     <AuthShell title="Welcome back" subtitle="Sign in to continue">
-      <AuthPanel title="Secure access" subtitle="Use your work account to continue">
+      <AuthPanel
+        title="Secure access"
+        subtitle="Use your work account to continue"
+      >
+        <ErrorSummary
+          title="Access issue"
+          messages={[
+            "Your session expired",
+            "Two-factor authentication is required",
+          ]}
+        />
         <Button className="w-full">Continue with SSO</Button>
-        <Button className="w-full" variant="outline">Use passkey</Button>
+        <Button className="w-full" variant="outline">
+          Use passkey
+        </Button>
       </AuthPanel>
     </AuthShell>
   ),

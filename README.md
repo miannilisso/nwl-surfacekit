@@ -107,6 +107,13 @@ The shared package exports UI components and patterns from `@nwl/surfacekit`:
 - app-shell
 - auth-shell
 - web-shell
+- permission-gate
+- step-up-dialog
+- error-summary
+- resource-status
+- data-table-toolbar
+- confirm-danger-action
+- incident-banner
 
 ### Example usage
 

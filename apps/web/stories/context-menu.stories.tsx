@@ -1,17 +1,34 @@
 import type { Meta, StoryObj } from "@storybook/react"
-import { Suspense, type ComponentType } from "react"
-import * as ComponentModule from "@nwl/surfacekit/components/context-menu"
+import { Suspense, type ComponentProps } from "react"
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from "@nwl/surfacekit/components/context-menu"
 
-const Component = (Object.values(ComponentModule)[0] ?? (() => null)) as ComponentType<Record<string, unknown>>
-
-const meta: Meta<typeof Component> = {
+const meta: Meta<typeof ContextMenu> = {
   title: "SurfaceKit/Context Menu",
-  component: Component,
-  args: {},
-  render: (args: Record<string, unknown>) => (
-    <Suspense fallback={null}>
-      <Component {...args} />
-    </Suspense>
+  component: ContextMenu,
+  args: {
+    children: (
+      <>
+        <ContextMenuTrigger>
+          <button className="rounded-xl border px-3 py-1 text-sm">Right click me</button>
+        </ContextMenuTrigger>
+        <ContextMenuContent>
+          <ContextMenuItem>Item one</ContextMenuItem>
+          <ContextMenuItem>Item two</ContextMenuItem>
+        </ContextMenuContent>
+      </>
+    ),
+  },
+  render: (args: ComponentProps<typeof ContextMenu>) => (
+    <div className="p-4">
+      <Suspense fallback={null}>
+        <ContextMenu {...args} />
+      </Suspense>
+    </div>
   ),
 }
 
@@ -19,4 +36,4 @@ export default meta
 
 type Story = StoryObj<typeof meta>
 
-export const Default: Story = {}
+export const Default = {}
