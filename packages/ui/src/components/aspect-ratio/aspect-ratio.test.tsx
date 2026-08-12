@@ -1,8 +1,21 @@
-import * as ComponentModule from "./aspect-ratio"
+import { render, screen } from "@testing-library/react"
 import { describe, expect, it } from "vitest"
 
-describe("Aspect Ratio", () => {
-  it("exports a component module", () => {
-    expect(Object.keys(ComponentModule).length).toBeGreaterThan(0)
+import { AspectRatio } from "./aspect-ratio"
+
+describe("AspectRatio", () => {
+  it("preserves its child and exposes the requested ratio to CSS", () => {
+    render(
+      <AspectRatio ratio={16 / 9} className="preview-frame">
+        <span>Preview</span>
+      </AspectRatio>
+    )
+
+    const ratio = screen.getByText("Preview").parentElement
+    expect(ratio).toHaveAttribute("data-slot", "aspect-ratio")
+    expect(ratio).toHaveClass("aspect-(--ratio)", "preview-frame")
+    expect((ratio as HTMLElement).style.getPropertyValue("--ratio")).toBe(
+      String(16 / 9)
+    )
   })
 })

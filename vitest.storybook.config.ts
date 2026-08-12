@@ -27,7 +27,7 @@ export default defineConfig({
           ],
         },
         optimizeDeps: {
-          include: ["@testing-library/dom"],
+          include: ["@testing-library/dom", "storybook/test"],
         },
         plugins: [
           storybookTest({
