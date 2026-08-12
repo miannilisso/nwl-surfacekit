@@ -1,4 +1,5 @@
 import { readdirSync } from "node:fs"
+import path from "node:path"
 import { defineConfig } from "vitest/config"
 
 const surfaceFileThresholds = Object.fromEntries(
@@ -21,6 +22,11 @@ const surfaceFileThresholds = Object.fromEntries(
 )
 
 export default defineConfig({
+  resolve: {
+    alias: {
+      "@nwl/surfacekit": path.resolve(process.cwd(), "packages/ui/src"),
+    },
+  },
   test: {
     coverage: {
       provider: "v8",
