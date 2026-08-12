@@ -13,9 +13,12 @@ catalog:
   "@storybook/addon-essentials": "8.6.18"
   "@storybook/react": "8.6.18"
   "@storybook/react-vite": "8.6.18"
+  "@storybook/test": "8.6.18"
+  "@storybook/test-runner": "0.23.0"
   "@tailwindcss/postcss": "4.3.3"
   "@testing-library/jest-dom": "7.0.0"
   "@testing-library/react": "16.3.2"
+  "@testing-library/user-event": "14.6.4"
   "@turbo/gen": "2.10.8"
   "@types/node": "26.1.2"
   "@types/react": "19.2.18"
@@ -23,6 +26,8 @@ catalog:
   "@typescript-eslint/eslint-plugin": "8.66.0"
   "@typescript-eslint/parser": "8.66.0"
   "@vitejs/plugin-react": "4.7.0"
+  "@vitest/coverage-v8": "4.1.10"
+  "axe-playwright": "2.2.2"
   "class-variance-authority": "0.7.1"
   "clsx": "2.1.1"
   "cmdk": "1.1.1"
@@ -35,6 +40,7 @@ catalog:
   "eslint-plugin-react-hooks": "7.1.1"
   "eslint-plugin-turbo": "2.10.8"
   "globals": "17.9.0"
+  "http-server": "14.1.1"
   "input-otp": "1.4.2"
   "jsdom": "30.0.1"
   "lucide-react": "1.28.0"
@@ -49,6 +55,7 @@ catalog:
   "recharts": "3.10.1"
   "shadcn": "4.16.1"
   "storybook": "8.6.18"
+  "start-server-and-test": "3.0.12"
   "tailwind-merge": "3.6.0"
   "tailwindcss": "4.3.3"
   "turbo": "2.10.8"
@@ -65,31 +72,33 @@ allowBuilds:
   msw: false
   esbuild: true
   core-js-pure: false
+  "@swc/core": true
 
 minimumReleaseAgeExclude:
   - lucide-react@1.28.0
-  - '@playwright/test@1.62.1'
+  - "@playwright/test@1.62.1"
   - playwright-core@1.62.1
   - playwright@1.62.1
-  - '@next/env@16.3.0'
-  - '@next/eslint-plugin-next@16.3.0'
-  - '@next/swc-darwin-arm64@16.3.0'
-  - '@next/swc-darwin-x64@16.3.0'
-  - '@next/swc-linux-arm64-gnu@16.3.0'
-  - '@next/swc-linux-arm64-musl@16.3.0'
-  - '@next/swc-linux-x64-gnu@16.3.0'
-  - '@next/swc-linux-x64-musl@16.3.0'
-  - '@next/swc-win32-arm64-msvc@16.3.0'
-  - '@next/swc-win32-x64-msvc@16.3.0'
-  - '@typescript-eslint/eslint-plugin@8.66.0'
-  - '@typescript-eslint/parser@8.66.0'
-  - '@typescript-eslint/project-service@8.66.0'
-  - '@typescript-eslint/scope-manager@8.66.0'
-  - '@typescript-eslint/tsconfig-utils@8.66.0'
-  - '@typescript-eslint/type-utils@8.66.0'
-  - '@typescript-eslint/types@8.66.0'
-  - '@typescript-eslint/typescript-estree@8.66.0'
-  - '@typescript-eslint/utils@8.66.0'
-  - '@typescript-eslint/visitor-keys@8.66.0'
+  - "@next/env@16.3.0"
+  - "@next/eslint-plugin-next@16.3.0"
+  - "@next/swc-darwin-arm64@16.3.0"
+  - "@next/swc-darwin-x64@16.3.0"
+  - "@next/swc-linux-arm64-gnu@16.3.0"
+  - "@next/swc-linux-arm64-musl@16.3.0"
+  - "@next/swc-linux-x64-gnu@16.3.0"
+  - "@next/swc-linux-x64-musl@16.3.0"
+  - "@next/swc-win32-arm64-msvc@16.3.0"
+  - "@next/swc-win32-x64-msvc@16.3.0"
+  - "@typescript-eslint/eslint-plugin@8.66.0"
+  - "@typescript-eslint/parser@8.66.0"
+  - "@typescript-eslint/project-service@8.66.0"
+  - "@typescript-eslint/scope-manager@8.66.0"
+  - "@typescript-eslint/tsconfig-utils@8.66.0"
+  - "@typescript-eslint/type-utils@8.66.0"
+  - "@typescript-eslint/types@8.66.0"
+  - "@typescript-eslint/typescript-estree@8.66.0"
+  - "@typescript-eslint/utils@8.66.0"
+  - "@typescript-eslint/visitor-keys@8.66.0"
   - next@16.3.0
   - typescript-eslint@8.66.0
+  - "@testing-library/user-event@14.6.4"
