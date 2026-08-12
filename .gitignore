@@ -31,6 +31,7 @@ dist
 # project tooling / generated outputs
 .code-review-graph/
 storybook-static/
+.worktrees/
 
 # misc
 .DS_Store
