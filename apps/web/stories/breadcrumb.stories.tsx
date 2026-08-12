@@ -1,22 +1,73 @@
 import type { Meta, StoryObj } from "@storybook/react-vite"
-import { Suspense, type ComponentProps } from "react"
-import { Breadcrumb } from "@nwl/surfacekit/components/breadcrumb"
 
-const meta: Meta<typeof Breadcrumb> = {
-  title: "SurfaceKit/Breadcrumb",
-  component: Breadcrumb,
-  args: { children: "SurfaceKit Component" },
-  render: (args: ComponentProps<typeof Breadcrumb>) => (
-    <div className="p-4">
-      <Suspense fallback={null}>
-        <Breadcrumb {...args} />
-      </Suspense>
-    </div>
-  ),
+import {
+  Breadcrumb,
+  BreadcrumbEllipsis,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@nwl/surfacekit/components/breadcrumb"
+
+function BreadcrumbExample({
+  collapsed = false,
+  long = false,
+}: {
+  collapsed?: boolean
+  long?: boolean
+}) {
+  return (
+    <Breadcrumb>
+      <BreadcrumbList>
+        <BreadcrumbItem>
+          <BreadcrumbLink href="#home">Home</BreadcrumbLink>
+        </BreadcrumbItem>
+        <BreadcrumbSeparator />
+        {collapsed && (
+          <>
+            <BreadcrumbItem>
+              <BreadcrumbEllipsis />
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+          </>
+        )}
+        {long && (
+          <>
+            <BreadcrumbItem>
+              <BreadcrumbLink href="#organization">Organization</BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbLink href="#security">Security</BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+          </>
+        )}
+        <BreadcrumbItem>
+          <BreadcrumbPage>Access policies</BreadcrumbPage>
+        </BreadcrumbItem>
+      </BreadcrumbList>
+    </Breadcrumb>
+  )
 }
 
+const meta = {
+  title: "SurfaceKit/Components/Navigation & Disclosure/Breadcrumb",
+  component: BreadcrumbExample,
+  tags: ["autodocs"],
+  parameters: {
+    layout: "centered",
+    docs: {
+      description: {
+        component:
+          "Communicates the current page's position in a navigational hierarchy with accessible landmarks and current-page state.",
+      },
+    },
+  },
+} satisfies Meta<typeof BreadcrumbExample>
 export default meta
-
 type Story = StoryObj<typeof meta>
-
-export const Default = {}
+export const Default: Story = {}
+export const Collapsed: Story = { args: { collapsed: true } }
+export const LongPath: Story = { args: { long: true } }

@@ -1,8 +1,12 @@
 import * as React from "react"
 
 import { cn } from "@nwl/surfacekit/lib/utils"
-import { Button } from "@nwl/surfacekit/components/button"
-import { ChevronLeftIcon, ChevronRightIcon, MoreHorizontalIcon } from "lucide-react"
+import { buttonVariants } from "@nwl/surfacekit/components/button"
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  MoreHorizontalIcon,
+} from "lucide-react"
 
 function Pagination({ className, ...props }: React.ComponentProps<"nav">) {
   return (
@@ -35,8 +39,9 @@ function PaginationItem({ ...props }: React.ComponentProps<"li">) {
 
 type PaginationLinkProps = {
   isActive?: boolean
-} & Pick<React.ComponentProps<typeof Button>, "size"> &
-  React.ComponentProps<"a">
+} & Pick<React.ComponentProps<"a">, "aria-label"> & {
+    size?: "default" | "icon"
+  } & React.ComponentProps<"a">
 
 function PaginationLink({
   className,
@@ -45,19 +50,15 @@ function PaginationLink({
   ...props
 }: PaginationLinkProps) {
   return (
-    <Button
-      variant={isActive ? "outline" : "ghost"}
-      size={size}
-      className={cn(className)}
-      nativeButton={false}
-      render={
-        <a
-          aria-current={isActive ? "page" : undefined}
-          data-slot="pagination-link"
-          data-active={isActive}
-          {...props}
-        />
-      }
+    <a
+      aria-current={isActive ? "page" : undefined}
+      data-slot="pagination-link"
+      data-active={isActive}
+      className={cn(
+        buttonVariants({ variant: isActive ? "outline" : "ghost", size }),
+        className
+      )}
+      {...props}
     />
   )
 }
@@ -112,8 +113,7 @@ function PaginationEllipsis({
       )}
       {...props}
     >
-      <MoreHorizontalIcon
-      />
+      <MoreHorizontalIcon />
       <span className="sr-only">More pages</span>
     </span>
   )
