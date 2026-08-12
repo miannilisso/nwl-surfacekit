@@ -109,6 +109,8 @@ A Node-based contract test compares:
 
 The sets must match exactly. Duplicate IDs, stale registrations, missing stories, missing tests, missing demos, and undocumented modules fail CI. The contract also rejects the old placeholder assertion text so it cannot be reintroduced.
 
+The contract is introduced incrementally: Phase 1 enforces equality across source directories, colocated tests, and stories; Phase 2 adds catalog and demo-registration equality when those artifacts are introduced. The final gate always checks all five sets.
+
 ## 6. Component and Pattern Testing
 
 ### 6.1 Test taxonomy
