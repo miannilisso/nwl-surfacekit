@@ -1,7 +1,8 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
-node_modules
+node_modules/
+.pnpm-store/
 .pnp
 .pnp.*
 .yarn/*
@@ -11,9 +12,14 @@ node_modules
 !.yarn/versions
 
 # testing
-coverage
+coverage/
 test-results/
 playwright-report/
+blob-report/
+.vitest/
+.nyc_output/
+*.lcov
+junit*.xml
 *.log
 
 # next.js
@@ -21,17 +27,25 @@ playwright-report/
 out/
 
 # production
-build
-dist
+build/
+dist/
 
 # turbo
-.turbo
 .turbo/
+
+# bundler and tool caches
+.cache/
+.vite/
+.storybook-cache/
+.eslintcache
+.stylelintcache
+vite.config.*.timestamp-*
 
 # project tooling / generated outputs
 .code-review-graph/
 storybook-static/
 .worktrees/
+*.tgz
 
 # misc
 .DS_Store
@@ -45,6 +59,8 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
+!.env.template
 
 # vercel
 .vercel
