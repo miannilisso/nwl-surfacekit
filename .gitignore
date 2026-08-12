@@ -12,6 +12,9 @@ node_modules
 
 # testing
 coverage
+test-results/
+playwright-report/
+*.log
 
 # next.js
 .next/
@@ -23,6 +26,7 @@ dist
 
 # turbo
 .turbo
+.turbo/
 
 # project tooling / generated outputs
 .code-review-graph/

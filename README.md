@@ -9,12 +9,11 @@ apps/
   web/                         # Next.js App Router demo surface
     app/(marketing)/           # Public route family using WebShell
     app/(playground)/          # Component/pattern route family using AppShell
-    stories/                   # Storybook stories for selected package components and patterns
+    stories/                   # Storybook stories for all package components and patterns
 packages/
   ui/                          # Shared SurfaceKit package
-    src/components/button/     # Single button source and tests
-    src/components/card/       # Card source and tests
-    src/patterns/              # AppShell, AuthShell, WebShell and tests
+    src/components/            # 60 components with tests and stories
+    src/patterns/              # 10 patterns with tests and stories
 ```
 
 ## Dependency Management
@@ -29,8 +28,8 @@ When adding a runtime or test dependency, install it with pnpm and keep the cata
 - The deprecated duplicate `packages/ui/src/components/button.tsx` source is removed.
 - shadcn-style component source is kept in `packages/ui`; `apps/web/components.json` points generation aliases back to `@nwl/surfacekit` to avoid app-local duplicates.
 - Base UI primitives are used for interactive primitives. The button uses `@base-ui/react/button` with shadcn-style variants and Base UI's `render` composition API.
-- Component and pattern tests stay next to their source files.
-- All shared UI components now include scaffolded Vitest tests and Storybook stories. `button` and `card` are still the only components with real render assertions and custom story variants.
+- Component and pattern tests stay next to their source files in `.test.tsx` files.
+- **All shared UI components and patterns include Vitest tests and Storybook stories** (100% coverage across 60 components and 10 patterns). Stories are centralized in `apps/web/stories/` for easy discovery and maintenance.
 
 ## Shared UI package usage
 

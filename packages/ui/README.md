@@ -1,22 +1,42 @@
 # `@nwl/surfacekit`
 
-Shared UI package for nwl-surfacekit.
+Shared UI package for nwl-surfacekit. Contains **60 production-ready components** and **10 enterprise patterns**, all with full test coverage and Storybook documentation.
 
 ## Package Surface
 
-- `@nwl/surfacekit/globals.css`
-- `@nwl/surfacekit/components/button`
-- `@nwl/surfacekit/components/card`
-- `@nwl/surfacekit/patterns/app-shell`
-- `@nwl/surfacekit/patterns/auth-shell`
-- `@nwl/surfacekit/patterns/web-shell`
-- `@nwl/surfacekit/lib/utils`
+The package exports components and patterns grouped by category:
+
+- `@nwl/surfacekit/globals.css` — Tailwind CSS v4 token configuration
+- `@nwl/surfacekit/components/<component>` — All UI components (see full list below)
+- `@nwl/surfacekit/patterns/<pattern>` — Layout and utility patterns (see full list below)
+- `@nwl/surfacekit/lib/utils` — Utility helpers
 
 ## Package exports
 
-- Components: `@nwl/surfacekit/components/<component>`
-- Patterns: `@nwl/surfacekit/patterns/<pattern>`
-- Utility helpers: `@nwl/surfacekit/lib/<util>`
+- **Components**: `@nwl/surfacekit/components/<component>` (60 components)
+- **Patterns**: `@nwl/surfacekit/patterns/<pattern>` (10 patterns)
+- **Utilities**: `@nwl/surfacekit/lib/<util>`
+
+## Component List
+
+All 60 components include Vitest tests and Storybook stories:
+
+accordion, alert, alert-dialog, aspect-ratio, attachment, avatar, badge, breadcrumb, bubble, button, button-group, calendar, card, carousel, chart, checkbox, collapsible, combobox, command, context-menu, dialog, direction, drawer, dropdown-menu, empty, field, hover-card, input, input-group, input-otp, item, kbd, label, marker, menubar, message, message-scroller, native-select, navigation-menu, pagination, popover, progress, radio-group, resizable, scroll-area, select, separator, sheet, sidebar, skeleton, slider, spinner, switch, table, tabs, textarea, toast, toggle, toggle-group, tooltip
+
+## Pattern List
+
+All 10 patterns include Vitest tests and Storybook stories:
+
+- `AppShell`, `AppTopbar`, `AppSidebar` — Authenticated product surface layouts
+- `AuthShell`, `AuthPanel` — Sign-in and account access layouts
+- `WebShell`, `WebShellHeader`, `WebShellFooter`, `WebHero` — Marketing and public page layouts
+- `PermissionGate` — Permission-required workflow wrapper
+- `StepUpDialog` — Second-factor and verification prompts
+- `ErrorSummary` — Validation and system error reporting
+- `ResourceStatus` — Live resource and capacity dashboards
+- `DataTableToolbar` — Table search and action toolbars
+- `ConfirmDangerAction` — Destructive action confirmation dialogs
+- `IncidentBanner` — Service-impact and outage notifications
 
 ## Source Conventions
 
