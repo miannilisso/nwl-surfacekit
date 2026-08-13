@@ -4,7 +4,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import * as React from "react"
 
-import { Button } from "@nwl/surfacekit/components/button"
+import { buttonVariants } from "@nwl/surfacekit/components/button"
 import {
   AppShell,
   AppSidebar,
@@ -43,13 +43,13 @@ export function PlaygroundShell({ children }: { children: React.ReactNode }) {
           eyebrow="SurfaceKit"
           title={current?.name ?? "Component catalog"}
           actions={
-            <Button
-              render={<Link href="/playground" aria-label="Browse catalog" />}
-              size="sm"
-              variant="outline"
+            <Link
+              href="/playground"
+              aria-label="Browse catalog"
+              className={buttonVariants({ variant: "outline", size: "sm" })}
             >
               Catalog
-            </Button>
+            </Link>
           }
         />
       }
