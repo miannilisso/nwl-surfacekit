@@ -38,8 +38,10 @@ describe("HoverCard", () => {
       await screen.findByText("Owns production access reviews.")
     ).toBeVisible()
     await user.keyboard("{Escape}")
-    expect(
-      screen.queryByText("Owns production access reviews.")
-    ).not.toBeInTheDocument()
+    await waitFor(() =>
+      expect(
+        screen.queryByText("Owns production access reviews.")
+      ).not.toBeInTheDocument()
+    )
   })
 })

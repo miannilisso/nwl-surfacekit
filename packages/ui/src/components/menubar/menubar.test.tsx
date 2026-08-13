@@ -6,10 +6,15 @@ import {
   Menubar,
   MenubarCheckboxItem,
   MenubarContent,
+  MenubarGroup,
   MenubarItem,
+  MenubarLabel,
   MenubarMenu,
+  MenubarPortal,
   MenubarRadioGroup,
   MenubarRadioItem,
+  MenubarSeparator,
+  MenubarShortcut,
   MenubarSub,
   MenubarSubContent,
   MenubarSubTrigger,
@@ -22,7 +27,13 @@ function Example({ onOpen = vi.fn() }: { onOpen?: () => void }) {
       <MenubarMenu>
         <MenubarTrigger>File</MenubarTrigger>
         <MenubarContent>
-          <MenubarItem onClick={onOpen}>Open</MenubarItem>
+          <MenubarGroup>
+            <MenubarLabel inset>Workspace</MenubarLabel>
+            <MenubarItem onClick={onOpen}>
+              Open<MenubarShortcut>Enter</MenubarShortcut>
+            </MenubarItem>
+          </MenubarGroup>
+          <MenubarSeparator />
           <MenubarItem disabled>Export</MenubarItem>
           <MenubarCheckboxItem checked>Autosave</MenubarCheckboxItem>
           <MenubarRadioGroup value="team">
@@ -35,6 +46,9 @@ function Example({ onOpen = vi.fn() }: { onOpen?: () => void }) {
             </MenubarSubContent>
           </MenubarSub>
         </MenubarContent>
+        <MenubarPortal>
+          <span data-testid="menubar-portal" />
+        </MenubarPortal>
       </MenubarMenu>
     </Menubar>
   )
@@ -56,7 +70,15 @@ describe("Menubar", () => {
       screen.getByRole("menuitemcheckbox", { name: "Autosave" })
     ).toBeChecked()
     expect(screen.getByRole("menuitemradio", { name: "Team" })).toBeChecked()
-    await user.click(screen.getByRole("menuitem", { name: "Open" }))
+    expect(screen.getByText("Workspace")).toHaveAttribute(
+      "data-slot",
+      "menubar-label"
+    )
+    expect(screen.getByText("Enter")).toHaveAttribute(
+      "data-slot",
+      "menubar-shortcut"
+    )
+    await user.click(screen.getByRole("menuitem", { name: /^Open/ }))
     expect(onOpen).toHaveBeenCalledOnce()
   })
 

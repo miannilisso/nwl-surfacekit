@@ -5,9 +5,14 @@ import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuPortal,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuShortcut,
   DropdownMenuSub,
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
@@ -19,7 +24,13 @@ function Example({ onOpen = vi.fn() }: { onOpen?: () => void }) {
     <DropdownMenu>
       <DropdownMenuTrigger>Actions</DropdownMenuTrigger>
       <DropdownMenuContent>
-        <DropdownMenuItem onClick={onOpen}>Open</DropdownMenuItem>
+        <DropdownMenuGroup>
+          <DropdownMenuLabel inset>Workspace</DropdownMenuLabel>
+          <DropdownMenuItem onClick={onOpen}>
+            Open<DropdownMenuShortcut>Enter</DropdownMenuShortcut>
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
         <DropdownMenuItem disabled>Export</DropdownMenuItem>
         <DropdownMenuCheckboxItem checked>Autosave</DropdownMenuCheckboxItem>
         <DropdownMenuRadioGroup value="team">
@@ -32,6 +43,9 @@ function Example({ onOpen = vi.fn() }: { onOpen?: () => void }) {
           </DropdownMenuSubContent>
         </DropdownMenuSub>
       </DropdownMenuContent>
+      <DropdownMenuPortal>
+        <span data-testid="dropdown-menu-portal" />
+      </DropdownMenuPortal>
     </DropdownMenu>
   )
 }
@@ -51,6 +65,14 @@ describe("DropdownMenu", () => {
       screen.getByRole("menuitemcheckbox", { name: "Autosave" })
     ).toBeChecked()
     expect(screen.getByRole("menuitemradio", { name: "Team" })).toBeChecked()
+    expect(screen.getByText("Workspace")).toHaveAttribute(
+      "data-slot",
+      "dropdown-menu-label"
+    )
+    expect(screen.getByText("Enter")).toHaveAttribute(
+      "data-slot",
+      "dropdown-menu-shortcut"
+    )
     await user.keyboard("{Escape}")
     expect(trigger).toHaveFocus()
   })

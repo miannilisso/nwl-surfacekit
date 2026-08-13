@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react"
+import { render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { describe, expect, it } from "vitest"
 import {
@@ -53,6 +53,28 @@ describe("Drawer", () => {
     const trigger = screen.getByRole("button", { name: "Open filters" })
     await user.click(trigger)
     await user.click(await screen.findByRole("button", { name: "Done" }))
-    expect(trigger).toHaveFocus()
+    await waitFor(() => expect(trigger).toHaveFocus())
+  })
+
+  it("supports a non-modal horizontal drawer without a swipe handle", () => {
+    const { container } = render(
+      <Drawer open modal={false} swipeDirection="left">
+        <DrawerContent>
+          <DrawerTitle>Navigation</DrawerTitle>
+          <DrawerDescription>Workspace navigation</DrawerDescription>
+        </DrawerContent>
+      </Drawer>
+    )
+
+    expect(screen.getByRole("dialog", { name: "Navigation" })).toBeVisible()
+    expect(
+      container.ownerDocument.querySelector('[data-slot="drawer-popup"]')
+    ).toHaveAttribute("data-swipe-axis", "x")
+    expect(
+      container.ownerDocument.querySelector('[data-slot="drawer-overlay"]')
+    ).not.toBeInTheDocument()
+    expect(
+      container.ownerDocument.querySelector('[data-slot="drawer-swipe-handle"]')
+    ).not.toBeInTheDocument()
   })
 })

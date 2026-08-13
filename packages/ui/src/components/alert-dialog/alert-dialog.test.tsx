@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react"
+import { render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { describe, expect, it, vi } from "vitest"
 import {
@@ -59,6 +59,6 @@ describe("AlertDialog", () => {
     const trigger = screen.getByRole("button", { name: "Delete workspace" })
     await user.click(trigger)
     await user.click(await screen.findByRole("button", { name: "Cancel" }))
-    expect(trigger).toHaveFocus()
+    await waitFor(() => expect(trigger).toHaveFocus())
   })
 })

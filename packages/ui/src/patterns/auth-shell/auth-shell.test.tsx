@@ -45,4 +45,19 @@ describe("AuthShell", () => {
     )
     expect(screen.getAllByText(message)).toHaveLength(2)
   })
+
+  it("provides the default enterprise access panel without optional subtitles", () => {
+    render(
+      <AuthShell title="Continue">
+        <AuthPanel title="Policy">
+          <p>Managed access</p>
+        </AuthPanel>
+      </AuthShell>
+    )
+
+    expect(screen.getByRole("heading", { name: "Continue" })).toBeVisible()
+    expect(screen.getByRole("heading", { name: "Secure access" })).toBeVisible()
+    expect(screen.getByText("Enterprise-ready")).toBeVisible()
+    expect(screen.getByRole("heading", { name: "Policy" })).toBeVisible()
+  })
 })

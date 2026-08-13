@@ -10,6 +10,7 @@ import {
   FieldGroup,
   FieldLabel,
   FieldLegend,
+  FieldSeparator,
   FieldSet,
   FieldTitle,
 } from "./field"
@@ -77,5 +78,23 @@ describe("Field", () => {
       />
     )
     expect(screen.getAllByRole("listitem")).toHaveLength(2)
+  })
+
+  it("supports separators and explicit or empty error content", () => {
+    const { container } = render(
+      <FieldGroup>
+        <FieldSeparator>Or continue with</FieldSeparator>
+        <FieldSeparator />
+        <FieldError>Service unavailable</FieldError>
+        <FieldError errors={[]} />
+      </FieldGroup>
+    )
+
+    expect(screen.getByText("Or continue with")).toHaveAttribute(
+      "data-slot",
+      "field-separator-content"
+    )
+    expect(screen.getByRole("alert")).toHaveTextContent("Service unavailable")
+    expect(container.querySelectorAll('[data-slot="field-separator"]')).toHaveLength(2)
   })
 })

@@ -5,9 +5,14 @@ import {
   ContextMenu,
   ContextMenuCheckboxItem,
   ContextMenuContent,
+  ContextMenuGroup,
   ContextMenuItem,
+  ContextMenuLabel,
+  ContextMenuPortal,
   ContextMenuRadioGroup,
   ContextMenuRadioItem,
+  ContextMenuSeparator,
+  ContextMenuShortcut,
   ContextMenuSub,
   ContextMenuSubContent,
   ContextMenuSubTrigger,
@@ -21,7 +26,13 @@ function Example({ onOpen = vi.fn() }: { onOpen?: () => void }) {
         Right-click workspace
       </ContextMenuTrigger>
       <ContextMenuContent>
-        <ContextMenuItem onClick={onOpen}>Open</ContextMenuItem>
+        <ContextMenuGroup>
+          <ContextMenuLabel inset>Workspace</ContextMenuLabel>
+          <ContextMenuItem onClick={onOpen}>
+            Open<ContextMenuShortcut>Enter</ContextMenuShortcut>
+          </ContextMenuItem>
+        </ContextMenuGroup>
+        <ContextMenuSeparator />
         <ContextMenuItem disabled>Export</ContextMenuItem>
         <ContextMenuCheckboxItem checked>Autosave</ContextMenuCheckboxItem>
         <ContextMenuRadioGroup value="team">
@@ -34,6 +45,9 @@ function Example({ onOpen = vi.fn() }: { onOpen?: () => void }) {
           </ContextMenuSubContent>
         </ContextMenuSub>
       </ContextMenuContent>
+      <ContextMenuPortal>
+        <span data-testid="context-menu-portal" />
+      </ContextMenuPortal>
     </ContextMenu>
   )
 }
@@ -51,6 +65,14 @@ describe("ContextMenu", () => {
       screen.getByRole("menuitemcheckbox", { name: "Autosave" })
     ).toBeChecked()
     expect(screen.getByRole("menuitemradio", { name: "Team" })).toBeChecked()
+    expect(screen.getByText("Workspace")).toHaveAttribute(
+      "data-slot",
+      "context-menu-label"
+    )
+    expect(screen.getByText("Enter")).toHaveAttribute(
+      "data-slot",
+      "context-menu-shortcut"
+    )
     await user.keyboard("{Escape}")
     expect(trigger).toHaveFocus()
   })
@@ -60,7 +82,7 @@ describe("ContextMenu", () => {
     render(<Example onOpen={onOpen} />)
     const trigger = screen.getByText("Right-click workspace")
     await user.pointer({ target: trigger, keys: "[MouseRight]" })
-    await user.click(screen.getByRole("menuitem", { name: "Open" }))
+    await user.click(screen.getByRole("menuitem", { name: /^Open/ }))
     expect(onOpen).toHaveBeenCalledOnce()
     await user.pointer({ target: trigger, keys: "[MouseRight]" })
     const share = screen.getByRole("menuitem", { name: "Share" })

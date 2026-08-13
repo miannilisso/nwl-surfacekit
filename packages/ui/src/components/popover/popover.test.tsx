@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react"
+import { render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import * as React from "react"
 import { describe, expect, it } from "vitest"
@@ -43,7 +43,7 @@ describe("Popover", () => {
       })
     ).toBeVisible()
     await user.keyboard("{Escape}")
-    expect(trigger).toHaveFocus()
+    await waitFor(() => expect(trigger).toHaveFocus())
   })
   it("supports controlled state and outside dismissal", async () => {
     const user = userEvent.setup()
@@ -56,6 +56,8 @@ describe("Popover", () => {
     await user.click(screen.getByRole("button", { name: "Open filters" }))
     expect(await screen.findByText("Refine the audit log.")).toBeVisible()
     await user.click(screen.getByRole("button", { name: "Outside" }))
-    expect(screen.queryByText("Refine the audit log.")).not.toBeInTheDocument()
+    await waitFor(() =>
+      expect(screen.queryByText("Refine the audit log.")).not.toBeInTheDocument()
+    )
   })
 })
