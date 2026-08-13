@@ -1,0 +1,69 @@
+"use client"
+
+import Link from "next/link"
+import { usePathname } from "next/navigation"
+import * as React from "react"
+
+import { Button } from "@nwl/surfacekit/components/button"
+import {
+  AppShell,
+  AppSidebar,
+  AppTopbar,
+} from "@nwl/surfacekit/patterns/app-shell"
+
+import {
+  getSurfaceCounts,
+  getSurfacesByCategory,
+  surfaceCategories,
+} from "../../lib/surfacekit/catalog"
+
+export function PlaygroundShell({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname()
+  const counts = getSurfaceCounts()
+  const current = surfaceCategories.find(({ route }) => route === pathname)
+  const items = [
+    {
+      label: "Overview",
+      href: "/playground",
+      active: pathname === "/playground",
+      badge: counts.total,
+    },
+    ...surfaceCategories.map((category) => ({
+      label: category.name,
+      href: category.route,
+      active: pathname === category.route,
+      badge: getSurfacesByCategory(category.id).length,
+    })),
+  ]
+
+  return (
+    <AppShell
+      topbar={
+        <AppTopbar
+          eyebrow="SurfaceKit"
+          title={current?.name ?? "Component catalog"}
+          actions={
+            <Button
+              render={<Link href="/playground" aria-label="Browse catalog" />}
+              size="sm"
+              variant="outline"
+            >
+              Catalog
+            </Button>
+          }
+        />
+      }
+      sidebar={
+        <AppSidebar
+          label="Playground"
+          items={items}
+          renderItem={(item, anchorProps) => (
+            <Link {...anchorProps} href={item.href ?? "/playground"} />
+          )}
+        />
+      }
+    >
+      {children}
+    </AppShell>
+  )
+}
