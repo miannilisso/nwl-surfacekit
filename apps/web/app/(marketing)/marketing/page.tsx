@@ -1,273 +1,193 @@
+import type { Metadata } from "next"
+import Link from "next/link"
+import { Badge } from "@nwl/surfacekit/components/badge"
+import { buttonVariants } from "@nwl/surfacekit/components/button"
 import {
   Card,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
-  CardDescription,
 } from "@nwl/surfacekit/components/card"
-import { Button } from "@nwl/surfacekit/components/button"
-import { Badge } from "@nwl/surfacekit/components/badge"
 import {
+  WebHero,
   WebShell,
   WebShellFooter,
   WebShellHeader,
 } from "@nwl/surfacekit/patterns/web-shell"
+
+import { CapabilityExplorer } from "../../../components/marketing/capability-explorer"
 import {
-  ArrowRight,
-  GitBranch,
-  Palette,
-  Zap,
-  Package,
-  AlertCircle,
-} from "lucide-react"
-import Link from "next/link"
+  getSurfaceCounts,
+  getSurfacesByCategory,
+  surfaceCatalog,
+  surfaceCategories,
+} from "../../../lib/surfacekit/catalog"
+
+export const metadata: Metadata = {
+  title: "SurfaceKit capabilities",
+  description:
+    "Review SurfaceKit components, enterprise patterns, testing evidence, and implementation guidance.",
+}
 
 const links = [
   { label: "Home", href: "/" },
   { label: "Playground", href: "/playground" },
 ]
 
-const coreFeatures = [
-  {
-    icon: <Package className="h-6 w-6" />,
-    title: "Composable shells",
-    description:
-      "Pre-built layout patterns for authentication, data tables, and application shells. Mix and match components to create complex UIs.",
-  },
-  {
-    icon: <Palette className="h-6 w-6" />,
-    title: "Tokenized styling",
-    description:
-      "Comprehensive design token system with Tailwind CSS v4. Consistent spacing, colors, typography across all components.",
-  },
-  {
-    icon: <AlertCircle className="h-6 w-6" />,
-    title: "Accessible primitives",
-    description:
-      "Built on Base UI with full ARIA support. Every component meets WCAG 2.1 AA standards for inclusive design.",
-  },
-]
-
-const componentCategories = [
-  {
-    name: "Form Inputs",
-    count: 14,
-    description: "Input, Select, Checkbox, Toggle, Calendar, and more",
-  },
-  {
-    name: "Navigation",
-    count: 5,
-    description: "Breadcrumb, Tabs, Pagination, Menu",
-  },
-  {
-    name: "Dialogs & Overlays",
-    count: 10,
-    description: "Dialog, Sheet, Toast, Popover, Tooltip",
-  },
-  {
-    name: "Data Display",
-    count: 8,
-    description: "Table, List, Card, Badge, Progress",
-  },
-  {
-    name: "Feedback",
-    count: 4,
-    description: "Alert, Spinner, Skeleton, Empty",
-  },
-  {
-    name: "Layout & Utilities",
-    count: 18,
-    description: "Container, Grid, Flex, Spacing primitives",
-  },
-]
-
-const useCases = [
-  {
-    title: "SaaS Applications",
-    description:
-      "Enterprise-ready patterns for dashboards, data management, and user workflows.",
-  },
-  {
-    title: "Internal Tools",
-    description:
-      "Rapid development with pre-built layouts and components optimized for productivity.",
-  },
-  {
-    title: "Marketing Sites",
-    description:
-      "Flexible marketing components and patterns for modern web experiences.",
-  },
-  {
-    title: "Documentation",
-    description:
-      "Built-in patterns for guides, tutorials, and component showcases.",
-  },
-]
-
 export default function MarketingPage() {
+  const counts = getSurfaceCounts()
+  const patterns = getSurfacesByCategory("patterns")
+
   return (
     <WebShell
-      header={<WebShellHeader title="SurfaceKit" links={links} />}
+      header={
+        <WebShellHeader
+          title="SurfaceKit"
+          links={links}
+          cta={
+            <Link
+              href="/playground"
+              className={buttonVariants({ variant: "outline", size: "sm" })}
+            >
+              Playground
+            </Link>
+          }
+        />
+      }
       footer={<WebShellFooter links={links} />}
     >
-      <div className="space-y-16 py-8">
-        {/* Core Features Section */}
-        <section className="mx-auto max-w-6xl px-6">
-          <div className="mb-8">
-            <Badge className="mb-4">Core Features</Badge>
-            <h2 className="mb-2 text-3xl font-bold">
-              Built for modern product development
-            </h2>
-            <p className="text-muted-foreground">
-              Everything you need, nothing you do not. Modular, flexible, and
-              production-ready.
-            </p>
-          </div>
-          <div className="grid gap-6 md:grid-cols-3">
-            {coreFeatures.map((feature, idx) => (
-              <Card
-                key={idx}
-                className="border-border/50 transition-colors hover:border-border"
-              >
-                <CardHeader>
-                  <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                    {feature.icon}
-                  </div>
-                  <CardTitle>{feature.title}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground">
-                    {feature.description}
-                  </p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </section>
+      <WebHero
+        eyebrow="Capabilities"
+        title="Built for modern product development"
+        description={`Explore ${counts.components} components and ${counts.patterns} enterprise patterns with behavioral tests, Storybook examples, and live playground implementations.`}
+        className="[&>div]:min-h-[34rem]"
+        action={
+          <Link href="/playground" className={buttonVariants()}>
+            Open the catalog
+          </Link>
+        }
+      >
+        <Card>
+          <CardHeader>
+            <CardTitle>Release contract</CardTitle>
+            <CardDescription>
+              Every public module must remain represented in five independent
+              repository sets.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-2 text-sm text-muted-foreground">
+            <p>Source · behavior test · Storybook · catalog · live demo</p>
+            <Badge variant="secondary">Exact equality enforced</Badge>
+          </CardContent>
+        </Card>
+      </WebHero>
 
-        {/* Component Categories */}
-        <section className="mx-auto max-w-6xl px-6">
-          <div className="mb-8">
-            <Badge className="mb-4">Component Library</Badge>
-            <h2 className="mb-2 text-3xl font-bold">
-              Comprehensive component toolkit
+      <section className="mx-auto max-w-6xl space-y-8 px-6 py-20">
+        <div className="max-w-3xl space-y-3">
+          <Badge variant="secondary">Interactive inventory</Badge>
+          <h2 className="text-3xl font-semibold tracking-tight">
+            Explore by product responsibility
+          </h2>
+          <p className="leading-7 text-muted-foreground">
+            Switch categories, review each module’s purpose, and follow a direct
+            link to the live implementation.
+          </p>
+        </div>
+        <CapabilityExplorer
+          categories={surfaceCategories}
+          entries={surfaceCatalog}
+        />
+      </section>
+
+      <section className="border-y bg-muted/30">
+        <div className="mx-auto max-w-6xl space-y-8 px-6 py-20">
+          <div className="max-w-3xl space-y-3">
+            <Badge variant="outline">Workflow composition</Badge>
+            <h2 className="text-3xl font-semibold tracking-tight">
+              Enterprise patterns
             </h2>
-            <p className="text-muted-foreground">
-              60+ carefully crafted components organized by purpose
+            <p className="leading-7 text-muted-foreground">
+              Pattern modules encode recurring product decisions such as
+              permission denial, sensitive action confirmation, and operational
+              status communication.
             </p>
           </div>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {componentCategories.map((category) => (
-              <Card key={category.name} className="flex flex-col">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {patterns.map((pattern) => (
+              <Card key={pattern.id} size="sm">
                 <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <CardTitle className="text-lg">{category.name}</CardTitle>
-                      <CardDescription>{category.description}</CardDescription>
-                    </div>
-                    <Badge
-                      variant="secondary"
-                      className="flex h-8 w-8 items-center justify-center p-0 text-lg"
+                  <CardTitle>
+                    <Link
+                      href={`${pattern.route}#${pattern.id}`}
+                      className="rounded-sm underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
                     >
-                      {category.count}
-                    </Badge>
-                  </div>
-                </CardHeader>
-              </Card>
-            ))}
-          </div>
-        </section>
-
-        {/* Use Cases Section */}
-        <section className="mx-auto max-w-6xl px-6">
-          <div className="mb-8">
-            <Badge className="mb-4">Use Cases</Badge>
-            <h2 className="mb-2 text-3xl font-bold">Perfect for any project</h2>
-            <p className="text-muted-foreground">
-              From small projects to enterprise applications
-            </p>
-          </div>
-          <div className="grid gap-6 md:grid-cols-2">
-            {useCases.map((useCase) => (
-              <Card
-                key={useCase.title}
-                className="group transition-all hover:shadow-lg"
-              >
-                <CardHeader>
-                  <CardTitle className="flex items-center justify-between transition-colors group-hover:text-primary">
-                    {useCase.title}
-                    <ArrowRight className="h-4 w-4 opacity-0 transition-opacity group-hover:opacity-100" />
+                      {pattern.name}
+                    </Link>
                   </CardTitle>
+                  <CardDescription>{pattern.description}</CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground">
-                    {useCase.description}
-                  </p>
-                </CardContent>
               </Card>
             ))}
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* Highlights Section */}
-        <section className="mx-auto max-w-6xl px-6">
-          <div className="rounded-lg border border-border/50 bg-card p-8">
-            <div className="grid gap-8 md:grid-cols-3">
-              <div>
-                <div className="mb-3 flex items-center gap-2">
-                  <Zap className="h-5 w-5 text-primary" />
-                  <h3 className="font-semibold">Performance</h3>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Optimized components with minimal bundle impact
-                </p>
-              </div>
-              <div>
-                <div className="mb-3 flex items-center gap-2">
-                  <GitBranch className="h-5 w-5 text-primary" />
-                  <h3 className="font-semibold">Developer Experience</h3>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Intuitive APIs, full TypeScript support, excellent
-                  documentation
-                </p>
-              </div>
-              <div>
-                <div className="mb-3 flex items-center gap-2">
-                  <Badge className="h-5 w-5 text-primary" />
-                  <h3 className="font-semibold">Consistency</h3>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Design tokens ensure visual and behavioral consistency
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* CTA Section */}
-        <section className="mx-auto max-w-6xl px-6">
-          <div className="rounded-lg border border-primary/20 bg-linear-to-br from-primary/10 to-primary/5 p-8 text-center">
-            <h2 className="mb-3 text-2xl font-bold">Ready to get started?</h2>
-            <p className="mb-6 text-muted-foreground">
-              Explore all 60+ components and 10 patterns in the interactive
-              playground.
+      <section className="mx-auto grid max-w-6xl gap-6 px-6 py-20 lg:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Theming and integration</CardTitle>
+            <CardDescription>
+              Tokenized styling and package-level entry points keep product
+              composition explicit.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <pre className="overflow-x-auto rounded-2xl bg-muted p-4 text-sm">
+              <code>{`import { Button } from "@nwl/surfacekit/components/button"\nimport { AppShell } from "@nwl/surfacekit/patterns/app-shell"`}</code>
+            </pre>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Accessibility evidence</CardTitle>
+            <CardDescription>
+              Automated axe checks target every application route and tested
+              Storybook composition.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3 leading-7 text-muted-foreground">
+            <p>
+              A passing result means no automatically detectable violations were
+              found for the configured rules and states.
             </p>
-            <div className="flex flex-col justify-center gap-3 sm:flex-row">
-              <Button render={<a href="/playground" />} nativeButton={false}>
-                Open Playground
-              </Button>
-              <Button
-                variant="outline"
-                render={<Link href="/" />}
-                nativeButton={false}
-              >
-                Back to Home
-              </Button>
-            </div>
+            <p>
+              Automated checks do not establish complete WCAG conformance and do
+              not replace manual assistive-technology review.
+            </p>
+          </CardContent>
+        </Card>
+      </section>
+
+      <section className="border-t">
+        <div className="mx-auto flex max-w-4xl flex-col items-center gap-5 px-6 py-20 text-center">
+          <h2 className="text-3xl font-semibold tracking-tight">
+            Review the implementation, not just the claims
+          </h2>
+          <p className="max-w-2xl leading-7 text-muted-foreground">
+            Open any of the {counts.total} live examples, inspect its Storybook
+            states, and verify the behavior in the repository.
+          </p>
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <Link href="/playground" className={buttonVariants()}>
+              Explore all examples
+            </Link>
+            <Link href="/" className={buttonVariants({ variant: "outline" })}>
+              Back to SurfaceKit
+            </Link>
           </div>
-        </section>
-      </div>
+        </div>
+      </section>
     </WebShell>
   )
 }
