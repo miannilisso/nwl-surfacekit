@@ -15,7 +15,10 @@ const fontMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: "SurfaceKit",
+  title: {
+    default: "SurfaceKit | Naneware Labs",
+    template: "%s | Naneware Labs",
+  },
   description: "Naneware Labs component system playground and marketing shell.",
 }
 
@@ -28,7 +31,13 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={cn("antialiased", fontMono.variable, "font-sans", outfit.variable, geistHeading.variable)}
+      className={cn(
+        "antialiased",
+        fontMono.variable,
+        "font-sans",
+        outfit.variable,
+        geistHeading.variable
+      )}
     >
       <body>
         <div className="root min-h-svh">

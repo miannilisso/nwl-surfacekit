@@ -1,203 +1,174 @@
-import { Button } from "@nwl/surfacekit/components/button"
+import type { Metadata } from "next"
+import Link from "next/link"
+import { Badge } from "@nwl/surfacekit/components/badge"
+import { buttonVariants } from "@nwl/surfacekit/components/button"
 import {
   Card,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
-  CardDescription,
 } from "@nwl/surfacekit/components/card"
-import { Badge } from "@nwl/surfacekit/components/badge"
 import {
   WebHero,
   WebShell,
   WebShellFooter,
   WebShellHeader,
 } from "@nwl/surfacekit/patterns/web-shell"
+
+import { OperationsPreview } from "../../components/marketing/operations-preview"
 import {
-  CheckCircle2,
-  Zap,
-  Box,
-  Accessibility,
-  Code,
-  Layers,
-} from "lucide-react"
+  getSurfaceCounts,
+  surfaceCategories,
+} from "../../lib/surfacekit/catalog"
+
+export const metadata: Metadata = {
+  title: "SurfaceKit — Production UI foundations",
+  description:
+    "Explore 60 components and 10 enterprise patterns for accessible product interfaces.",
+}
 
 const links = [
-  { label: "Marketing", href: "/marketing" },
+  { label: "Capabilities", href: "/marketing" },
   { label: "Playground", href: "/playground" },
 ]
 
 export default function Page() {
-  const features = [
-    {
-      icon: <Box className="h-5 w-5" />,
-      title: "60+ Components",
-      description: "Production-ready UI components built on Base UI primitives",
-    },
-    {
-      icon: <Layers className="h-5 w-5" />,
-      title: "10 Enterprise Patterns",
-      description: "Complete workflows and layouts for complex applications",
-    },
-    {
-      icon: <Accessibility className="h-5 w-5" />,
-      title: "100% Accessible",
-      description: "WCAG 2.1 compliant with comprehensive ARIA support",
-    },
-    {
-      icon: <Zap className="h-5 w-5" />,
-      title: "TypeScript First",
-      description: "Full type safety with comprehensive definitions",
-    },
-    {
-      icon: <Code className="h-5 w-5" />,
-      title: "Well Documented",
-      description: "Storybook stories and Vitest coverage for every component",
-    },
-    {
-      icon: <Badge className="h-5 w-5" />,
-      title: "Customizable",
-      description: "Tailwind CSS v4 with shadcn/ui design tokens",
-    },
-  ]
-
-  const stats = [
-    { label: "Components", value: "60+" },
-    { label: "Patterns", value: "10" },
-    { label: "Test Coverage", value: "100%" },
-    { label: "TypeScript", value: "✓" },
-  ]
+  const counts = getSurfaceCounts()
+  const componentCategories = surfaceCategories.filter(
+    (category) => category.id !== "patterns"
+  ).length
 
   return (
     <WebShell
-      header={<WebShellHeader title="SurfaceKit" links={links} />}
+      header={
+        <WebShellHeader
+          title="SurfaceKit"
+          links={links}
+          cta={
+            <Link
+              href="/playground"
+              className={buttonVariants({ variant: "outline", size: "sm" })}
+            >
+              Playground
+            </Link>
+          }
+        />
+      }
       footer={<WebShellFooter links={links} />}
     >
-      <div className="space-y-16 py-8">
-        {/* Hero Section */}
-        <WebHero
-          eyebrow="Naneware Labs"
-          title="SurfaceKit"
-          description="A comprehensive UI library and Next.js shell system for production product surfaces, documentation, and component testing."
-        >
+      <WebHero
+        eyebrow="Naneware Labs"
+        title="SurfaceKit"
+        description="A governed component and enterprise-pattern system for building clear, resilient product interfaces."
+        action={
           <div className="flex flex-col gap-3 sm:flex-row">
-            <Button render={<a href="/playground" />} nativeButton={false}>
-              Explore Components
-            </Button>
-            <Button
-              variant="outline"
-              render={<a href="/marketing" />}
-              nativeButton={false}
+            <Link href="/playground" className={buttonVariants()}>
+              Explore the playground
+            </Link>
+            <Link
+              href="/marketing"
+              className={buttonVariants({ variant: "outline" })}
             >
-              Learn More
-            </Button>
+              Review capabilities
+            </Link>
           </div>
-        </WebHero>
+        }
+      >
+        <Card className="border-primary/20 bg-card/90">
+          <CardHeader>
+            <Badge className="w-fit" variant="secondary">
+              Verified inventory
+            </Badge>
+            <CardTitle>One source-to-demo contract</CardTitle>
+            <CardDescription>
+              Behavioral tests, Storybook documentation, catalog metadata, and
+              live examples stay in exact sync.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="grid grid-cols-3 gap-3">
+            <Metric value={counts.components} label="Components" />
+            <Metric value={counts.patterns} label="Patterns" />
+            <Metric value={componentCategories} label="Categories" />
+          </CardContent>
+        </Card>
+      </WebHero>
 
-        {/* Stats Section */}
-        <section className="mx-auto grid max-w-6xl grid-cols-2 gap-4 px-6 sm:grid-cols-4">
-          {stats.map((stat) => (
-            <div
-              key={stat.label}
-              className="rounded-lg border border-border bg-card p-4 text-center"
-            >
-              <div className="text-2xl font-bold text-primary">
-                {stat.value}
-              </div>
-              <p className="mt-1 text-xs tracking-wider text-muted-foreground uppercase">
-                {stat.label}
-              </p>
-            </div>
+      <section className="mx-auto max-w-6xl space-y-8 px-6 py-20">
+        <div className="max-w-3xl space-y-3">
+          <Badge variant="secondary">Product foundations</Badge>
+          <h2 className="text-3xl font-semibold tracking-tight">
+            Designed for operational product work
+          </h2>
+          <p className="leading-7 text-muted-foreground">
+            SurfaceKit combines composable primitives, workflow-level patterns,
+            and evidence-backed release gates without prescribing your product
+            architecture.
+          </p>
+        </div>
+        <div className="grid gap-5 md:grid-cols-3">
+          {[
+            [
+              "Governed composition",
+              "Compound APIs preserve semantics while supporting complex enterprise layouts.",
+            ],
+            [
+              "Typed integration",
+              "Public exports, catalog metadata, and route ownership are checked as code.",
+            ],
+            [
+              "Reviewable evidence",
+              "Behavior, accessibility automation, stories, and browser examples are independently inspectable.",
+            ],
+          ].map(([title, description]) => (
+            <Card key={title}>
+              <CardHeader>
+                <CardTitle>{title}</CardTitle>
+              </CardHeader>
+              <CardContent className="leading-6 text-muted-foreground">
+                {description}
+              </CardContent>
+            </Card>
           ))}
-        </section>
+        </div>
+      </section>
 
-        {/* Features Grid */}
-        <section className="mx-auto max-w-6xl px-6">
-          <div className="mb-8">
-            <h2 className="text-3xl font-bold">Why SurfaceKit?</h2>
-            <p className="mt-2 text-muted-foreground">
-              Everything you need to build modern, accessible UIs
+      <section className="border-y bg-muted/30">
+        <div className="mx-auto max-w-6xl space-y-8 px-6 py-20">
+          <div className="max-w-3xl space-y-3">
+            <Badge variant="outline">Live composition</Badge>
+            <h2 className="text-3xl font-semibold tracking-tight">
+              A realistic operations workspace
+            </h2>
+            <p className="leading-7 text-muted-foreground">
+              Search fixed project data and exercise toolbar actions in a
+              client-side preview built entirely from SurfaceKit modules.
             </p>
           </div>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {features.map((feature) => (
-              <Card key={feature.title}>
-                <CardHeader>
-                  <div className="flex items-start gap-3">
-                    <div className="mt-0.5 text-primary">{feature.icon}</div>
-                    <CardTitle className="text-lg">{feature.title}</CardTitle>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground">
-                    {feature.description}
-                  </p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </section>
+          <OperationsPreview />
+        </div>
+      </section>
 
-        {/* CTA Section */}
-        <section className="mx-auto max-w-4xl px-6">
-          <Card className="border-primary/20 bg-linear-to-br from-primary/10 to-primary/5">
-            <CardHeader>
-              <CardTitle className="text-2xl">Built for Teams</CardTitle>
-              <CardDescription>
-                Whether you are building a SaaS platform, internal tool, or
-                marketing site, SurfaceKit has you covered.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="mb-6 grid gap-4 sm:grid-cols-2">
-                <div className="flex gap-3">
-                  <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-green-600" />
-                  <div>
-                    <p className="text-sm font-medium">Production Ready</p>
-                    <p className="text-xs text-muted-foreground">
-                      Battle-tested in real applications
-                    </p>
-                  </div>
-                </div>
-                <div className="flex gap-3">
-                  <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-green-600" />
-                  <div>
-                    <p className="text-sm font-medium">Developer Friendly</p>
-                    <p className="text-xs text-muted-foreground">
-                      Intuitive APIs and great DX
-                    </p>
-                  </div>
-                </div>
-                <div className="flex gap-3">
-                  <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-green-600" />
-                  <div>
-                    <p className="text-sm font-medium">Accessible by Default</p>
-                    <p className="text-xs text-muted-foreground">
-                      WCAG 2.1 AA compliant
-                    </p>
-                  </div>
-                </div>
-                <div className="flex gap-3">
-                  <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-green-600" />
-                  <div>
-                    <p className="text-sm font-medium">Fully Typed</p>
-                    <p className="text-xs text-muted-foreground">
-                      Complete TypeScript support
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <Button
-                render={<a href="/playground" />}
-                nativeButton={false}
-                className="w-full sm:w-auto"
-              >
-                Start Exploring
-              </Button>
-            </CardContent>
-          </Card>
-        </section>
-      </div>
+      <section className="mx-auto max-w-4xl px-6 py-20 text-center">
+        <h2 className="text-3xl font-semibold tracking-tight">
+          Evidence with explicit limits
+        </h2>
+        <p className="mx-auto mt-4 max-w-3xl leading-7 text-muted-foreground">
+          Repository contracts cover every module, and automated axe checks
+          detect common accessibility violations. Automated results support
+          review; they do not replace manual keyboard, screen-reader, or
+          assistive-technology evaluation.
+        </p>
+      </section>
     </WebShell>
+  )
+}
+
+function Metric({ value, label }: { value: number; label: string }) {
+  return (
+    <div className="rounded-2xl border bg-background p-3 text-center">
+      <p className="text-2xl font-semibold text-primary">{value}</p>
+      <p className="mt-1 text-xs text-muted-foreground">{label}</p>
+    </div>
   )
 }
