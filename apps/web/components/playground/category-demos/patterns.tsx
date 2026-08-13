@@ -37,7 +37,10 @@ export function AppShellDemo() {
     { label: "Reports", href: "#app-reports" },
   ]
   return (
-    <AppShell className="min-h-0 w-full overflow-hidden rounded-2xl border">
+    <AppShell
+      className="min-h-0 w-full overflow-hidden rounded-2xl border"
+      mainProps={{ role: "presentation", className: "p-0" }}
+    >
       <div className="overflow-hidden rounded-xl border bg-background">
         <AppTopbar title="Production workspace" eyebrow="SurfaceKit" />
         <div className="grid min-h-72 md:grid-cols-[14rem_1fr]">
@@ -242,6 +245,7 @@ export function WebShellDemo() {
   return (
     <WebShell
       className="min-h-0 w-full overflow-hidden rounded-2xl border"
+      mainProps={{ role: "presentation" }}
       header={
         <WebShellHeader
           title="SurfaceKit"

@@ -31,12 +31,12 @@ export default function PlaygroundPage() {
     <div className="mx-auto max-w-7xl space-y-12">
       <header className="space-y-4">
         <h1 className="max-w-3xl text-4xl font-semibold tracking-tight sm:text-5xl">
-          Build production interfaces from one verified catalog.
+          Component playground
         </h1>
         <p className="max-w-3xl text-base leading-7 text-muted-foreground sm:text-lg">
-          Explore real APIs, accessible interactions, resilient states, and
-          enterprise compositions for all {counts.total} public SurfaceKit
-          modules.
+          Build production interfaces from one verified catalog. Explore real
+          APIs, accessible interactions, resilient states, and enterprise
+          compositions for all {counts.total} public SurfaceKit modules.
         </p>
         <div className="flex flex-wrap gap-2" aria-label="Catalog inventory">
           <Badge variant="secondary">{counts.components} components</Badge>

@@ -21,15 +21,19 @@ import { cn } from "../../lib/utils"
 interface AppShellProps extends React.ComponentProps<"div"> {
   topbar?: React.ReactNode
   sidebar?: React.ReactNode
+  mainProps?: React.ComponentProps<"main">
 }
 
 function AppShell({
   topbar,
   sidebar,
+  mainProps,
   className,
   children,
   ...props
 }: AppShellProps) {
+  const { className: mainClassName, ...mainRest } = mainProps ?? {}
+
   return (
     <div
       data-slot="app-shell"
@@ -59,8 +63,10 @@ function AppShell({
         <main
           className={cn(
             "min-w-0 flex-1 p-4 sm:p-6 lg:p-8",
-            sidebar && "md:ml-72"
+            sidebar && "md:ml-72",
+            mainClassName
           )}
+          {...mainRest}
         >
           {children}
         </main>

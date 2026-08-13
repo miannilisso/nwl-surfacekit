@@ -6,15 +6,19 @@ import { cn } from "../../lib/utils"
 interface WebShellProps extends React.ComponentProps<"div"> {
   header?: React.ReactNode
   footer?: React.ReactNode
+  mainProps?: React.ComponentProps<"main">
 }
 
 function WebShell({
   header,
   footer,
+  mainProps,
   className,
   children,
   ...props
 }: WebShellProps) {
+  const { className: mainClassName, ...mainRest } = mainProps ?? {}
+
   return (
     <div
       data-slot="web-shell"
@@ -29,7 +33,9 @@ function WebShell({
           {header}
         </div>
       ) : null}
-      <main className="flex-1">{children}</main>
+      <main className={cn("flex-1", mainClassName)} {...mainRest}>
+        {children}
+      </main>
       {footer ? (
         <footer className="border-t border-border bg-background px-6 py-5">
           {footer}

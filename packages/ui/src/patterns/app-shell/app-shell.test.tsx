@@ -54,6 +54,19 @@ describe("AppShell", () => {
     expect(onInvite).toHaveBeenCalledOnce()
   })
 
+  it("allows embedded shells to yield the page-level main landmark", () => {
+    render(
+      <AppShell mainProps={{ role: "presentation" }}>
+        Embedded workspace
+      </AppShell>
+    )
+    expect(screen.queryByRole("main")).not.toBeInTheDocument()
+    expect(screen.getByText("Embedded workspace")).toHaveAttribute(
+      "role",
+      "presentation"
+    )
+  })
+
   it("allows an application router to render internal links", () => {
     render(
       <AppSidebar

@@ -61,4 +61,17 @@ describe("WebShell", () => {
       "/get-started"
     )
   })
+
+  it("allows embedded shells to yield the page-level main landmark", () => {
+    render(
+      <WebShell mainProps={{ role: "presentation" }}>
+        Embedded public page
+      </WebShell>
+    )
+    expect(screen.queryByRole("main")).not.toBeInTheDocument()
+    expect(screen.getByText("Embedded public page")).toHaveAttribute(
+      "role",
+      "presentation"
+    )
+  })
 })

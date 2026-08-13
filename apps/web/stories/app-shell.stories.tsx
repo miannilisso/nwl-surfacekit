@@ -24,14 +24,17 @@ function ShellExample({
   collapsed = false,
   mobile = false,
   routerLinks = false,
+  embedded = false,
 }: {
   collapsed?: boolean
   mobile?: boolean
   routerLinks?: boolean
+  embedded?: boolean
 }) {
   return (
     <AppShell
       className={mobile ? "max-w-md" : undefined}
+      mainProps={embedded ? { role: "presentation" } : undefined}
       topbar={<AppTopbar title="Production workspace" eyebrow="SurfaceKit" />}
       sidebar={
         collapsed ? undefined : (
@@ -95,3 +98,4 @@ export const Desktop: Story = {}
 export const CollapsedNavigation: Story = { args: { collapsed: true } }
 export const MobileContent: Story = { args: { mobile: true } }
 export const RouterIntegration: Story = { args: { routerLinks: true } }
+export const Embedded: Story = { args: { embedded: true } }

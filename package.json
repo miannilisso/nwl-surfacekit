@@ -16,6 +16,8 @@
     "test:components:coverage": "vitest --run packages/ui/src --coverage",
     "test:contracts": "vitest --run tests/contracts",
     "test:env": "node tests/env/no-server-env-in-client.mjs",
+    "test:e2e": "playwright test",
+    "test:e2e:production": "pnpm --filter web build && playwright test --config playwright.production.config.ts",
     "test:storybook": "vitest --config vitest.storybook.config.ts --run",
     "test:visual": "playwright test --project=chromium tests/e2e/visual.spec.ts",
     "test:watch": "vitest",

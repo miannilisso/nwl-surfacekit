@@ -34,12 +34,15 @@ const footer = (
 function WebExample({
   documentation = false,
   minimal = false,
+  embedded = false,
 }: {
   documentation?: boolean
   minimal?: boolean
+  embedded?: boolean
 }) {
   return (
     <WebShell
+      mainProps={embedded ? { role: "presentation" } : undefined}
       header={header}
       footer={minimal ? <WebShellFooter links={[]} /> : footer}
     >
@@ -91,3 +94,4 @@ type Story = StoryObj<typeof meta>
 export const Landing: Story = {}
 export const Documentation: Story = { args: { documentation: true } }
 export const MinimalFooter: Story = { args: { minimal: true } }
+export const Embedded: Story = { args: { embedded: true } }
