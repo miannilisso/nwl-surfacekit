@@ -17,12 +17,16 @@ describe("DemoErrorBoundary", () => {
     }
 
     render(
-      <DemoErrorBoundary>
-        <Example />
-      </DemoErrorBoundary>,
+      <>
+        <DemoErrorBoundary>
+          <Example />
+        </DemoErrorBoundary>
+        <p>Sibling example remains available</p>
+      </>,
       { onCaughtError: () => undefined }
     )
     expect(screen.getByRole("alert")).toHaveTextContent("Example unavailable")
+    expect(screen.getByText("Sibling example remains available")).toBeVisible()
     shouldThrow = false
     await user.click(screen.getByRole("button", { name: "Retry example" }))
     expect(screen.getByText("Recovered example")).toBeVisible()
