@@ -140,7 +140,7 @@ export default function Page() {
             <h2 className="text-3xl font-semibold tracking-tight">
               A realistic operations workspace
             </h2>
-            <p className="leading-7 text-muted-foreground">
+            <p className="leading-7 text-foreground/80">
               Search fixed project data and exercise toolbar actions in a
               client-side preview built entirely from SurfaceKit modules.
             </p>

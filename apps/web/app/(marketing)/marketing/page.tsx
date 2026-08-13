@@ -107,7 +107,7 @@ export default function MarketingPage() {
             <h2 className="text-3xl font-semibold tracking-tight">
               Enterprise patterns
             </h2>
-            <p className="leading-7 text-muted-foreground">
+            <p className="leading-7 text-foreground/80">
               Pattern modules encode recurring product decisions such as
               permission denial, sensitive action confirmation, and operational
               status communication.
@@ -143,7 +143,11 @@ export default function MarketingPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <pre className="overflow-x-auto rounded-2xl bg-muted p-4 text-sm">
+            <pre
+              tabIndex={0}
+              aria-label="SurfaceKit package imports"
+              className="overflow-x-auto rounded-2xl bg-muted p-4 text-sm"
+            >
               <code>{`import { Button } from "@nwl/surfacekit/components/button"\nimport { AppShell } from "@nwl/surfacekit/patterns/app-shell"`}</code>
             </pre>
           </CardContent>

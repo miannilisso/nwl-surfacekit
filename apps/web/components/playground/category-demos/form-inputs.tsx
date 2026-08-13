@@ -116,11 +116,19 @@ export function CheckboxDemo() {
   return (
     <div className="grid gap-3">
       <div className="flex items-center gap-2">
-        <Checkbox id="playground-release-notes" defaultChecked />
+        <Checkbox
+          id="playground-release-notes"
+          aria-label="Include release notes"
+          defaultChecked
+        />
         <Label htmlFor="playground-release-notes">Include release notes</Label>
       </div>
       <div className="flex items-center gap-2">
-        <Checkbox id="playground-approval" indeterminate />
+        <Checkbox
+          id="playground-approval"
+          aria-label="Partial approval"
+          indeterminate
+        />
         <Label htmlFor="playground-approval">Partial approval</Label>
       </div>
     </div>
@@ -257,7 +265,11 @@ export function RadioGroupDemo() {
         const value = name.toLowerCase()
         return (
           <div key={value} className="flex items-center gap-2">
-            <RadioGroupItem id={`playground-${value}`} value={value} />
+            <RadioGroupItem
+              id={`playground-${value}`}
+              value={value}
+              aria-label={name}
+            />
             <Label htmlFor={`playground-${value}`}>{name}</Label>
           </div>
         )
@@ -305,7 +317,11 @@ export function SliderDemo() {
 export function SwitchDemo() {
   return (
     <div className="flex items-center gap-2">
-      <Switch id="playground-alerts" defaultChecked />
+      <Switch
+        id="playground-alerts"
+        aria-label="Enable deployment alerts"
+        defaultChecked
+      />
       <Label htmlFor="playground-alerts">Enable deployment alerts</Label>
     </div>
   )

@@ -137,7 +137,11 @@ export function ResizableDemo() {
             Navigation
           </div>
         </ResizablePanel>
-        <ResizableHandle withHandle />
+        <ResizableHandle
+          withHandle
+          aria-label="Resize workspace panels"
+          aria-valuenow={35}
+        />
         <ResizablePanel id="content" defaultSize="65%">
           <div className="flex size-full items-center justify-center p-4">
             Workspace content
@@ -155,6 +159,12 @@ export function ScrollAreaDemo() {
       className="h-72 w-full max-w-xl rounded-3xl border"
     >
       <div className="w-[52rem] p-4">
+        <a
+          href="#audit-event-1"
+          className="mb-3 inline-block text-sm font-medium underline underline-offset-4"
+        >
+          Review first audit event
+        </a>
         {Array.from({ length: 12 }, (_, index) => (
           <article className="mb-2 rounded-xl bg-muted/50 p-3" key={index}>
             <p className="font-medium">Audit event {index + 1}</p>
@@ -214,14 +224,14 @@ export function SidebarDemo() {
           </SidebarContent>
           <SidebarFooter>Production</SidebarFooter>
         </Sidebar>
-        <SidebarInset className="min-h-80">
+        <SidebarInset className="min-h-80" role="presentation">
           <header className="flex h-14 items-center gap-3 border-b px-4">
             <SidebarTrigger />
             <h3 className="font-medium">Release governance</h3>
           </header>
-          <main className="p-6 text-sm text-muted-foreground">
+          <div className="p-6 text-sm text-muted-foreground">
             Audit evidence and approval status.
-          </main>
+          </div>
         </SidebarInset>
       </SidebarProvider>
     </div>

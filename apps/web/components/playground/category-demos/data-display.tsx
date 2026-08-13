@@ -361,7 +361,11 @@ export function MessageScrollerDemo() {
 
 export function ProgressDemo() {
   return (
-    <Progress value={64} className="w-full max-w-md">
+    <Progress
+      value={64}
+      aria-label="Release progress"
+      className="w-full max-w-md"
+    >
       <ProgressLabel>Release progress</ProgressLabel>
       <ProgressValue />
       <ProgressTrack>

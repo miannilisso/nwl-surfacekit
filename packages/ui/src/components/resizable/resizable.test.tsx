@@ -76,9 +76,10 @@ describe("Resizable", () => {
         <ResizablePanel>Bottom</ResizablePanel>
       </ResizablePanelGroup>
     )
-    expect(screen.getByRole("separator")).toHaveAttribute(
-      "aria-orientation",
-      "horizontal"
-    )
+    const handle = screen.getByRole("separator")
+    expect(handle).toHaveAttribute("aria-orientation", "horizontal")
+    expect(handle).toHaveAttribute("aria-valuenow", "50")
+    handle.removeAttribute("aria-valuenow")
+    return waitFor(() => expect(handle).toHaveAttribute("aria-valuenow", "50"))
   })
 })
