@@ -23,9 +23,11 @@ const navigation = [
 function ShellExample({
   collapsed = false,
   mobile = false,
+  routerLinks = false,
 }: {
   collapsed?: boolean
   mobile?: boolean
+  routerLinks?: boolean
 }) {
   return (
     <AppShell
@@ -33,7 +35,17 @@ function ShellExample({
       topbar={<AppTopbar title="Production workspace" eyebrow="SurfaceKit" />}
       sidebar={
         collapsed ? undefined : (
-          <AppSidebar label="Workspace navigation" items={navigation} />
+          <AppSidebar
+            label="Workspace navigation"
+            items={navigation}
+            renderItem={
+              routerLinks
+                ? (item, props) => (
+                    <a {...props} href={item.href} data-router-link="true" />
+                  )
+                : undefined
+            }
+          />
         )
       }
     >
@@ -82,3 +94,4 @@ type Story = StoryObj<typeof meta>
 export const Desktop: Story = {}
 export const CollapsedNavigation: Story = { args: { collapsed: true } }
 export const MobileContent: Story = { args: { mobile: true } }
+export const RouterIntegration: Story = { args: { routerLinks: true } }

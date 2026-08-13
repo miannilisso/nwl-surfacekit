@@ -53,4 +53,18 @@ describe("AppShell", () => {
     await user.click(screen.getByRole("button", { name: "Invite member" }))
     expect(onInvite).toHaveBeenCalledOnce()
   })
+
+  it("allows an application router to render internal links", () => {
+    render(
+      <AppSidebar
+        items={[{ label: "Components", href: "/playground", active: true }]}
+        renderItem={(item, props) => (
+          <a {...props} data-router-link="true" href={item.href} />
+        )}
+      />
+    )
+    const link = screen.getByRole("link", { name: "Components" })
+    expect(link).toHaveAttribute("data-router-link", "true")
+    expect(link).toHaveAttribute("aria-current", "page")
+  })
 })

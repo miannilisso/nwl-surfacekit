@@ -161,11 +161,16 @@ interface AppSidebarItem {
 interface AppSidebarProps extends React.ComponentProps<"nav"> {
   items: AppSidebarItem[]
   label?: string
+  renderItem?: (
+    item: AppSidebarItem,
+    props: React.ComponentProps<"a">
+  ) => React.ReactNode
 }
 
 function AppSidebar({
   items,
   label = "Navigation",
+  renderItem,
   className,
   ...props
 }: AppSidebarProps) {
@@ -194,17 +199,16 @@ function AppSidebar({
       <ul className="space-y-1">
         {items.map((item) => {
           const Icon = item.icon || defaultIcons[item.label.toLowerCase()]
-          return (
-            <li key={item.label}>
-              <a
-                href={item.href ?? "#"}
-                aria-current={item.active ? "page" : undefined}
-                className={cn(
-                  "flex items-center justify-between gap-2 rounded-md px-3 py-2 text-sm text-sidebar-foreground/80 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                  item.active &&
-                    "bg-sidebar-accent font-medium text-sidebar-accent-foreground"
-                )}
-              >
+          const anchorProps: React.ComponentProps<"a"> = {
+            href: item.href ?? "#",
+            "aria-current": item.active ? "page" : undefined,
+            className: cn(
+              "flex items-center justify-between gap-2 rounded-md px-3 py-2 text-sm text-sidebar-foreground/80 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+              item.active &&
+                "bg-sidebar-accent font-medium text-sidebar-accent-foreground"
+            ),
+            children: (
+              <>
                 <div className="flex min-w-0 items-center gap-2">
                   {Icon && <Icon className="h-4 w-4 shrink-0" />}
                   <span className="truncate">{item.label}</span>
@@ -217,7 +221,16 @@ function AppSidebar({
                     {item.badge}
                   </Badge>
                 )}
-              </a>
+              </>
+            ),
+          }
+          return (
+            <li key={item.label}>
+              {renderItem ? (
+                renderItem(item, anchorProps)
+              ) : (
+                <a {...anchorProps} />
+              )}
             </li>
           )
         })}
@@ -226,4 +239,4 @@ function AppSidebar({
   )
 }
 
-export { AppShell, AppSidebar, AppTopbar }
+export { AppShell, AppSidebar, AppTopbar, type AppSidebarItem }
