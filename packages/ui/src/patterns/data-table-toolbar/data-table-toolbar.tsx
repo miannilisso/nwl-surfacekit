@@ -12,6 +12,11 @@ interface DataTableToolbarProps extends React.ComponentProps<"div"> {
   count?: number
   onFilter?: () => void
   onExport?: () => void
+  searchValue?: string
+  searchLabel?: string
+  onSearchValueChange?: (value: string) => void
+  onCreate?: () => void
+  busy?: boolean
 }
 
 function DataTableToolbar({
@@ -21,6 +26,11 @@ function DataTableToolbar({
   count,
   onFilter,
   onExport,
+  searchValue,
+  searchLabel = "Search records",
+  onSearchValueChange,
+  onCreate,
+  busy = false,
   className,
   ...props
 }: DataTableToolbarProps) {
@@ -43,23 +53,42 @@ function DataTableToolbar({
           </div>
           <div className="relative max-w-xs">
             <Search className="absolute top-2.5 left-2.5 h-4 w-4 text-muted-foreground" />
-            <Input placeholder={searchPlaceholder} className="pl-8" />
+            <Input
+              aria-label={searchLabel}
+              placeholder={searchPlaceholder}
+              value={searchValue}
+              onChange={(event) => onSearchValueChange?.(event.target.value)}
+              disabled={busy}
+              className="pl-8"
+            />
           </div>
         </div>
         <div className="flex gap-2">
           {onFilter && (
-            <Button variant="outline" size="sm" onClick={onFilter}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onFilter}
+              disabled={busy}
+            >
               <Filter className="mr-2 h-4 w-4" />
               Filter
             </Button>
           )}
           {onExport && (
-            <Button variant="outline" size="sm" onClick={onExport}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onExport}
+              disabled={busy}
+            >
               <Download className="mr-2 h-4 w-4" />
               Export
             </Button>
           )}
-          <Button size="sm">{actionLabel}</Button>
+          <Button size="sm" onClick={onCreate} disabled={busy}>
+            {busy ? "Working…" : actionLabel}
+          </Button>
         </div>
       </div>
     </div>

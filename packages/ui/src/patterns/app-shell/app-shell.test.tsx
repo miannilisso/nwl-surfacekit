@@ -1,23 +1,56 @@
-import "@testing-library/jest-dom/vitest"
 import { render, screen } from "@testing-library/react"
-import { describe, expect, it } from "vitest"
+import userEvent from "@testing-library/user-event"
+import { describe, expect, it, vi } from "vitest"
 
 import { AppShell, AppSidebar, AppTopbar } from "./app-shell"
 
 describe("AppShell", () => {
-  it("renders the shell sections and navigation content", () => {
+  it("composes banner, navigation, and main landmarks with active links", () => {
     render(
       <AppShell
         topbar={<AppTopbar title="Workspace" eyebrow="SurfaceKit" />}
-        sidebar={<AppSidebar items={[{ label: "Overview", active: true }, { label: "Projects" }]} />}
+        sidebar={
+          <AppSidebar
+            label="Workspace navigation"
+            items={[
+              { label: "Overview", href: "/overview", active: true },
+              { label: "Reports", href: "/reports", badge: 3 },
+            ]}
+          />
+        }
       >
-        <div>Body content</div>
+        <h2>Release dashboard</h2>
       </AppShell>
     )
+    expect(screen.getByRole("banner")).toHaveTextContent("Workspace")
+    expect(
+      screen.getByRole("navigation", { name: "Workspace navigation" })
+    ).toBeVisible()
+    expect(screen.getByRole("link", { name: "Overview" })).toHaveAttribute(
+      "aria-current",
+      "page"
+    )
+    expect(screen.getByRole("link", { name: /Reports/ })).toHaveAttribute(
+      "href",
+      "/reports"
+    )
+    expect(screen.getByRole("main")).toHaveTextContent("Release dashboard")
+  })
 
-    expect(screen.getByRole("heading", { name: "Workspace" })).toBeInTheDocument()
-    expect(screen.getByText("Overview")).toBeInTheDocument()
-    expect(screen.getByText("Projects")).toBeInTheDocument()
-    expect(screen.getByText("Body content")).toBeInTheDocument()
+  it("renders and invokes custom topbar actions", async () => {
+    const user = userEvent.setup()
+    const onInvite = vi.fn()
+    render(
+      <AppTopbar
+        title="Workspace"
+        actions={
+          <button type="button" onClick={onInvite}>
+            Invite member
+          </button>
+        }
+      />
+    )
+    await user.click(screen.getByRole("button", { name: "Invite member" }))
+    expect(onInvite).toHaveBeenCalledOnce()
   })
 })

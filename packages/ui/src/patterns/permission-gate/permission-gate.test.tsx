@@ -1,24 +1,53 @@
-import "@testing-library/jest-dom/vitest"
 import { render, screen } from "@testing-library/react"
-import { describe, expect, it } from "vitest"
+import userEvent from "@testing-library/user-event"
+import { describe, expect, it, vi } from "vitest"
 
 import { PermissionGate } from "./permission-gate"
 
 describe("PermissionGate", () => {
-  it("renders the gate message and action", () => {
-    render(
+  it("renders protected content only when permission is granted", () => {
+    const props = {
+      title: "Billing access required",
+      description: "Ask an owner to grant billing permissions.",
+      fallback: <p>Custom access guidance</p>,
+    }
+    const { rerender } = render(
+      <PermissionGate {...props}>
+        <p>Billing controls</p>
+      </PermissionGate>
+    )
+    expect(screen.getByText("Custom access guidance")).toBeVisible()
+    expect(screen.queryByText("Billing controls")).not.toBeInTheDocument()
+    rerender(
+      <PermissionGate {...props} allowed>
+        <p>Billing controls</p>
+      </PermissionGate>
+    )
+    expect(screen.getByText("Billing controls")).toBeVisible()
+    expect(screen.queryByText("Custom access guidance")).not.toBeInTheDocument()
+  })
+
+  it("requests access and exposes a loading state", async () => {
+    const user = userEvent.setup()
+    const onRequestAccess = vi.fn()
+    const { rerender } = render(
       <PermissionGate
-        title="Restricted workspace"
-        description="Request elevated permissions to continue."
+        title="Restricted"
+        description="Request access."
+        onRequestAccess={onRequestAccess}
       />
     )
-
-    expect(screen.getByText("Restricted workspace")).toBeInTheDocument()
+    await user.click(screen.getByRole("button", { name: "Request access" }))
+    expect(onRequestAccess).toHaveBeenCalledOnce()
+    rerender(
+      <PermissionGate
+        title="Restricted"
+        description="Request access."
+        loading
+      />
+    )
     expect(
-      screen.getByText("Request elevated permissions to continue.")
-    ).toBeInTheDocument()
-    expect(
-      screen.getByRole("button", { name: "Request access" })
-    ).toBeInTheDocument()
+      screen.getByRole("status", { name: "Checking permissions" })
+    ).toBeVisible()
   })
 })

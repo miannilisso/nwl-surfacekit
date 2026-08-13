@@ -1,5 +1,4 @@
 import type { Meta, StoryObj } from "@storybook/react-vite"
-
 import {
   AppShell,
   AppSidebar,
@@ -15,62 +14,71 @@ import { DataTableToolbar } from "@nwl/surfacekit/patterns/data-table-toolbar"
 import { IncidentBanner } from "@nwl/surfacekit/patterns/incident-banner"
 import { ResourceStatus } from "@nwl/surfacekit/patterns/resource-status"
 
-const meta = {
-  title: "SurfaceKit/Patterns/AppShell",
-  component: AppShell,
-} satisfies Meta<typeof AppShell>
-
-export default meta
-
-type Story = StoryObj<typeof meta>
-
-export const Default: Story = {
-  render: () => (
+const navigation = [
+  { label: "Overview", href: "#overview", active: true },
+  { label: "Projects", href: "#projects", badge: 12 },
+  { label: "Reports", href: "#reports" },
+  { label: "Billing", href: "#billing" },
+]
+function ShellExample({
+  collapsed = false,
+  mobile = false,
+}: {
+  collapsed?: boolean
+  mobile?: boolean
+}) {
+  return (
     <AppShell
-      topbar={<AppTopbar title="Workspace" eyebrow="Playground" />}
+      className={mobile ? "max-w-md" : undefined}
+      topbar={<AppTopbar title="Production workspace" eyebrow="SurfaceKit" />}
       sidebar={
-        <AppSidebar
-          items={[
-            { label: "Overview", active: true },
-            { label: "Projects" },
-            { label: "Reports" },
-            { label: "Settings" },
-          ]}
-        />
+        collapsed ? undefined : (
+          <AppSidebar label="Workspace navigation" items={navigation} />
+        )
       }
     >
       <div className="space-y-6">
         <IncidentBanner
-          title="Service alert"
-          description="A scheduled maintenance window starts in 15 minutes. Some APIs may be unavailable during the update."
-          actionLabel="View status"
+          severity="warning"
+          title="Maintenance scheduled"
+          description="A rolling database upgrade begins at 22:00 UTC."
         />
-
         <div className="grid gap-4 lg:grid-cols-2">
-          <Card>
-            <CardHeader>
-              <CardTitle>Resource usage</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResourceStatus
-                title="Compute quota"
-                value="62%"
-                progress={62}
-                detail="22 of 35 nodes active"
-              />
-            </CardContent>
-          </Card>
-
+          <ResourceStatus
+            title="Compute quota"
+            value="62%"
+            progress={62}
+            detail="22 of 35 nodes active"
+          />
           <Card>
             <CardHeader>
               <CardTitle>Team activity</CardTitle>
             </CardHeader>
             <CardContent>
-              <DataTableToolbar title="Projects" />
+              <DataTableToolbar title="Projects" count={12} />
             </CardContent>
           </Card>
         </div>
       </div>
     </AppShell>
-  ),
+  )
 }
+const meta = {
+  title: "SurfaceKit/Patterns/App Shell",
+  component: ShellExample,
+  tags: ["autodocs"],
+  parameters: {
+    layout: "fullscreen",
+    docs: {
+      description: {
+        component:
+          "Composes enterprise topbar, responsive sidebar navigation, active routes, action content, and the primary application landmark.",
+      },
+    },
+  },
+} satisfies Meta<typeof ShellExample>
+export default meta
+type Story = StoryObj<typeof meta>
+export const Desktop: Story = {}
+export const CollapsedNavigation: Story = { args: { collapsed: true } }
+export const MobileContent: Story = { args: { mobile: true } }

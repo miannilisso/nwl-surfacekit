@@ -1,17 +1,11 @@
 {
   "extends": "@nwl/typescript-config/react-library.json",
   "compilerOptions": {
+    "types": ["vitest/globals", "@testing-library/jest-dom/vitest"],
     "paths": {
-      "@nwl/surfacekit/*": [
-        "./src/*"
-      ]
+      "@nwl/surfacekit/*": ["./src/*"]
     }
   },
-  "include": [
-    "."
-  ],
-  "exclude": [
-    "node_modules",
-    "dist"
-  ]
+  "include": ["."],
+  "exclude": ["node_modules", "dist"]
 }
