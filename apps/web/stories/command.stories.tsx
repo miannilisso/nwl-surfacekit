@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import * as React from "react"
-import { expect, userEvent, within } from "storybook/test"
+import { expect, userEvent, waitFor, within } from "storybook/test"
 import { Button } from "@nwl/surfacekit/components/button"
 import {
   Command,
@@ -97,9 +97,11 @@ export const Palette: Story = {
     const canvas = within(canvasElement)
     const input = canvas.getByRole("combobox", { name: "Search commands" })
     await userEvent.type(input, "open")
-    await expect(
-      canvas.getByRole("option", { name: /Open settings/ })
-    ).toBeVisible()
+    await waitFor(() =>
+      expect(
+        canvas.getByRole("option", { name: /Open settings/ })
+      ).toBeVisible()
+    )
     await expect(
       canvas.queryByRole("option", { name: /Invite member/ })
     ).not.toBeInTheDocument()

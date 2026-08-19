@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import * as React from "react"
-import { expect, userEvent, within } from "storybook/test"
+import { expect, userEvent, waitFor, within } from "storybook/test"
 
 import { Button } from "@nwl/surfacekit/components/button"
 import {
@@ -103,7 +103,9 @@ export const NewMessage: Story = {
     await userEvent.click(
       canvas.getByRole("button", { name: "Add new message" })
     )
-    await expect(canvas.getByText("Release message 9")).toBeVisible()
+    await waitFor(() =>
+      expect(canvas.getByText("Release message 9")).toBeVisible()
+    )
   },
 }
 export const LoadingHistory: Story = {

@@ -29,9 +29,12 @@ let files
 try {
   files = await listFiles(staticDir)
 } catch (error) {
-  throw new Error(`Build output is missing at ${staticDir}. Run pnpm --filter web build before pnpm test:env.`, {
-    cause: error,
-  })
+  throw new Error(
+    `Build output is missing at ${staticDir}. Run pnpm --filter web build before pnpm test:env.`,
+    {
+      cause: error,
+    }
+  )
 }
 
 const clientFiles = files.filter((file) => /\.(js|css|html|json)$/.test(file))
@@ -39,7 +42,9 @@ const matches = []
 
 for (const file of clientFiles) {
   const contents = await readFile(file, "utf8")
-  const pattern = serverOnlyPatterns.find((candidate) => candidate.test(contents))
+  const pattern = serverOnlyPatterns.find((candidate) =>
+    candidate.test(contents)
+  )
 
   if (pattern) {
     matches.push(`${path.relative(process.cwd(), file)} matched ${pattern}`)
@@ -47,7 +52,11 @@ for (const file of clientFiles) {
 }
 
 if (matches.length > 0) {
-  throw new Error(`Server-only environment markers were found in client bundles:\n${matches.join("\n")}`)
+  throw new Error(
+    `Server-only environment markers were found in client bundles:\n${matches.join("\n")}`
+  )
 }
 
-console.log(`Checked ${clientFiles.length} client bundle files for server-only environment markers.`)
+console.log(
+  `Checked ${clientFiles.length} client bundle files for server-only environment markers.`
+)

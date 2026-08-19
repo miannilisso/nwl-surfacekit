@@ -3,6 +3,12 @@ import { expect, test, type Page } from "@playwright/test"
 import { applicationRoutes, routeSnapshotName } from "./routes"
 
 test.describe.configure({ mode: "serial" })
+test.beforeEach(({ browserName }) => {
+  test.skip(
+    browserName !== "chromium",
+    "Visual baselines are Chromium-specific"
+  )
+})
 
 async function setTheme(page: Page, theme: "light" | "dark") {
   await page.addInitScript((selectedTheme) => {

@@ -28,6 +28,7 @@ function FileAttachment({
     <Attachment state={state}>
       <AttachmentMedia variant={image ? "image" : "icon"}>
         {image ? (
+          // eslint-disable-next-line @next/next/no-img-element -- The story exercises the consumer-provided image slot outside Next.js rendering.
           <img
             alt="Quarterly revenue chart preview"
             src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Crect width='80' height='80' fill='%235b6ee1'/%3E%3Cpath d='M12 60L30 42l13 9 25-30' fill='none' stroke='white' stroke-width='6'/%3E%3C/svg%3E"

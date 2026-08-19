@@ -1,83 +1,126 @@
-# `@nwl/surfacekit` Usage
+# Using @nwl/surfacekit
 
-This package exports shared UI components, patterns, and utilities for use across web apps.
+The package is currently a private workspace dependency. Add it to another
+workspace app with "@nwl/surfacekit": "workspace:*", then load its global
+tokens once near the application root:
 
-## Package surface
-
-- `@nwl/surfacekit/globals.css`
-- `@nwl/surfacekit/components/<component>`
-- `@nwl/surfacekit/patterns/<pattern>`
-- `@nwl/surfacekit/lib/<util>`
-
-## Component imports
-
-Import individual components from their own paths:
-
-```tsx
-import { Button } from "@nwl/surfacekit/components/button"
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@nwl/surfacekit/components/card"
+```css
+@import "@nwl/surfacekit/globals.css";
 ```
 
-## Pattern imports
-
-Use shell patterns for layout and page scaffolding:
-
-```tsx
-import { AppShell, AppTopbar, AppSidebar } from "@nwl/surfacekit/patterns/app-shell"
-import { AuthShell, AuthPanel } from "@nwl/surfacekit/patterns/auth-shell"
-import { WebShell, WebShellHeader, WebShellFooter, WebHero } from "@nwl/surfacekit/patterns/web-shell"
-import { PermissionGate } from "@nwl/surfacekit/patterns/permission-gate"
-import { StepUpDialog } from "@nwl/surfacekit/patterns/step-up-dialog"
-import { ErrorSummary } from "@nwl/surfacekit/patterns/error-summary"
-import { ResourceStatus } from "@nwl/surfacekit/patterns/resource-status"
-import { DataTableToolbar } from "@nwl/surfacekit/patterns/data-table-toolbar"
-import { ConfirmDangerAction } from "@nwl/surfacekit/patterns/confirm-danger-action"
-import { IncidentBanner } from "@nwl/surfacekit/patterns/incident-banner"
-```
-
-## Example
+Import only public module entry points:
 
 ```tsx
 import { Button } from "@nwl/surfacekit/components/button"
 import {
   Card,
+  CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
-  CardDescription,
-  CardContent,
 } from "@nwl/surfacekit/components/card"
+import { ResourceStatus } from "@nwl/surfacekit/patterns/resource-status"
+```
+
+Do not import from src or depend on another app's files.
+
+## Application-shell example
+
+```tsx
 import {
   AppShell,
-  AppTopbar,
   AppSidebar,
+  AppTopbar,
 } from "@nwl/surfacekit/patterns/app-shell"
+import { ResourceStatus } from "@nwl/surfacekit/patterns/resource-status"
 
-export default function Page() {
+const items = [
+  { label: "Overview", href: "/workspace", active: true },
+  { label: "Projects", href: "/workspace/projects", badge: 12 },
+]
+
+export function Workspace() {
   return (
     <AppShell
-      topbar={<AppTopbar>SurfaceKit</AppTopbar>}
-      sidebar={<AppSidebar>Navigation</AppSidebar>}
+      topbar={<AppTopbar title="Production workspace" eyebrow="SurfaceKit" />}
+      sidebar={<AppSidebar label="Workspace navigation" items={items} />}
     >
-      <Card>
-        <CardHeader>
-          <CardTitle>Shared UI</CardTitle>
-          <CardDescription>Reusable components and patterns.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button>Get started</Button>
-        </CardContent>
-      </Card>
+      <ResourceStatus
+        title="Compute quota"
+        value="62%"
+        detail="22 of 35 nodes active"
+        progress={62}
+      />
     </AppShell>
   )
 }
 ```
 
-## Local checks
+## Router-aware links
 
-Run the package checks from the monorepo root:
+AppSidebar renders ordinary anchors by default. Framework consumers can provide
+router links through renderItem while preserving the package's accessible
+props:
+
+```tsx
+import Link from "next/link"
+import { AppSidebar } from "@nwl/surfacekit/patterns/app-shell"
+
+;<AppSidebar
+  items={items}
+  renderItem={(item, anchorProps) => (
+    <Link {...anchorProps} href={item.href ?? "#"} />
+  )}
+/>
+```
+
+## Public web-shell example
+
+```tsx
+import {
+  WebHero,
+  WebShell,
+  WebShellFooter,
+  WebShellHeader,
+} from "@nwl/surfacekit/patterns/web-shell"
+
+;<WebShell
+  header={<WebShellHeader title="SurfaceKit" links={[]} />}
+  footer={<WebShellFooter links={[]} />}
+>
+  <WebHero
+    eyebrow="Naneware Labs"
+    title="Production UI without the guesswork"
+    description="A governed component and enterprise-pattern system."
+  />
+</WebShell>
+```
+
+## Styling and composition
+
+- Tailwind CSS v4 variables in globals.css define light and dark tokens.
+- Components accept their documented className and native element props.
+- Compound components should be composed through their exported children.
+- Prefer public composition hooks such as render and renderItem over wrapping
+  internals or copying package source.
+
+## Compatibility and validation
+
+Preserve public import paths and existing prop behavior when updating the
+package. Additive optional props are preferred for compatible changes;
+removals, renames, and incompatible behavior changes require an explicit
+breaking release decision.
+
+Run package-focused checks from the monorepo root:
 
 ```bash
+pnpm test:contracts
+pnpm test:components:coverage
 pnpm --filter @nwl/surfacekit typecheck
 pnpm --filter @nwl/surfacekit build
-pnpm test:components
+pnpm test:storybook
 ```
+
+For a new public module, add the source and export, behavioral test, Storybook
+story, typed catalog record, and route-local demo before considering it
+complete.

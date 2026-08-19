@@ -95,6 +95,8 @@ describe("Field", () => {
       "field-separator-content"
     )
     expect(screen.getByRole("alert")).toHaveTextContent("Service unavailable")
-    expect(container.querySelectorAll('[data-slot="field-separator"]')).toHaveLength(2)
+    expect(
+      container.querySelectorAll('[data-slot="field-separator"]')
+    ).toHaveLength(2)
   })
 })

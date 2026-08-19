@@ -1,17 +1,10 @@
 {
   "extends": "@nwl/typescript-config/nextjs.json",
   "compilerOptions": {
-    "types": [
-      "vitest/globals",
-      "@testing-library/jest-dom/vitest"
-    ],
+    "types": ["vitest/globals", "@testing-library/jest-dom/vitest"],
     "paths": {
-      "@/*": [
-        "./*"
-      ],
-      "@nwl/surfacekit/*": [
-        "../../packages/ui/src/*"
-      ]
+      "@/*": ["./*"],
+      "@nwl/surfacekit/*": ["../../packages/ui/src/*"]
     },
     "plugins": [
       {
@@ -28,7 +21,5 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts"
   ],
-  "exclude": [
-    "node_modules"
-  ]
+  "exclude": ["node_modules"]
 }

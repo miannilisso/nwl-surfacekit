@@ -82,28 +82,18 @@ interface AppTopbarProps extends React.ComponentProps<"header"> {
 }
 
 function ThemeSwitcher() {
-  const { theme, setTheme } = useTheme()
-  const [mounted, setMounted] = React.useState(false)
-
-  React.useEffect(() => {
-    setMounted(true)
-  }, [])
+  const { resolvedTheme, setTheme } = useTheme()
 
   return (
     <Button
       aria-label="Toggle theme"
       variant="ghost"
       size="icon-sm"
-      onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+      onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
       suppressHydrationWarning
     >
-      {mounted && theme === "dark" ? (
-        <Sun className="h-4 w-4" />
-      ) : mounted ? (
-        <Moon className="h-4 w-4" />
-      ) : (
-        <Moon className="h-4 w-4" />
-      )}
+      <Sun className="hidden h-4 w-4 dark:block" />
+      <Moon className="h-4 w-4 dark:hidden" />
     </Button>
   )
 }

@@ -69,9 +69,9 @@ export const Default: Story = {
     const activity = canvas.getByRole("tab", { name: "Activity" })
     await userEvent.click(activity)
     await expect(activity).toHaveAttribute("aria-selected", "true")
-    await expect(canvas.getByRole("tabpanel")).toHaveTextContent(
-      "Activity workspace content"
-    )
+    await expect(
+      canvas.getByRole("tabpanel", { name: "Activity" })
+    ).toHaveTextContent("Activity workspace content")
   },
 }
 export const Underline: Story = { args: { underline: true } }

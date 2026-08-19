@@ -7,8 +7,8 @@
         "code-review-graph",
         "serve",
         "--repo",
-        "/home/mianni/Builds/nanewarelabs/nwl-surfacekit"
-      ]
-    }
-  }
+        "/home/mianni/Builds/nanewarelabs/nwl-surfacekit",
+      ],
+    },
+  },
 }

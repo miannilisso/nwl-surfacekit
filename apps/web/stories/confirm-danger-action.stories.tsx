@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import * as React from "react"
-import { expect, fn, userEvent, within } from "storybook/test"
+import { expect, fn, userEvent, waitFor, within } from "storybook/test"
 
 import { Button } from "@nwl/surfacekit/components/button"
 import { ConfirmDangerAction } from "@nwl/surfacekit/patterns/confirm-danger-action"
@@ -68,13 +68,13 @@ export const DeleteProject: Story = {
     await userEvent.click(trigger)
     await userEvent.click(canvas.getByRole("button", { name: "Cancel" }))
     await expect(args.onCancel).toHaveBeenCalledOnce()
-    await expect(trigger).toHaveFocus()
+    await waitFor(() => expect(trigger).toHaveFocus())
     await userEvent.click(trigger)
     await userEvent.click(
       canvas.getAllByRole("button", { name: "Delete project" })[1]!
     )
     await expect(args.onConfirm).toHaveBeenCalledOnce()
-    await expect(trigger).toHaveFocus()
+    await waitFor(() => expect(trigger).toHaveFocus())
   },
 }
 export const DisabledConfirm: Story = { args: { disabled: true } }

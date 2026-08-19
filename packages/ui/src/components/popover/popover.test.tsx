@@ -57,7 +57,9 @@ describe("Popover", () => {
     expect(await screen.findByText("Refine the audit log.")).toBeVisible()
     await user.click(screen.getByRole("button", { name: "Outside" }))
     await waitFor(() =>
-      expect(screen.queryByText("Refine the audit log.")).not.toBeInTheDocument()
+      expect(
+        screen.queryByText("Refine the audit log.")
+      ).not.toBeInTheDocument()
     )
   })
 })

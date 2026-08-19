@@ -102,10 +102,9 @@ describe("Combobox", () => {
       "data-slot",
       "combobox-chip"
     )
-    expect(screen.getByRole("combobox", { name: "Fruit choices" })).toHaveAttribute(
-      "data-slot",
-      "combobox-chip-input"
-    )
+    expect(
+      screen.getByRole("combobox", { name: "Fruit choices" })
+    ).toHaveAttribute("data-slot", "combobox-chip-input")
     await user.click(
       screen.getByRole("button", { name: "Toggle fruit choices" })
     )

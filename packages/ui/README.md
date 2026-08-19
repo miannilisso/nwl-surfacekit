@@ -1,46 +1,21 @@
-# `@nwl/surfacekit`
+# @nwl/surfacekit
 
-Shared UI package for nwl-surfacekit. Contains **60 production-ready components** and **10 enterprise patterns**, all with full test coverage and Storybook documentation.
+@nwl/surfacekit is the shared React source package for SurfaceKit. It exports
+60 components, 10 enterprise patterns, Tailwind CSS v4 tokens, hooks, and
+utilities without importing the Next.js reference application or Storybook.
 
-## Package Surface
+## Package surface
 
-The package exports components and patterns grouped by category:
+```text
+@nwl/surfacekit/globals.css
+@nwl/surfacekit/components/<component>
+@nwl/surfacekit/patterns
+@nwl/surfacekit/patterns/<pattern>
+@nwl/surfacekit/hooks/<hook>
+@nwl/surfacekit/lib/<utility>
+```
 
-- `@nwl/surfacekit/globals.css` — Tailwind CSS v4 token configuration
-- `@nwl/surfacekit/components/<component>` — All UI components (see full list below)
-- `@nwl/surfacekit/patterns/<pattern>` — Layout and utility patterns (see full list below)
-- `@nwl/surfacekit/lib/utils` — Utility helpers
-
-## Package exports
-
-- **Components**: `@nwl/surfacekit/components/<component>` (60 components)
-- **Patterns**: `@nwl/surfacekit/patterns/<pattern>` (10 patterns)
-- **Utilities**: `@nwl/surfacekit/lib/<util>`
-
-## Component List
-
-All 60 components include Vitest tests and Storybook stories:
-
-accordion, alert, alert-dialog, aspect-ratio, attachment, avatar, badge, breadcrumb, bubble, button, button-group, calendar, card, carousel, chart, checkbox, collapsible, combobox, command, context-menu, dialog, direction, drawer, dropdown-menu, empty, field, hover-card, input, input-group, input-otp, item, kbd, label, marker, menubar, message, message-scroller, native-select, navigation-menu, pagination, popover, progress, radio-group, resizable, scroll-area, select, separator, sheet, sidebar, skeleton, slider, spinner, switch, table, tabs, textarea, toast, toggle, toggle-group, tooltip
-
-## Pattern List
-
-All 10 patterns include Vitest tests and Storybook stories:
-
-- `AppShell`, `AppTopbar`, `AppSidebar` — Authenticated product surface layouts
-- `AuthShell`, `AuthPanel` — Sign-in and account access layouts
-- `WebShell`, `WebShellHeader`, `WebShellFooter`, `WebHero` — Marketing and public page layouts
-- `PermissionGate` — Permission-required workflow wrapper
-- `StepUpDialog` — Second-factor and verification prompts
-- `ErrorSummary` — Validation and system error reporting
-- `ResourceStatus` — Live resource and capacity dashboards
-- `DataTableToolbar` — Table search and action toolbars
-- `ConfirmDangerAction` — Destructive action confirmation dialogs
-- `IncidentBanner` — Service-impact and outage notifications
-
-## Source Conventions
-
-Components use folder-based source with colocated tests:
+Modules use folder-based source with colocated tests:
 
 ```text
 src/components/button/button.tsx
@@ -48,156 +23,69 @@ src/components/button/button.test.tsx
 src/components/button/index.ts
 ```
 
-The button source is intentionally singular at `src/components/button/button.tsx`. Do not reintroduce `src/components/button.tsx`.
+Interactive primitives are built on Base UI where appropriate and expose
+shadcn-style, Tailwind-tokenized APIs. Consumers should import the narrow module
+path they use rather than a private source file.
 
-Component styles follow shadcn source conventions with Tailwind CSS v4 tokens. Interactive primitives should come from Base UI where possible; the button uses `@base-ui/react/button`.
+## Inventory
 
-## Patterns
+The 60 components are:
 
-The package currently exports enterprise-ready layout and utility patterns:
+accordion, alert, alert-dialog, aspect-ratio, attachment, avatar, badge,
+breadcrumb, bubble, button, button-group, calendar, card, carousel, chart,
+checkbox, collapsible, combobox, command, context-menu, dialog, direction,
+drawer, dropdown-menu, empty, field, hover-card, input, input-group, input-otp,
+item, kbd, label, marker, menubar, message, message-scroller, native-select,
+navigation-menu, pagination, popover, progress, radio-group, resizable,
+scroll-area, select, separator, sheet, sidebar, skeleton, slider, spinner,
+switch, table, tabs, textarea, toast, toggle, toggle-group, and tooltip.
 
-- `AppShell`, `AppTopbar`, and `AppSidebar` for authenticated product surfaces.
-- `AuthShell` and `AuthPanel` for sign-in and account access layouts.
-- `WebShell`, `WebShellHeader`, `WebShellFooter`, and `WebHero` for marketing/public pages.
-- `PermissionGate` for permission-required workflows.
-- `StepUpDialog` for second-factor and verification prompts.
-- `ErrorSummary` for validation and system error reporting.
-- `ResourceStatus` for live resource and capacity dashboards.
-- `DataTableToolbar` for table search/action toolbars.
-- `ConfirmDangerAction` for destructive action confirmation.
-- `IncidentBanner` for service-impact and outage notifications.
+The 10 enterprise patterns are:
 
-Each pattern has a colocated Vitest test and a Storybook story under `apps/web/stories`.
+- app-shell — application frame, top bar, and navigation
+- auth-shell — authentication and account-access composition
+- confirm-danger-action — explicit destructive-action confirmation
+- data-table-toolbar — search, filter, export, and create actions
+- error-summary — linked validation and system failures
+- incident-banner — severity-aware operational messaging
+- permission-gate — denied and allowed permission states
+- resource-status — resource health and progress
+- step-up-dialog — additional verification before sensitive actions
+- web-shell — public header, hero, content, and footer composition
 
-- All package UI components now include scaffolded Vitest test files and Storybook stories. `button` and `card` continue to be the only components with full render assertions and custom story variants.
+The typed catalog and contract tests are the authoritative inventory. Counts in
+documentation describe the current repository state, not an open-ended support
+guarantee.
 
-## Component list
+## Evidence contract
 
-- accordion
-- alert
-- alert-dialog
-- aspect-ratio
-- attachment
-- avatar
-- badge
-- breadcrumb
-- bubble
-- button
-- button-group
-- calendar
-- card
-- carousel
-- chart
-- checkbox
-- collapsible
-- combobox
-- command
-- context-menu
-- dialog
-- direction
-- drawer
-- dropdown-menu
-- empty
-- field
-- hover-card
-- input
-- input-group
-- input-otp
-- item
-- kbd
-- label
-- marker
-- menubar
-- message
-- message-scroller
-- native-select
-- navigation-menu
-- pagination
-- popover
-- progress
-- radio-group
-- resizable
-- scroll-area
-- select
-- separator
-- sheet
-- sidebar
-- skeleton
-- slider
-- spinner
-- switch
-- table
-- tabs
-- textarea
-- toast
-- toggle
-- toggle-group
-- tooltip
+Each public component and pattern has:
 
-## Pattern list
+- a meaningful colocated Vitest test;
+- a Storybook entry under apps/web/stories;
+- a typed catalog record;
+- a live route demo that imports its public package path.
 
-- app-shell
-- auth-shell
-- web-shell
-- permission-gate
-- step-up-dialog
-- error-summary
-- resource-status
-- data-table-toolbar
-- confirm-danger-action
-- incident-banner
-
-## Example usage
-
-```tsx
-import { Button } from "@nwl/surfacekit/components/button"
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from "@nwl/surfacekit/components/card"
-import {
-  AppShell,
-  AppTopbar,
-  AppSidebar,
-} from "@nwl/surfacekit/patterns/app-shell"
-
-export default function Page() {
-  return (
-    <AppShell
-      topbar={<AppTopbar>SurfaceKit</AppTopbar>}
-      sidebar={<AppSidebar>Navigation</AppSidebar>}
-    >
-      <Card>
-        <CardHeader>
-          <CardTitle>Shared UI</CardTitle>
-          <CardDescription>Reusable components and patterns.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button>Get started</Button>
-        </CardContent>
-      </Card>
-    </AppShell>
-  )
-}
-```
-
-## Local Checks
+pnpm test:contracts compares these sets exactly. Package coverage has enforced
+statement, branch, function, and line thresholds; a passing threshold does not
+imply every possible state or integration has been exercised.
 
 ```bash
+pnpm test:contracts
+pnpm test:components:coverage
 pnpm --filter @nwl/surfacekit typecheck
 pnpm --filter @nwl/surfacekit build
-pnpm test:components
+pnpm test:storybook
 ```
 
-## More docs
+## API compatibility
 
-See `packages/ui/USAGE.md` for package consumer usage, import patterns, and example snippets.
+- Preserve existing @nwl/surfacekit/components/* and
+  @nwl/surfacekit/patterns/* entry points for compatible releases.
+- Prefer additive optional props over application-specific forks.
+- Keep Next.js types and imports out of the package. Integration points such as
+  AppSidebar.renderItem allow an app to supply its router-aware link.
+- Record removals, renames, or incompatible behavior changes as breaking
+  changes before publishing.
 
-```bash
-pnpm --filter @nwl/surfacekit typecheck
-pnpm --filter @nwl/surfacekit build
-pnpm test:components
-```
+See [USAGE.md](USAGE.md) for consumer setup and examples.

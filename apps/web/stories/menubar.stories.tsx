@@ -103,7 +103,7 @@ export const Default: Story = {
       "menuitem",
       { name: /New document/ }
     )
-    await expect(item).toBeVisible()
+    await waitFor(() => expect(item).toBeVisible())
     await userEvent.click(item)
     await waitFor(() =>
       expect(

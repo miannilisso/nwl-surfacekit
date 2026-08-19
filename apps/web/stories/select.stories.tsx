@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite"
-import { expect, userEvent, within } from "storybook/test"
+import { expect, userEvent, waitFor, within } from "storybook/test"
 
 import {
   Select,
@@ -75,8 +75,11 @@ export const Default: Story = {
       name: "Plan",
     })
     await userEvent.click(trigger)
+    await within(canvasElement.ownerDocument.body).findByRole("option", {
+      name: "Growth",
+    })
     await userEvent.keyboard("{ArrowDown}{Enter}")
-    await expect(trigger).toHaveTextContent("Growth")
+    await waitFor(() => expect(trigger).toHaveTextContent("Growth"))
   },
 }
 export const Groups: Story = { args: { grouped: true } }

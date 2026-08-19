@@ -24,7 +24,9 @@ test("keyboard navigation reaches the playground", async ({ page }) => {
 test("catalog search opens the exact component anchor", async ({ page }) => {
   await openReadyPage(page, "/playground")
 
-  await page.getByRole("searchbox", { name: "Search SurfaceKit" }).fill("Input OTP")
+  await page
+    .getByRole("searchbox", { name: "Search SurfaceKit" })
+    .fill("Input OTP")
   const result = page.getByRole("link", { name: "Input OTP" })
   await expect(result).toHaveAttribute("href", "/form-inputs#input-otp")
   await result.click()
@@ -36,7 +38,9 @@ test("catalog search opens the exact component anchor", async ({ page }) => {
 test("form controls preserve entered and selected values", async ({ page }) => {
   await openReadyPage(page, "/form-inputs")
 
-  await page.getByRole("textbox", { name: "Work email" }).fill("owner@example.com")
+  await page
+    .getByRole("textbox", { name: "Work email" })
+    .fill("owner@example.com")
   await expect(page.getByRole("textbox", { name: "Work email" })).toHaveValue(
     "owner@example.com"
   )
@@ -76,13 +80,18 @@ test("tabs and dropdown menus support keyboard operation", async ({ page }) => {
     "aria-selected",
     "true"
   )
-  await expect(page.getByText("Recent member and deployment activity.")).toBeVisible()
+  await expect(
+    page.getByText("Recent member and deployment activity.")
+  ).toBeVisible()
 
   await openReadyPage(page, "/dialogs-overlays")
   const menuTrigger = page.getByRole("button", { name: "Workspace actions" })
   await menuTrigger.focus()
+  await expect(menuTrigger).toBeFocused()
   await menuTrigger.press("ArrowDown")
-  await expect(page.getByRole("menuitem", { name: "Open" })).toBeFocused()
+  const openItem = page.getByRole("menuitem", { name: "Open" })
+  await expect(openItem).toBeVisible()
+  await expect(openItem).toBeFocused()
   await page.keyboard.press("Enter")
   await expect(page.getByText("Workspace opened")).toBeVisible()
 })
@@ -107,7 +116,9 @@ test("dialogs restore focus and toasts can be dismissed", async ({ page }) => {
   await expect(page.getByText("Changes saved")).toHaveCount(0)
 })
 
-test("sidebar trigger collapses and expands the navigation", async ({ page }) => {
+test("sidebar trigger collapses and expands the navigation", async ({
+  page,
+}) => {
   await openReadyPage(page, "/layout-utilities")
 
   const sidebar = page.locator("#sidebar [data-slot=sidebar]").first()
@@ -121,7 +132,9 @@ test("sidebar trigger collapses and expands the navigation", async ({ page }) =>
   await expect(sidebar).toHaveAttribute("data-state", "expanded")
 })
 
-test("permission and danger patterns expose outcome feedback", async ({ page }) => {
+test("permission and danger patterns expose outcome feedback", async ({
+  page,
+}) => {
   await openReadyPage(page, "/patterns")
 
   await expect(page.getByText("Billing access required")).toBeVisible()
@@ -132,9 +145,6 @@ test("permission and danger patterns expose outcome feedback", async ({ page }) 
 
   await page.getByRole("button", { name: "Delete project" }).click()
   await expect(page.getByText("Delete production project?")).toBeVisible()
-  await page
-    .getByRole("button", { name: "Delete project" })
-    .last()
-    .click()
+  await page.getByRole("button", { name: "Delete project" }).last().click()
   await expect(page.getByText("Project deletion confirmed")).toBeVisible()
 })

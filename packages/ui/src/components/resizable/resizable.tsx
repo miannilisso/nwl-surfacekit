@@ -34,9 +34,18 @@ function ResizableHandle({
 }: ResizablePrimitive.SeparatorProps & {
   withHandle?: boolean
 }) {
+  const internalRef = React.useRef<HTMLDivElement | null>(null)
   const observerRef = React.useRef<MutationObserver | null>(null)
+
+  React.useImperativeHandle(
+    elementRef,
+    () => internalRef.current as HTMLDivElement,
+    []
+  )
+
   const setElementRef = React.useCallback(
     (node: HTMLDivElement | null) => {
+      internalRef.current = node
       observerRef.current?.disconnect()
       observerRef.current = null
 
@@ -53,13 +62,8 @@ function ResizableHandle({
           attributeFilter: ["aria-valuenow"],
         })
       }
-      if (typeof elementRef === "function") elementRef(node)
-      else if (elementRef) {
-        ;(elementRef as React.MutableRefObject<HTMLDivElement | null>).current =
-          node
-      }
     },
-    [ariaValueNow, elementRef]
+    [ariaValueNow]
   )
 
   React.useEffect(() => () => observerRef.current?.disconnect(), [])

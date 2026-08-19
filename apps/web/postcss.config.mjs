@@ -1,1 +1,1 @@
-export { default } from "@nwl/surfacekit/postcss.config";
+export { default } from "@nwl/surfacekit/postcss.config"

@@ -73,7 +73,7 @@ export const Default: Story = {
     const content = within(canvasElement.ownerDocument.body).getByText(
       "Owns production access reviews."
     )
-    await expect(content).toBeVisible()
+    await waitFor(() => expect(content).toBeVisible())
     await userEvent.keyboard("{Escape}")
     await waitFor(() => expect(content).not.toBeInTheDocument())
   },

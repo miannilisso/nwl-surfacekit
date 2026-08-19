@@ -19,7 +19,10 @@ const meta = {
   },
   args: {
     defaultValue: [50],
-    getThumbAriaLabel: (_index: number) => "Volume",
+    getThumbAriaLabel: (index: number) => {
+      void index
+      return "Volume"
+    },
     className: "w-72",
   },
   render: (args) => (

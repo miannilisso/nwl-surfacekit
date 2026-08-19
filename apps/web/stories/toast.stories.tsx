@@ -66,9 +66,9 @@ export const Success: Story = {
       within(canvasElement).getByRole("button", { name: "Show notification" })
     )
     const body = within(canvasElement.ownerDocument.body)
-    await expect(
-      body.getByRole("dialog", { name: "Changes saved" })
-    ).toBeVisible()
+    await waitFor(() =>
+      expect(body.getByRole("dialog", { name: "Changes saved" })).toBeVisible()
+    )
     await userEvent.click(body.getByLabelText("Close toast"))
     await waitFor(() =>
       expect(body.queryByText("Changes saved")).not.toBeInTheDocument()

@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react"
+import { render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { describe, expect, it } from "vitest"
 import {
@@ -45,7 +45,9 @@ describe("Sheet", () => {
       container.ownerDocument.querySelector('[data-slot="sheet-footer"]')
     ).toBeInTheDocument()
     await user.click(screen.getByRole("button", { name: "Close" }))
-    expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
+    await waitFor(() =>
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
+    )
   })
   it("restores focus after Escape dismissal", async () => {
     const user = userEvent.setup()
@@ -54,6 +56,6 @@ describe("Sheet", () => {
     await user.click(trigger)
     await screen.findByRole("dialog")
     await user.keyboard("{Escape}")
-    expect(trigger).toHaveFocus()
+    await waitFor(() => expect(trigger).toHaveFocus())
   })
 })

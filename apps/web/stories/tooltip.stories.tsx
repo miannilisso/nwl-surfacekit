@@ -74,9 +74,11 @@ export const Default: Story = {
       name: "Deploy",
     })
     await userEvent.hover(trigger)
-    await expect(
-      within(canvasElement.ownerDocument.body).getByRole("tooltip")
-    ).toBeVisible()
+    await waitFor(() =>
+      expect(
+        within(canvasElement.ownerDocument.body).getByRole("tooltip")
+      ).toBeVisible()
+    )
     await expect(trigger).toHaveAccessibleDescription("Deploy to top")
     await userEvent.keyboard("{Escape}")
     await waitFor(() =>

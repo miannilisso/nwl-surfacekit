@@ -26,7 +26,9 @@ describe("Tabs", () => {
       "aria-selected",
       "true"
     )
-    expect(screen.getByRole("tabpanel")).toHaveTextContent("Activity panel")
+    expect(
+      screen.getByRole("tabpanel", { name: "Activity" })
+    ).toHaveTextContent("Activity panel")
   })
 
   it("supports line styling and disabled tabs", () => {

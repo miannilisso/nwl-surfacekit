@@ -93,11 +93,13 @@ export const Default: Story = {
       "Right-click this workspace"
     )
     await userEvent.pointer({ target: trigger, keys: "[MouseRight]" })
-    await expect(
-      within(canvasElement.ownerDocument.body).getByRole("menuitem", {
-        name: "Open",
-      })
-    ).toBeVisible()
+    await waitFor(() =>
+      expect(
+        within(canvasElement.ownerDocument.body).getByRole("menuitem", {
+          name: "Open",
+        })
+      ).toBeVisible()
+    )
     await userEvent.keyboard("{Escape}")
     await waitFor(() => expect(trigger).toHaveFocus())
   },
