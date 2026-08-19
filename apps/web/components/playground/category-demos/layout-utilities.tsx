@@ -202,7 +202,7 @@ export function SidebarDemo() {
   return (
     <div className="h-80 w-full max-w-3xl overflow-hidden rounded-3xl border">
       <SidebarProvider className="min-h-80">
-        <Sidebar collapsible="none" className="absolute h-80">
+        <Sidebar collapsible="icon" className="absolute h-80">
           <SidebarHeader className="font-medium">
             Enterprise workspace
           </SidebarHeader>
