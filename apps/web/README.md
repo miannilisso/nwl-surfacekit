@@ -15,7 +15,7 @@ pnpm --filter web build
 pnpm --filter web start
 ```
 
-The local URL is http://localhost:3000.
+The local URL is <http://localhost:3000>.
 
 ## Application routes
 

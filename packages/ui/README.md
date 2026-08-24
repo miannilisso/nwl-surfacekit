@@ -80,8 +80,8 @@ pnpm test:storybook
 
 ## API compatibility
 
-- Preserve existing @nwl/surfacekit/components/* and
-  @nwl/surfacekit/patterns/* entry points for compatible releases.
+- Preserve existing @nwl/surfacekit/components/< component > and
+  @nwl/surfacekit/patterns/< pattern > entry points for compatible releases.
 - Prefer additive optional props over application-specific forks.
 - Keep Next.js types and imports out of the package. Integration points such as
   AppSidebar.renderItem allow an app to supply its router-aware link.

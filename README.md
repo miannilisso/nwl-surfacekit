@@ -29,7 +29,7 @@ pnpm install --frozen-lockfile
 pnpm dev
 ```
 
-The web app runs at http://localhost:3000. Storybook runs separately:
+The web app runs at <http://localhost:3000>. Storybook runs separately:
 
 ```bash
 pnpm storybook
