@@ -8,6 +8,7 @@ const repositoryRoot = path.dirname(fileURLToPath(import.meta.url))
 
 export default defineConfig({
   test: {
+    fileParallelism: false,
     projects: [
       {
         extends: true,

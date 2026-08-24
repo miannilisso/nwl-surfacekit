@@ -75,9 +75,11 @@ export const Default: Story = {
       name: "Plan",
     })
     await userEvent.click(trigger)
-    await within(canvasElement.ownerDocument.body).findByRole("option", {
-      name: "Growth",
-    })
+    const listbox = await within(canvasElement.ownerDocument.body).findByRole(
+      "listbox"
+    )
+    await waitFor(() => expect(listbox).toBeVisible())
+    await waitFor(() => expect(trigger).toHaveAttribute("aria-expanded", "true"))
     await userEvent.keyboard("{ArrowDown}{Enter}")
     await waitFor(() => expect(trigger).toHaveTextContent("Growth"))
   },

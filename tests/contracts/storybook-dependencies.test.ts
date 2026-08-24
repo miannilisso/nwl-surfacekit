@@ -21,6 +21,10 @@ describe("Storybook dependency policy", () => {
       path.join(repositoryRoot, "apps/web/.storybook/main.ts"),
       "utf8"
     )
+    const storybookVitestConfig = await readFile(
+      path.join(repositoryRoot, "vitest.storybook.config.ts"),
+      "utf8"
+    )
 
     for (const dependency of [
       "storybook",
@@ -47,6 +51,14 @@ describe("Storybook dependency policy", () => {
     expect(mainConfig).not.toContain("rollupOptions")
     expect(mainConfig).toContain("rolldownOptions")
     expect(mainConfig).toContain("chunkSizeWarningLimit: 1000")
+    expect(mainConfig).toContain("strictExecutionOrder: true")
+    expect(mainConfig).toContain(
+      "test: /node_modules\\/(?:@storybook|storybook)\\//"
+    )
+    expect(mainConfig).toContain("minSize: 100_000")
+    expect(mainConfig).toContain("maxSize: 750_000")
+    expect(mainConfig).toContain("priority: 20")
+    expect(storybookVitestConfig).toContain("fileParallelism: false")
     expect(packageJson.engines.node).toBe("^20.19.0 || ^22.13.0 || >=24.0.0")
     expect(packageJson.scripts.storybook).toContain(
       "--initial-path /?path=/story/surfacekit-introduction--overview"
