@@ -1,5 +1,6 @@
 import { readdirSync } from "node:fs"
 import path from "node:path"
+import react from "@vitejs/plugin-react"
 import { defineConfig } from "vitest/config"
 
 const surfaceFileThresholds = Object.fromEntries(
@@ -22,6 +23,7 @@ const surfaceFileThresholds = Object.fromEntries(
 )
 
 export default defineConfig({
+  plugins: [react()],
   resolve: {
     alias: {
       "@nwl/surfacekit": path.resolve(process.cwd(), "packages/ui/src"),
