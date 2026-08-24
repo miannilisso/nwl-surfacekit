@@ -42,7 +42,12 @@ describe("Storybook dependency policy", () => {
     }
 
     expect(mainConfig).toContain('"@storybook/addon-vitest"')
+    expect(mainConfig).toContain('"./introduction.stories.tsx"')
+    expect(mainConfig).not.toContain("developmentModeForBuild")
     expect(packageJson.engines.node).toBe("^20.19.0 || ^22.13.0 || >=24.0.0")
+    expect(packageJson.scripts.storybook).toContain(
+      "--initial-path /?path=/story/surfacekit-introduction--overview"
+    )
     expect(packageJson.scripts["test:storybook"]).toBe(
       "vitest --config vitest.storybook.config.ts --run"
     )

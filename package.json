@@ -25,7 +25,7 @@
     "test:watch": "vitest",
     "verify": "CI=1 TERM=dumb sh -c 'pnpm format:check && pnpm lint && pnpm typecheck && pnpm test:contracts && pnpm test:components:coverage && pnpm build && pnpm build-storybook && pnpm test:storybook && pnpm test:env && pnpm playwright test --config playwright.production.config.ts'",
     "verify:ci": "CI=1 TERM=dumb sh -c 'pnpm format:check && pnpm lint && pnpm typecheck && pnpm test:contracts && pnpm test:components:coverage && pnpm build && pnpm build-storybook && pnpm test:storybook && pnpm test:env && pnpm playwright test --config playwright.production.config.ts'",
-    "storybook": "storybook dev -p 6006 --config-dir apps/web/.storybook",
+    "storybook": "storybook dev -p 6006 --config-dir apps/web/.storybook --initial-path /?path=/story/surfacekit-introduction--overview",
     "build-storybook": "storybook build --config-dir apps/web/.storybook"
   },
   "devDependencies": {

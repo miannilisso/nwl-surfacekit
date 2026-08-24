@@ -4,11 +4,8 @@ import path from "node:path"
 import { mergeConfig } from "vite"
 
 const config: StorybookConfig = {
-  stories: ["../stories/**/*.stories.{ts,tsx}"],
+  stories: ["./introduction.stories.tsx", "../stories/**/*.stories.{ts,tsx}"],
   addons: ["@storybook/addon-a11y", "@storybook/addon-vitest"],
-  features: {
-    developmentModeForBuild: true,
-  },
   framework: {
     name: "@storybook/react-vite",
     options: {},
