@@ -44,6 +44,9 @@ describe("Storybook dependency policy", () => {
     expect(mainConfig).toContain('"@storybook/addon-vitest"')
     expect(mainConfig).toContain('"./introduction.stories.tsx"')
     expect(mainConfig).not.toContain("developmentModeForBuild")
+    expect(mainConfig).not.toContain("rollupOptions")
+    expect(mainConfig).toContain("rolldownOptions")
+    expect(mainConfig).toContain("chunkSizeWarningLimit: 1000")
     expect(packageJson.engines.node).toBe("^20.19.0 || ^22.13.0 || >=24.0.0")
     expect(packageJson.scripts.storybook).toContain(
       "--initial-path /?path=/story/surfacekit-introduction--overview"

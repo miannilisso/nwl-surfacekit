@@ -30,7 +30,21 @@ const config: StorybookConfig = {
       },
       build: {
         chunkSizeWarningLimit: 1000,
-        rollupOptions: {
+        rolldownOptions: {
+          output: {
+            strictExecutionOrder: true,
+            codeSplitting: {
+              groups: [
+                {
+                  name: "storybook-runtime",
+                  test: /node_modules\/(?:@storybook|storybook)\//,
+                  minSize: 100_000,
+                  maxSize: 750_000,
+                  priority: 20,
+                },
+              ],
+            },
+          },
           onwarn(warning, warn) {
             if (
               warning.code === "EVAL" &&
