@@ -1,6 +1,7 @@
 {
   "name": "nwl-surfacekit",
   "version": "0.1.0",
+  "type": "module",
   "private": true,
   "scripts": {
     "build": "turbo build",
@@ -53,8 +54,8 @@
     "vite": "catalog:",
     "vitest": "catalog:"
   },
-  "packageManager": "pnpm@11.18.0",
+  "packageManager": "pnpm@11.23.0",
   "engines": {
-    "node": ">=20.19.0"
+    "node": "^20.19.0 || ^22.13.0 || >=24.0.0"
   }
 }

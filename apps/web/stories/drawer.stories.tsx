@@ -87,6 +87,7 @@ export const Bottom: Story = {
     )
     await waitFor(() => expect(dialog).toBeVisible())
     await userEvent.click(within(dialog).getByRole("button", { name: "Done" }))
+    await waitFor(() => expect(dialog).toHaveAttribute("data-closed", ""))
     await waitFor(() => expect(trigger).toHaveFocus())
   },
 }

@@ -1,8 +1,11 @@
 # Using @nwl/surfacekit
 
-The package is currently a private workspace dependency. Add it to another
-workspace app with "@nwl/surfacekit": "workspace:*", then load its global
-tokens once near the application root:
+The package is currently a private source dependency supported only inside this
+workspace. Add it to a workspace app with
+`"@nwl/surfacekit": "workspace:*"`. The app must use React and React DOM 19;
+the package declares both as required `^19.0.0` peers.
+
+Load the global tokens once near the application root:
 
 ```css
 @import "@nwl/surfacekit/globals.css";
@@ -23,6 +26,24 @@ import { ResourceStatus } from "@nwl/surfacekit/patterns/resource-status"
 ```
 
 Do not import from src or depend on another app's files.
+
+## Styling setup
+
+The exported stylesheet is Tailwind CSS v4 source. Workspace consumers must use
+the catalog-pinned `tailwindcss` and `@tailwindcss/postcss` packages and load the
+package's PostCSS configuration:
+
+```js
+// postcss.config.mjs
+export { default } from "@nwl/surfacekit/postcss.config"
+```
+
+The CSS currently imports `shadcn/tailwind.css`; this is why `shadcn` remains a
+runtime dependency. External tarball consumers are not supported yet. In audit
+fixtures, clean Next.js and Vite apps failed without the Tailwind/PostCSS setup
+and required source transpilation (for example, Next.js
+`transpilePackages: ["@nwl/surfacekit"]`). These requirements will be replaced
+by compiled JavaScript, declarations, and CSS before external release.
 
 ## Application-shell example
 
@@ -124,3 +145,9 @@ pnpm test:storybook
 For a new public module, add the source and export, behavioral test, Storybook
 story, typed catalog record, and route-local demo before considering it
 complete.
+
+See the
+[2026-08-24 enterprise-readiness audit](../../docs/audits/2026-08-24-surfacekit-enterprise-readiness.md)
+before evaluating the package for an external application. A green workspace
+suite is not evidence of a stable release tarball or general framework
+compatibility.

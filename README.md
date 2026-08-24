@@ -21,8 +21,8 @@ manual keyboard, screen-reader, and assistive-technology review.
 
 ## Requirements
 
-- Node.js >=20.19.0
-- pnpm 11.18.0
+- Node.js `^20.19.0 || ^22.13.0 || >=24.0.0`
+- pnpm `11.23.0`
 
 ```bash
 pnpm install --frozen-lockfile
@@ -77,9 +77,23 @@ consumer guidance.
 | /layout-utilities | 9 layout and utility components                                |
 | /patterns         | 10 enterprise patterns                                         |
 
-The catalog in apps/web/lib/surfacekit-catalog.ts owns names, descriptions,
+The catalog in `apps/web/lib/surfacekit/catalog.ts` owns names, descriptions,
 counts, categories, routes, and stable anchors. Do not duplicate those values in
 application code.
+
+## Supported repository toolchain
+
+The current verified cohorts are React `19.2.8`, Next.js `16.3.2`, Storybook
+`10.5.10`, Vite `8.2.2`, Vitest `4.1.11`, ESLint `10.9.0`, Turbo `2.10.11`,
+and TypeScript `5.9.3`. Shared exact versions live in the root
+`pnpm-workspace.yaml` catalog.
+
+TypeScript intentionally remains at `5.9.3`: typescript-eslint `8.67.0`
+supports TypeScript below `6.1.0`, so the registry's newer TypeScript major is
+not currently actionable. The shared ESLint configuration uses
+`@eslint/compat` for `eslint-plugin-react@7.37.5`, whose published peer range
+has not yet added ESLint 10. Both exceptions are recorded in the current
+[enterprise-readiness audit](docs/audits/2026-08-24-surfacekit-enterprise-readiness.md).
 
 ## Verification
 
@@ -96,6 +110,7 @@ pnpm build-storybook
 pnpm test:storybook
 pnpm test:env
 pnpm playwright test tests/e2e/workflows.spec.ts --project=chromium
+pnpm audit --prod
 ```
 
 Install the browser binaries once:
@@ -104,10 +119,14 @@ Install the browser binaries once:
 pnpm exec playwright install chromium firefox webkit
 ```
 
-pnpm verify and pnpm verify:ci are intentionally equivalent. They run
+`pnpm verify` and `pnpm verify:ci` are intentionally equivalent. They run
 formatting, lint, types, exact inventory contracts, package coverage, Next.js
 and Storybook production builds, Storybook browser tests, client-environment
 checks, and the complete production-server Playwright suite.
+
+Vitest ignores `.worktrees/**`, and Playwright resolves tests only from
+`tests/e2e`. These boundaries keep verification hermetic when another linked
+checkout has its own React or Playwright installation.
 
 ## Visual snapshot review
 
@@ -142,3 +161,18 @@ removals, renames, and incompatible prop changes as explicit breaking changes.
 
 Dependency versions are centralized in pnpm-workspace.yaml. Workspace
 manifests use catalog: for shared versions and workspace:* for local packages.
+
+## Distribution status
+
+`@nwl/surfacekit` remains a private, workspace-consumed source package. React
+and React DOM `^19.0.0` are required peers, but the package does not yet emit
+JavaScript, declarations, or compiled CSS and does not have a release-grade
+files allowlist or immutable GitHub release workflow. Its current tarball is an
+audit artifact, not a supported external distribution.
+
+The reference Next.js app, Storybook, and manual disposable-consumer probes
+show that the source can compile in the repository's tested configurations.
+They do not establish general external-app compatibility, complete WCAG
+conformance, security compliance, or a stable release contract. See the
+[2026-08-24 enterprise-readiness audit](docs/audits/2026-08-24-surfacekit-enterprise-readiness.md)
+for the blockers and dependency-ordered roadmap.

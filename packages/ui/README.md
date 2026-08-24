@@ -1,8 +1,20 @@
 # @nwl/surfacekit
 
-@nwl/surfacekit is the shared React source package for SurfaceKit. It exports
+`@nwl/surfacekit` is the shared React 19 source package for SurfaceKit. It exports
 60 components, 10 enterprise patterns, Tailwind CSS v4 tokens, hooks, and
 utilities without importing the Next.js reference application or Storybook.
+
+## Current distribution contract
+
+The package is private and supported only as a `workspace:*` dependency in this
+repository. It exports raw TypeScript/TSX and source CSS; `build` currently
+typechecks with `tsc --noEmit`. There is no compiled JavaScript, declaration,
+or CSS distribution and no release-grade tarball allowlist. Do not treat a
+`pnpm pack` artifact as an externally supported release.
+
+Consuming code must provide exactly one compatible React installation. The
+package declares `react` and `react-dom` `^19.0.0` as required peers and keeps
+catalog-pinned `19.2.8` development copies for repository tests.
 
 ## Package surface
 
@@ -89,3 +101,19 @@ pnpm test:storybook
   changes before publishing.
 
 See [USAGE.md](USAGE.md) for consumer setup and examples.
+
+## Styling boundary
+
+`globals.css` is Tailwind CSS v4 source, not compiled CSS. The repository uses
+`tailwindcss@4.3.3` and `@tailwindcss/postcss@4.3.3` with the exported
+`@nwl/surfacekit/postcss.config`. The stylesheet also imports
+`shadcn/tailwind.css`, so the `shadcn` package remains a runtime dependency for
+this source distribution.
+
+Disposable Next.js 16.3.2 and Vite 8.2.2 tarball consumers both failed to load
+the stylesheet without that tooling. They built after explicitly installing the
+Tailwind/PostCSS dependencies and loading the exported PostCSS config, but that
+manual evidence is not a supported release contract. Compiled CSS, emitted
+modules/types, restricted tarball contents, and automated consumer fixtures are
+tracked as readiness blockers in the
+[enterprise-readiness audit](../../docs/audits/2026-08-24-surfacekit-enterprise-readiness.md).

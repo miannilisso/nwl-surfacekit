@@ -29,7 +29,7 @@ describe("Storybook dependency policy", () => {
       "@storybook/react-vite",
     ]) {
       expect(packageJson.devDependencies[dependency]).toBe("catalog:")
-      expect(workspace).toContain(`"${dependency}": "10.5.7"`)
+      expect(workspace).toContain(`"${dependency}": "10.5.10"`)
     }
 
     for (const removedDependency of [
@@ -42,7 +42,7 @@ describe("Storybook dependency policy", () => {
     }
 
     expect(mainConfig).toContain('"@storybook/addon-vitest"')
-    expect(packageJson.engines.node).toBe(">=20.19.0")
+    expect(packageJson.engines.node).toBe("^20.19.0 || ^22.13.0 || >=24.0.0")
     expect(packageJson.scripts["test:storybook"]).toBe(
       "vitest --config vitest.storybook.config.ts --run"
     )

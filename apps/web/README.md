@@ -1,12 +1,14 @@
 # SurfaceKit web reference
 
-This Next.js 16 App Router application is the reference consumer for
+This Next.js `16.3.2` App Router application is the reference consumer for
 @nwl/surfacekit. It renders two public marketing routes and eight playground
 routes from the same typed catalog used by repository contracts.
 
 ## Requirements and commands
 
-Use Node.js >=20.19.0 and pnpm 11.18.0 from the monorepo root.
+Use Node.js `^20.19.0 || ^22.13.0 || >=24.0.0` and pnpm `11.23.0` from the
+monorepo root. The app currently runs React `19.2.8`; Next uses Turbopack for
+development and production builds.
 
 ```bash
 pnpm install --frozen-lockfile
@@ -49,8 +51,8 @@ Every catalog entry has a stable direct-link anchor, for example
 
 ## Storybook
 
-Storybook 10.5.7 is configured in apps/web/.storybook; stories live in
-apps/web/stories.
+Storybook `10.5.10` with Vite `8.2.2` is configured in
+`apps/web/.storybook`; all 70 public-module stories live in `apps/web/stories`.
 
 ```bash
 pnpm storybook
@@ -70,11 +72,21 @@ pnpm --filter web build
 pnpm playwright test --config playwright.production.config.ts
 ```
 
+Or use the repository script that performs both steps:
+
+```bash
+pnpm test:e2e:production
+```
+
 The suite covers all 10 routes, automated A/AA axe rules, representative
 keyboard and pointer workflows in Chromium, Firefox, and WebKit, and 30
 Chromium-specific visual baselines. Automated accessibility results identify
 common detectable violations and do not replace manual assistive-technology
 testing.
+
+Playwright's root is `tests/e2e`, so specs in linked worktrees are never loaded.
+The production command builds the app before starting `next start`; running a
+development server is not equivalent production verification.
 
 For a focused run:
 
@@ -108,3 +120,7 @@ Keep the five-set contract synchronized:
 
 pnpm test:contracts reports duplicates, missing artifacts, stale registrations,
 and placeholder tests.
+
+This app proves the in-repository source integration. It does not prove that
+the current private raw-source tarball is a stable external package; see the
+[enterprise-readiness audit](../../docs/audits/2026-08-24-surfacekit-enterprise-readiness.md).

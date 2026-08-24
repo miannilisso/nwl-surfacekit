@@ -22,6 +22,38 @@ async function prepareRoute(page: Page, path: string) {
   await expect(
     page.getByRole("status", { name: "Loading example" })
   ).toHaveCount(0)
+  await page.evaluate(() => document.fonts.ready)
+
+  if (path === "/data-display") {
+    const bars = page.locator("#chart .recharts-bar-rectangle")
+    await expect
+      .poll(() =>
+        bars.evaluateAll(
+          (elements) =>
+            elements.length === 8 &&
+            elements.every(
+              (element) => element.getBoundingClientRect().height > 1
+            )
+        )
+      )
+      .toBe(true)
+  }
+
+  let previousHeight = -1
+  let stableSamples = 0
+  await expect
+    .poll(
+      async () => {
+        const height = await page.evaluate(
+          () => document.documentElement.scrollHeight
+        )
+        stableSamples = height === previousHeight ? stableSamples + 1 : 0
+        previousHeight = height
+        return stableSamples
+      },
+      { intervals: [100, 150, 250, 400, 500], timeout: 10_000 }
+    )
+    .toBeGreaterThanOrEqual(4)
 }
 
 for (const route of applicationRoutes) {

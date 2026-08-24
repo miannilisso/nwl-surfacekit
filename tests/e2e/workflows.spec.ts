@@ -1,4 +1,14 @@
-import { expect, test, type Page } from "@playwright/test"
+import { expect, test, type Locator, type Page } from "@playwright/test"
+
+async function expectHydrated(locator: Locator) {
+  await expect
+    .poll(() =>
+      locator.evaluate((element) =>
+        Object.keys(element).some((key) => key.startsWith("__reactProps"))
+      )
+    )
+    .toBe(true)
+}
 
 async function openReadyPage(page: Page, path: string) {
   await page.goto(path)
@@ -72,6 +82,7 @@ test("tabs and dropdown menus support keyboard operation", async ({ page }) => {
   await openReadyPage(page, "/navigation")
 
   const overview = page.getByRole("tab", { name: "Overview" })
+  await expectHydrated(overview)
   await overview.focus()
   await overview.press("ArrowRight")
   await expect(page.getByRole("tab", { name: "Activity" })).toBeFocused()
@@ -86,6 +97,7 @@ test("tabs and dropdown menus support keyboard operation", async ({ page }) => {
 
   await openReadyPage(page, "/dialogs-overlays")
   const menuTrigger = page.getByRole("button", { name: "Workspace actions" })
+  await expectHydrated(menuTrigger)
   await menuTrigger.focus()
   await expect(menuTrigger).toBeFocused()
   await menuTrigger.press("ArrowDown")
@@ -100,8 +112,9 @@ test("dialogs restore focus and toasts can be dismissed", async ({ page }) => {
   await openReadyPage(page, "/dialogs-overlays")
 
   const dialogTrigger = page.getByRole("button", { name: "Edit profile" })
+  await expectHydrated(dialogTrigger)
   await dialogTrigger.focus()
-  await page.keyboard.press("Enter")
+  await dialogTrigger.press("Enter")
   await expect(
     page.getByRole("dialog", { name: "Profile settings" })
   ).toBeVisible()

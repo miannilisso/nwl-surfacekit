@@ -1,9 +1,19 @@
-import { expect, test } from "@playwright/test"
+import { expect, test, type Locator } from "@playwright/test"
 
 import {
   getSurfacesByCategory,
   surfaceCategories,
 } from "../../apps/web/lib/surfacekit/catalog"
+
+async function expectHydrated(locator: Locator) {
+  await expect
+    .poll(() =>
+      locator.evaluate((element) =>
+        Object.keys(element).some((key) => key.startsWith("__reactProps"))
+      )
+    )
+    .toBe(true)
+}
 
 for (const category of surfaceCategories) {
   test(`${category.name} exposes every catalog example as a direct anchor`, async ({
@@ -37,13 +47,18 @@ test("playground demos support representative keyboard and pointer workflows", a
   await page.goto("/navigation#tabs")
   await page.waitForLoadState("networkidle")
   const activityTab = page.getByRole("tab", { name: "Activity" })
+  await expectHydrated(activityTab)
   await activityTab.click()
   await expect(activityTab).toHaveAttribute("aria-selected", "true")
-  await expect(page.getByRole("tabpanel")).toContainText("Recent member")
+  await expect(page.getByRole("tabpanel", { name: "Activity" })).toContainText(
+    "Recent member"
+  )
 
   await page.goto("/dialogs-overlays#dropdown-menu")
   await page.waitForLoadState("networkidle")
-  await page.getByRole("button", { name: "Workspace actions" }).click()
+  const menuTrigger = page.getByRole("button", { name: "Workspace actions" })
+  await expectHydrated(menuTrigger)
+  await menuTrigger.click()
   await page.getByRole("menuitem", { name: "Open" }).click()
   await expect(page.getByText("Workspace opened")).toBeVisible()
 })

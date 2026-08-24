@@ -15,20 +15,20 @@
     "class-variance-authority": "catalog:",
     "clsx": "catalog:",
     "cmdk": "catalog:",
-    "date-fns": "catalog:",
     "embla-carousel-react": "catalog:",
     "input-otp": "catalog:",
     "lucide-react": "catalog:",
     "next-themes": "catalog:",
-    "react": "catalog:",
     "react-day-picker": "catalog:",
-    "react-dom": "catalog:",
     "react-resizable-panels": "catalog:",
     "recharts": "catalog:",
     "shadcn": "catalog:",
     "tailwind-merge": "catalog:",
-    "tw-animate-css": "catalog:",
-    "zod": "catalog:"
+    "tw-animate-css": "catalog:"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
   },
   "devDependencies": {
     "@nwl/eslint-config": "workspace:*",
@@ -39,6 +39,8 @@
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
     "eslint": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:",
     "tailwindcss": "catalog:",
     "typescript": "catalog:"
   },
