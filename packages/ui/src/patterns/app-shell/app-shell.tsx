@@ -21,12 +21,14 @@ import { cn } from "../../lib/utils"
 interface AppShellProps extends React.ComponentProps<"div"> {
   topbar?: React.ReactNode
   sidebar?: React.ReactNode
+  footer?: React.ReactNode
   mainProps?: React.ComponentProps<"main">
 }
 
 function AppShell({
   topbar,
   sidebar,
+  footer,
   mainProps,
   className,
   children,
@@ -60,16 +62,21 @@ function AppShell({
             {sidebar}
           </aside>
         ) : null}
-        <main
-          className={cn(
-            "min-w-0 flex-1 p-4 sm:p-6 lg:p-8",
-            sidebar && "md:ml-72",
-            mainClassName
-          )}
-          {...mainRest}
+        <div
+          className={cn("flex min-h-screen flex-col", sidebar && "md:ml-72")}
         >
-          {children}
-        </main>
+          <main
+            className={cn("min-w-0 flex-1 p-4 sm:p-6 lg:p-8", mainClassName)}
+            {...mainRest}
+          >
+            {children}
+          </main>
+          {footer ? (
+            <footer className="border-t border-border px-4 py-5 sm:px-6 lg:px-8">
+              {footer}
+            </footer>
+          ) : null}
+        </div>
       </div>
     </div>
   )
@@ -157,6 +164,7 @@ interface AppSidebarItem {
 interface AppSidebarProps extends React.ComponentProps<"nav"> {
   items: AppSidebarItem[]
   label?: string
+  footer?: React.ReactNode
   renderItem?: (
     item: AppSidebarItem,
     props: React.ComponentProps<"a">
@@ -166,6 +174,7 @@ interface AppSidebarProps extends React.ComponentProps<"nav"> {
 function AppSidebar({
   items,
   label = "Navigation",
+  footer,
   renderItem,
   className,
   ...props
@@ -184,55 +193,62 @@ function AppSidebar({
     <nav
       data-slot="app-sidebar"
       aria-label={label}
-      className={cn("space-y-6", className)}
+      className={cn("flex h-full flex-col", className)}
       {...props}
     >
-      <div className="px-2">
-        <p className="text-xs font-semibold text-sidebar-foreground/60 uppercase">
-          {label}
-        </p>
-      </div>
-      <ul className="space-y-1">
-        {items.map((item) => {
-          const Icon = item.icon || defaultIcons[item.label.toLowerCase()]
-          const anchorProps: React.ComponentProps<"a"> = {
-            href: item.href ?? "#",
-            "aria-current": item.active ? "page" : undefined,
-            className: cn(
-              "flex items-center justify-between gap-2 rounded-md px-3 py-2 text-sm text-sidebar-foreground/80 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-              item.active &&
-                "bg-sidebar-accent font-medium text-sidebar-accent-foreground"
-            ),
-            children: (
-              <>
-                <div className="flex min-w-0 items-center gap-2">
-                  {Icon && <Icon className="h-4 w-4 shrink-0" />}
-                  <span className="truncate">{item.label}</span>
-                </div>
-                {item.badge && (
-                  <Badge
-                    variant="secondary"
-                    className="ml-auto shrink-0 text-xs"
-                  >
-                    {item.badge}
-                  </Badge>
+      <div className="space-y-6">
+        <div className="px-2">
+          <p className="text-xs font-semibold text-sidebar-foreground/60 uppercase">
+            {label}
+          </p>
+        </div>
+        <ul className="space-y-1">
+          {items.map((item) => {
+            const Icon = item.icon || defaultIcons[item.label.toLowerCase()]
+            const anchorProps: React.ComponentProps<"a"> = {
+              href: item.href ?? "#",
+              "aria-current": item.active ? "page" : undefined,
+              className: cn(
+                "flex items-center justify-between gap-2 rounded-md px-3 py-2 text-sm text-sidebar-foreground/80 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                item.active &&
+                  "bg-sidebar-accent font-medium text-sidebar-accent-foreground"
+              ),
+              children: (
+                <>
+                  <div className="flex min-w-0 items-center gap-2">
+                    {Icon && <Icon className="h-4 w-4 shrink-0" />}
+                    <span className="truncate">{item.label}</span>
+                  </div>
+                  {item.badge && (
+                    <Badge
+                      variant="secondary"
+                      className="ml-auto shrink-0 text-xs"
+                    >
+                      {item.badge}
+                    </Badge>
+                  )}
+                </>
+              ),
+            }
+            return (
+              <li key={item.label}>
+                {renderItem ? (
+                  renderItem(item, anchorProps)
+                ) : (
+                  <a {...anchorProps} />
                 )}
-              </>
-            ),
-          }
-          return (
-            <li key={item.label}>
-              {renderItem ? (
-                renderItem(item, anchorProps)
-              ) : (
-                <a {...anchorProps} />
-              )}
-            </li>
-          )
-        })}
-      </ul>
+              </li>
+            )
+          })}
+        </ul>
+      </div>
+      {footer ? (
+        <div className="mt-auto border-t border-sidebar-border pt-4">
+          {footer}
+        </div>
+      ) : null}
     </nav>
   )
 }
 
-export { AppShell, AppSidebar, AppTopbar, type AppSidebarItem }
+export { AppShell, AppSidebar, AppTopbar, ThemeSwitcher, type AppSidebarItem }

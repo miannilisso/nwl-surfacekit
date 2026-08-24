@@ -1,5 +1,6 @@
 "use client"
 
+import { Home } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import * as React from "react"
@@ -53,10 +54,25 @@ export function PlaygroundShell({ children }: { children: React.ReactNode }) {
           }
         />
       }
+      footer={
+        <div className="text-sm text-muted-foreground">
+          <p className="font-medium text-foreground">SurfaceKit</p>
+          <p>Production UI foundations.</p>
+        </div>
+      }
       sidebar={
         <AppSidebar
           label="Playground"
           items={items}
+          footer={
+            <Link
+              href="/"
+              className={buttonVariants({ variant: "ghost", size: "sm" })}
+            >
+              <Home className="h-4 w-4" />
+              Home
+            </Link>
+          }
           renderItem={(item, anchorProps) => (
             <Link {...anchorProps} href={item.href ?? "/playground"} />
           )}

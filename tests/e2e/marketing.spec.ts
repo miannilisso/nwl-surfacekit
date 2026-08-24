@@ -1,4 +1,14 @@
-import { expect, test } from "@playwright/test"
+import { expect, test, type Locator } from "@playwright/test"
+
+async function expectHydrated(locator: Locator) {
+  await expect
+    .poll(() =>
+      locator.evaluate((element) =>
+        Object.keys(element).some((key) => key.startsWith("__reactProps"))
+      )
+    )
+    .toBe(true)
+}
 
 test("landing page presents verified inventory and primary journeys", async ({
   page,
@@ -15,6 +25,18 @@ test("landing page presents verified inventory and primary journeys", async ({
   await expect(
     page.getByRole("link", { name: "Explore the playground" })
   ).toHaveAttribute("href", "/playground")
+})
+
+test("theme action persists the dark theme", async ({ page }) => {
+  await page.goto("/")
+
+  const themeSwitcher = page.getByRole("button", { name: "Toggle theme" })
+  await expectHydrated(themeSwitcher)
+  await themeSwitcher.click()
+  await expect(page.locator("html")).toHaveClass(/dark/)
+
+  await page.reload()
+  await expect(page.locator("html")).toHaveClass(/dark/)
 })
 
 test("capabilities page exposes real routes, patterns, and evidence limits", async ({

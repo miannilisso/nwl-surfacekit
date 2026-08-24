@@ -17,6 +17,7 @@ import {
 } from "@nwl/surfacekit/patterns/web-shell"
 
 import { OperationsPreview } from "../../components/marketing/operations-preview"
+import { WebShellActions } from "../../components/marketing/web-shell-actions"
 import {
   getSurfaceCounts,
   surfaceCategories,
@@ -45,14 +46,7 @@ export default function Page() {
         <WebShellHeader
           title="SurfaceKit"
           links={links}
-          cta={
-            <Link
-              href="/playground"
-              className={buttonVariants({ variant: "outline", size: "sm" })}
-            >
-              Playground
-            </Link>
-          }
+          cta={<WebShellActions />}
         />
       }
       footer={<WebShellFooter links={links} />}

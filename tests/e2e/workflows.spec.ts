@@ -48,6 +48,21 @@ test("catalog search opens the exact component anchor", async ({ page }) => {
   await expect(page.locator("#input-otp")).toBeVisible()
 })
 
+test("playground sidebar home action returns to the SurfaceKit home page", async ({
+  page,
+}) => {
+  await openReadyPage(page, "/playground/form-inputs")
+
+  const home = page.getByRole("link", { name: "Home" })
+  await expectHydrated(home)
+  await home.click()
+
+  await expect(page).toHaveURL(/\/$/)
+  await expect(
+    page.getByRole("heading", { level: 1, name: "SurfaceKit" })
+  ).toBeVisible()
+})
+
 test("form controls preserve entered and selected values", async ({ page }) => {
   await openReadyPage(page, "/playground/form-inputs")
 

@@ -12,7 +12,7 @@ describe("PlaygroundShell", () => {
     vi.mocked(usePathname).mockReturnValue("/playground/data-display")
   )
 
-  it("marks only the matching route as current", () => {
+  it("keeps the active category, home action, and product identity available", () => {
     render(
       <PlaygroundShell>
         <p>Examples</p>
@@ -25,6 +25,11 @@ describe("PlaygroundShell", () => {
     expect(
       screen.getByRole("link", { name: /Navigation/ })
     ).not.toHaveAttribute("aria-current")
+    expect(screen.getByRole("link", { name: "Home" })).toHaveAttribute(
+      "href",
+      "/"
+    )
+    expect(screen.getByRole("contentinfo")).toHaveTextContent("SurfaceKit")
   })
 
   it("keeps the catalog reachable when the desktop sidebar is hidden", () => {
