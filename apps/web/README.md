@@ -21,21 +21,22 @@ The local URL is <http://localhost:3000>.
 
 ## Application routes
 
-| Route             | Content                                                 |
-| ----------------- | ------------------------------------------------------- |
-| /                 | SurfaceKit landing page and live operations composition |
-| /marketing        | Capability explorer for all components and patterns     |
-| /playground       | Searchable catalog overview                             |
-| /form-inputs      | 18 live component examples                              |
-| /navigation       | 5 live component examples                               |
-| /dialogs-overlays | 11 live component examples                              |
-| /data-display     | 13 live component examples                              |
-| /feedback         | 4 live component examples                               |
-| /layout-utilities | 9 live component examples                               |
-| /patterns         | 10 live enterprise-pattern examples                     |
+| Route                        | Content                                                 |
+| ---------------------------- | ------------------------------------------------------- |
+| /                            | SurfaceKit landing page and live operations composition |
+| /marketing                   | Capability explorer for all components and patterns     |
+| /playground                  | Searchable catalog overview                             |
+| /playground/form-inputs      | 18 live component examples                              |
+| /playground/navigation       | 5 live component examples                               |
+| /playground/dialogs-overlays | 11 live component examples                              |
+| /playground/data-display     | 13 live component examples                              |
+| /playground/feedback         | 4 live component examples                               |
+| /playground/layout-utilities | 9 live component examples                               |
+| /playground/patterns         | 10 live enterprise-pattern examples                     |
 
 Every catalog entry has a stable direct-link anchor, for example
-/form-inputs#input-otp.
+`/playground/form-inputs#input-otp`. The former root-level category URLs remain
+permanent redirects to the corresponding nested routes.
 
 ## Architecture
 
@@ -43,7 +44,10 @@ Every catalog entry has a stable direct-link anchor, for example
 - Interactive demos are narrow Client Components loaded only by the category
   that owns them.
 - The shared playground shell owns responsive navigation, active-route state,
-  theme controls, loading boundaries, and error boundaries.
+  theme controls, a bottom Home action, the application footer, loading
+  boundaries, and error boundaries.
+- The marketing navbar composes the package `ThemeSwitcher`, so its light/dark
+  selection persists when a reviewer opens the playground.
 - Application code imports public @nwl/surfacekit entry points; it does not copy
   package source.
 - AppSidebar.renderItem supplies Next.js Link semantics without coupling the
@@ -52,7 +56,8 @@ Every catalog entry has a stable direct-link anchor, for example
 ## Storybook
 
 Storybook `10.5.10` with Vite `8.2.2` is configured in
-`apps/web/.storybook`; all 70 public-module stories live in `apps/web/stories`.
+`apps/web/.storybook`; all 70 public-module stories live in `apps/web/stories`,
+with one additional Introduction story supplied by the Storybook configuration.
 
 ```bash
 pnpm storybook
@@ -60,8 +65,11 @@ pnpm build-storybook
 pnpm test:storybook
 ```
 
-The Storybook browser suite runs interaction and automated accessibility checks
-in Chromium.
+Storybook opens `SurfaceKit/Introduction` by default. Its global toolbar applies
+light or dark mode to every story, and the Introduction overview directs
+reviewers to the public-module stories, playground, and repository docs. The
+Storybook browser suite runs interaction and automated accessibility checks in
+Chromium.
 
 ## Browser verification
 

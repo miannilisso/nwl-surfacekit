@@ -86,11 +86,14 @@ export const Overview: Story = {
             </CardDescription>
           </CardHeader>
           <CardFooter className="flex flex-wrap gap-3">
-            <Button render={<a href="/" />} nativeButton={false}>
+            <Button
+              render={<a href="http://localhost:3000/" />}
+              nativeButton={false}
+            >
               Visit home
             </Button>
             <Button
-              render={<a href="/playground" />}
+              render={<a href="http://localhost:3000/playground" />}
               nativeButton={false}
               variant="outline"
             >

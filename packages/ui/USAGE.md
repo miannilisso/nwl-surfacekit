@@ -52,6 +52,7 @@ import {
   AppShell,
   AppSidebar,
   AppTopbar,
+  ThemeSwitcher,
 } from "@nwl/surfacekit/patterns/app-shell"
 import { ResourceStatus } from "@nwl/surfacekit/patterns/resource-status"
 
@@ -63,8 +64,25 @@ const items = [
 export function Workspace() {
   return (
     <AppShell
-      topbar={<AppTopbar title="Production workspace" eyebrow="SurfaceKit" />}
-      sidebar={<AppSidebar label="Workspace navigation" items={items} />}
+      topbar={
+        <AppTopbar
+          title="Production workspace"
+          eyebrow="SurfaceKit"
+          actions={<ThemeSwitcher />}
+        />
+      }
+      sidebar={
+        <AppSidebar
+          label="Workspace navigation"
+          items={items}
+          footer={<a href="/">Home</a>}
+        />
+      }
+      footer={
+        <p className="text-sm text-muted-foreground">
+          SurfaceKit production UI foundations.
+        </p>
+      }
     >
       <ResourceStatus
         title="Compute quota"
@@ -76,6 +94,13 @@ export function Workspace() {
   )
 }
 ```
+
+`ThemeSwitcher` reads and updates the nearest `next-themes` provider. Use the
+same component anywhere the application exposes its theme control so every
+surface shares one persisted preference. `AppShell.footer` renders after the
+main content in a `contentinfo` landmark. `AppSidebar.footer` stays after the
+navigation list and is useful for secondary actions such as Home or account
+navigation.
 
 ## Router-aware links
 

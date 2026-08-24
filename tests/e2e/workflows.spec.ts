@@ -63,6 +63,34 @@ test("playground sidebar home action returns to the SurfaceKit home page", async
   ).toBeVisible()
 })
 
+test("playground main content fills the remaining desktop width", async ({
+  page,
+}) => {
+  await openReadyPage(page, "/playground/form-inputs")
+
+  const mainBox = await page.getByRole("main").boundingBox()
+  const viewport = page.viewportSize()
+
+  expect(mainBox).not.toBeNull()
+  expect(viewport).not.toBeNull()
+  expect(mainBox!.x + mainBox!.width).toBeCloseTo(viewport!.width, 0)
+})
+
+test("embedded app shells honor a consumer min-height override", async ({
+  page,
+}) => {
+  await openReadyPage(page, "/playground/patterns")
+
+  const shellBox = await page
+    .locator("#app-shell [data-slot=app-shell]")
+    .boundingBox()
+  const viewport = page.viewportSize()
+
+  expect(shellBox).not.toBeNull()
+  expect(viewport).not.toBeNull()
+  expect(shellBox!.height).toBeLessThan(viewport!.height)
+})
+
 test("form controls preserve entered and selected values", async ({ page }) => {
   await openReadyPage(page, "/playground/form-inputs")
 
@@ -187,6 +215,8 @@ test("legacy category routes permanently redirect to the canonical playground ro
 
   await expect(page).toHaveURL(/\/playground\/form-inputs$/)
   await expect(
-    page.getByRole("heading", { level: 1, name: "Form Inputs" })
+    page
+      .getByRole("main")
+      .getByRole("heading", { level: 1, name: "Form Inputs" })
   ).toBeVisible()
 })

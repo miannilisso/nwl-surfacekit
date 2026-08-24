@@ -29,7 +29,8 @@ pnpm install --frozen-lockfile
 pnpm dev
 ```
 
-The web app runs at <http://localhost:3000>. Storybook runs separately:
+The web app runs at <http://localhost:3000>. Storybook runs separately and
+opens on the SurfaceKit Introduction overview:
 
 ```bash
 pnpm storybook
@@ -64,22 +65,34 @@ consumer guidance.
 
 ## Route map
 
-| Route             | Purpose                                                        |
-| ----------------- | -------------------------------------------------------------- |
-| /                 | Product landing page and representative operations composition |
-| /marketing        | Searchable capability inventory and evidence language          |
-| /playground       | Searchable overview of all 70 modules                          |
-| /form-inputs      | 18 form and selection components                               |
-| /navigation       | 5 navigation components                                        |
-| /dialogs-overlays | 11 dialog and overlay components                               |
-| /data-display     | 13 data-display components                                     |
-| /feedback         | 4 feedback components                                          |
-| /layout-utilities | 9 layout and utility components                                |
-| /patterns         | 10 enterprise patterns                                         |
+| Route                        | Purpose                                                        |
+| ---------------------------- | -------------------------------------------------------------- |
+| /                            | Product landing page and representative operations composition |
+| /marketing                   | Searchable capability inventory and evidence language          |
+| /playground                  | Searchable overview of all 70 modules                          |
+| /playground/form-inputs      | 18 form and selection components                               |
+| /playground/navigation       | 5 navigation components                                        |
+| /playground/dialogs-overlays | 11 dialog and overlay components                               |
+| /playground/data-display     | 13 data-display components                                     |
+| /playground/feedback         | 4 feedback components                                          |
+| /playground/layout-utilities | 9 layout and utility components                                |
+| /playground/patterns         | 10 enterprise patterns                                         |
 
 The catalog in `apps/web/lib/surfacekit/catalog.ts` owns names, descriptions,
 counts, categories, routes, and stable anchors. Do not duplicate those values in
 application code.
+
+The former root-level category URLs remain permanent redirects to these
+canonical nested routes so existing links continue to resolve. The playground
+shell provides a bottom-of-sidebar Home action, an application footer, and its
+existing top-bar theme control. The public marketing navbar uses the same
+package `ThemeSwitcher`, so the persisted light/dark preference is shared
+between the marketing and playground surfaces.
+
+Storybook opens `SurfaceKit/Introduction` by default. Its global toolbar
+switches all stories between light and dark themes; the Introduction overview
+links reviewers onward to the component stories, playground, and repository
+documentation.
 
 ## Supported repository toolchain
 

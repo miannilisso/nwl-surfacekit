@@ -50,7 +50,7 @@ function AppShell({
           {topbar}
         </div>
       ) : null}
-      <div className={cn("flex", topbar && "pt-16")}>
+      <div className={cn("flex min-h-[inherit]", topbar && "pt-16")}>
         {sidebar ? (
           <aside
             className="fixed top-0 left-0 hidden h-screen w-72 shrink-0 overflow-y-auto border-r border-border bg-sidebar p-4 text-sidebar-foreground md:block"
@@ -63,7 +63,7 @@ function AppShell({
           </aside>
         ) : null}
         <div
-          className={cn("flex min-h-screen flex-col", sidebar && "md:ml-72")}
+          className={cn("flex min-w-0 flex-1 flex-col", sidebar && "md:ml-72")}
         >
           <main
             className={cn("min-w-0 flex-1 p-4 sm:p-6 lg:p-8", mainClassName)}

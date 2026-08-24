@@ -79,7 +79,9 @@ export const Default: Story = {
       "listbox"
     )
     await waitFor(() => expect(listbox).toBeVisible())
-    await waitFor(() => expect(trigger).toHaveAttribute("aria-expanded", "true"))
+    await waitFor(() =>
+      expect(trigger).toHaveAttribute("aria-expanded", "true")
+    )
     await userEvent.keyboard("{ArrowDown}{Enter}")
     await waitFor(() => expect(trigger).toHaveTextContent("Growth"))
   },

@@ -29,6 +29,26 @@ isolation, React peer declarations, security overrides, migration configuration,
 and current documentation. It intentionally did **not** implement the broader
 package/CSS/release redesign or silently fix other audit findings.
 
+### 2026-08-25 playground and Storybook experience slice
+
+This follow-up slice moved the seven playground category pages under canonical
+`/playground/<category>` routes while retaining permanent redirects from their
+former root-level URLs. It added an application footer and bottom-of-sidebar
+Home action to the playground, exposed additive `AppShell.footer` and
+`AppSidebar.footer` composition slots, and reused the package `ThemeSwitcher`
+in the marketing navbar. Storybook now opens on a dedicated SurfaceKit
+Introduction overview and offers a global light/dark toolbar across its 70
+public-module stories plus the Introduction story. Story warnings were removed,
+browser-mode story files were serialized after shared-browser focus
+interference was causally confirmed, and the largest static Storybook JavaScript
+chunk was reduced to 806,104 bytes without a chunk-size warning; exact Rolldown
+safeguards are protected by contract tests.
+
+This slice improves the in-repository reference and review experience only. It
+does not resolve the external packaging, compiled-CSS, legal, release,
+installed-consumer, security, or governance blockers, and it does not change the
+**Not ready for external production distribution** decision.
+
 ## Scope and method
 
 The audit covered current repository source and configuration, excluding

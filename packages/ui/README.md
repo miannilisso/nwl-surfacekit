@@ -97,6 +97,12 @@ pnpm test:storybook
 - Prefer additive optional props over application-specific forks.
 - Keep Next.js types and imports out of the package. Integration points such as
   AppSidebar.renderItem allow an app to supply its router-aware link.
+- `ThemeSwitcher` is the shared light/dark theme action for application and web
+  navigation. It consumes the surrounding `next-themes` provider rather than
+  owning a second theme store.
+- `AppShell.footer` adds an optional content-information region after the main
+  content, while `AppSidebar.footer` adds optional navigation-adjacent content
+  after the item list. Both APIs are additive React-node composition slots.
 - Record removals, renames, or incompatible behavior changes as breaking
   changes before publishing.
 
