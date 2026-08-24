@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite"
+import * as React from "react"
 import { expect, userEvent, within } from "storybook/test"
 
 import {
@@ -10,18 +11,19 @@ import {
 import { Label } from "@nwl/surfacekit/components/label"
 
 type InputOTPExampleProps = {
-  defaultValue?: string
+  initialValue?: string
   disabled?: boolean
   grouped?: boolean
   invalid?: boolean
 }
 
 function InputOTPExample({
-  defaultValue,
+  initialValue,
   disabled,
   grouped = false,
   invalid,
 }: InputOTPExampleProps) {
+  const [value, setValue] = React.useState(initialValue ?? "")
   const firstSlots = grouped ? [0, 1, 2] : [0, 1, 2, 3, 4, 5]
 
   return (
@@ -32,7 +34,8 @@ function InputOTPExample({
         maxLength={6}
         aria-label="Verification code"
         aria-invalid={invalid}
-        defaultValue={defaultValue}
+        value={value}
+        onChange={setValue}
         disabled={disabled}
       >
         <InputOTPGroup>
@@ -86,9 +89,9 @@ export const Default: Story = {
 export const Grouped: Story = { args: { grouped: true } }
 
 export const Invalid: Story = {
-  args: { invalid: true, defaultValue: "123456" },
+  args: { invalid: true, initialValue: "123456" },
 }
 
 export const Disabled: Story = {
-  args: { disabled: true, defaultValue: "483921" },
+  args: { disabled: true, initialValue: "483921" },
 }

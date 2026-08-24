@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite"
+import { expect, within } from "storybook/test"
 
 import {
   Pagination,
@@ -11,6 +12,12 @@ import {
 } from "@nwl/surfacekit/components/pagination"
 
 function PaginationExample({ page = 3 }: { page?: number }) {
+  const firstVisiblePage = Math.min(Math.max(page - 1, 1), 10)
+  const visiblePages = Array.from(
+    { length: 3 },
+    (_, index) => firstVisiblePage + index
+  )
+
   return (
     <Pagination>
       <PaginationContent>
@@ -25,8 +32,7 @@ function PaginationExample({ page = 3 }: { page?: number }) {
             <PaginationEllipsis />
           </PaginationItem>
         )}
-        {[1, 2, 3].map((offset) => {
-          const value = Math.min(12, Math.max(1, page + offset - 2))
+        {visiblePages.map((value) => {
           return (
             <PaginationItem key={value}>
               <PaginationLink
@@ -73,5 +79,25 @@ export default meta
 type Story = StoryObj<typeof meta>
 export const Default: Story = {}
 export const MiddlePage: Story = { args: { page: 6 } }
-export const FirstPage: Story = { args: { page: 1 } }
-export const LastPage: Story = { args: { page: 12 } }
+export const FirstPage: Story = {
+  args: { page: 1 },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    for (const page of [1, 2, 3]) {
+      await expect(
+        canvas.getAllByRole("link", { name: `Page ${page}` })
+      ).toHaveLength(1)
+    }
+  },
+}
+export const LastPage: Story = {
+  args: { page: 12 },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    for (const page of [10, 11, 12]) {
+      await expect(
+        canvas.getAllByRole("link", { name: `Page ${page}` })
+      ).toHaveLength(1)
+    }
+  },
+}
