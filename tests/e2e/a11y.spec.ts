@@ -16,7 +16,7 @@ for (const route of applicationRoutes) {
     await expect(
       page.getByRole("status", { name: "Loading example" })
     ).toHaveCount(0)
-    if (route.path === "/layout-utilities") {
+    if (route.path === "/playground/layout-utilities") {
       await expect(
         page.locator('[data-slot="resizable-handle"]')
       ).toHaveAttribute("aria-valuenow", /\d+/)

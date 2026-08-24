@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 
-import { DataDisplayGallery } from "../../../components/playground/data-display-gallery"
-import { getSurfacesByCategory } from "../../../lib/surfacekit/catalog"
+import { DataDisplayGallery } from "@/components/playground/data-display-gallery"
+import { getSurfacesByCategory } from "@/lib/surfacekit/catalog"
 
 export const metadata: Metadata = {
   title: "Data Display | SurfaceKit Playground",

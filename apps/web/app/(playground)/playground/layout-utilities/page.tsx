@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 
-import { LayoutUtilitiesGallery } from "../../../components/playground/layout-utilities-gallery"
-import { getSurfacesByCategory } from "../../../lib/surfacekit/catalog"
+import { LayoutUtilitiesGallery } from "@/components/playground/layout-utilities-gallery"
+import { getSurfacesByCategory } from "@/lib/surfacekit/catalog"
 
 export const metadata: Metadata = {
   title: "Layout & Utilities | SurfaceKit Playground",

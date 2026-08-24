@@ -10,13 +10,13 @@ import {
   CardTitle,
 } from "@nwl/surfacekit/components/card"
 
-import { CatalogSearch } from "../../../components/playground/catalog-search"
+import { CatalogSearch } from "@/components/playground/catalog-search"
 import {
   getSurfaceCounts,
   getSurfacesByCategory,
   surfaceCatalog,
   surfaceCategories,
-} from "../../../lib/surfacekit/catalog"
+} from "@/lib/surfacekit/catalog"
 
 export const metadata: Metadata = {
   title: "SurfaceKit Playground",

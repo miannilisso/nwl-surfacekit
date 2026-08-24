@@ -16,7 +16,7 @@ describe("CatalogSearch", () => {
     )
     expect(screen.getByRole("link", { name: /Input OTP/ })).toHaveAttribute(
       "href",
-      "/form-inputs#input-otp"
+      "/playground/form-inputs#input-otp"
     )
     expect(
       screen.queryByRole("link", { name: /Accordion/ })

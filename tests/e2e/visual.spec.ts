@@ -24,7 +24,7 @@ async function prepareRoute(page: Page, path: string) {
   ).toHaveCount(0)
   await page.evaluate(() => document.fonts.ready)
 
-  if (path === "/data-display") {
+  if (path === "/playground/data-display") {
     const bars = page.locator("#chart .recharts-bar-rectangle")
     await expect
       .poll(() =>

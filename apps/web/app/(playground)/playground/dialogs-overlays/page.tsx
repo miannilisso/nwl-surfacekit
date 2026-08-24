@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 
-import { DialogsOverlaysGallery } from "../../../components/playground/dialogs-overlays-gallery"
-import { getSurfacesByCategory } from "../../../lib/surfacekit/catalog"
+import { DialogsOverlaysGallery } from "@/components/playground/dialogs-overlays-gallery"
+import { getSurfacesByCategory } from "@/lib/surfacekit/catalog"
 
 export const metadata: Metadata = {
   title: "Dialogs & Overlays | SurfaceKit Playground",

@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 
-import { NavigationGallery } from "../../../components/playground/navigation-gallery"
-import { getSurfacesByCategory } from "../../../lib/surfacekit/catalog"
+import { NavigationGallery } from "@/components/playground/navigation-gallery"
+import { getSurfacesByCategory } from "@/lib/surfacekit/catalog"
 
 export const metadata: Metadata = {
   title: "Navigation | SurfaceKit Playground",

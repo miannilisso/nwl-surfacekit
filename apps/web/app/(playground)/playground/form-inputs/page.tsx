@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 
-import { FormInputsGallery } from "../../../components/playground/form-inputs-gallery"
-import { getSurfacesByCategory } from "../../../lib/surfacekit/catalog"
+import { FormInputsGallery } from "@/components/playground/form-inputs-gallery"
+import { getSurfacesByCategory } from "@/lib/surfacekit/catalog"
 
 export const metadata: Metadata = {
   title: "Form Inputs | SurfaceKit Playground",

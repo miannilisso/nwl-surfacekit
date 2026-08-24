@@ -18,7 +18,7 @@ describe("CapabilityExplorer", () => {
     await user.click(screen.getByRole("tab", { name: "Feedback" }))
     expect(screen.getByRole("link", { name: "Alert" })).toHaveAttribute(
       "href",
-      "/feedback#alert"
+      "/playground/feedback#alert"
     )
     expect(
       screen.queryByRole("link", { name: "Combobox" })

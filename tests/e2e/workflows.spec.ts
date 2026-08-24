@@ -38,15 +38,18 @@ test("catalog search opens the exact component anchor", async ({ page }) => {
     .getByRole("searchbox", { name: "Search SurfaceKit" })
     .fill("Input OTP")
   const result = page.getByRole("link", { name: "Input OTP" })
-  await expect(result).toHaveAttribute("href", "/form-inputs#input-otp")
+  await expect(result).toHaveAttribute(
+    "href",
+    "/playground/form-inputs#input-otp"
+  )
   await result.click()
 
-  await expect(page).toHaveURL(/\/form-inputs#input-otp$/)
+  await expect(page).toHaveURL(/\/playground\/form-inputs#input-otp$/)
   await expect(page.locator("#input-otp")).toBeVisible()
 })
 
 test("form controls preserve entered and selected values", async ({ page }) => {
-  await openReadyPage(page, "/form-inputs")
+  await openReadyPage(page, "/playground/form-inputs")
 
   await page
     .getByRole("textbox", { name: "Work email" })
@@ -79,7 +82,7 @@ test("form controls preserve entered and selected values", async ({ page }) => {
 })
 
 test("tabs and dropdown menus support keyboard operation", async ({ page }) => {
-  await openReadyPage(page, "/navigation")
+  await openReadyPage(page, "/playground/navigation")
 
   const overview = page.getByRole("tab", { name: "Overview" })
   await expectHydrated(overview)
@@ -95,7 +98,7 @@ test("tabs and dropdown menus support keyboard operation", async ({ page }) => {
     page.getByText("Recent member and deployment activity.")
   ).toBeVisible()
 
-  await openReadyPage(page, "/dialogs-overlays")
+  await openReadyPage(page, "/playground/dialogs-overlays")
   const menuTrigger = page.getByRole("button", { name: "Workspace actions" })
   await expectHydrated(menuTrigger)
   await menuTrigger.focus()
@@ -109,7 +112,7 @@ test("tabs and dropdown menus support keyboard operation", async ({ page }) => {
 })
 
 test("dialogs restore focus and toasts can be dismissed", async ({ page }) => {
-  await openReadyPage(page, "/dialogs-overlays")
+  await openReadyPage(page, "/playground/dialogs-overlays")
 
   const dialogTrigger = page.getByRole("button", { name: "Edit profile" })
   await expectHydrated(dialogTrigger)
@@ -132,7 +135,7 @@ test("dialogs restore focus and toasts can be dismissed", async ({ page }) => {
 test("sidebar trigger collapses and expands the navigation", async ({
   page,
 }) => {
-  await openReadyPage(page, "/layout-utilities")
+  await openReadyPage(page, "/playground/layout-utilities")
 
   const sidebar = page.locator("#sidebar [data-slot=sidebar]").first()
   const trigger = page.locator("#sidebar").getByRole("button", {
@@ -148,7 +151,7 @@ test("sidebar trigger collapses and expands the navigation", async ({
 test("permission and danger patterns expose outcome feedback", async ({
   page,
 }) => {
-  await openReadyPage(page, "/patterns")
+  await openReadyPage(page, "/playground/patterns")
 
   await expect(page.getByText("Billing access required")).toBeVisible()
   await page.getByRole("button", { name: "Request access" }).click()
@@ -160,4 +163,15 @@ test("permission and danger patterns expose outcome feedback", async ({
   await expect(page.getByText("Delete production project?")).toBeVisible()
   await page.getByRole("button", { name: "Delete project" }).last().click()
   await expect(page.getByText("Project deletion confirmed")).toBeVisible()
+})
+
+test("legacy category routes permanently redirect to the canonical playground route", async ({
+  page,
+}) => {
+  await page.goto("/form-inputs")
+
+  await expect(page).toHaveURL(/\/playground\/form-inputs$/)
+  await expect(
+    page.getByRole("heading", { level: 1, name: "Form Inputs" })
+  ).toBeVisible()
 })

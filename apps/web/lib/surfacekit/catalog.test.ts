@@ -8,6 +8,18 @@ import {
 } from "./catalog"
 
 describe("surface catalog", () => {
+  it("uses canonical nested playground routes for every category", () => {
+    expect(surfaceCategories.map(({ route }) => route)).toEqual([
+      "/playground/form-inputs",
+      "/playground/navigation",
+      "/playground/dialogs-overlays",
+      "/playground/data-display",
+      "/playground/feedback",
+      "/playground/layout-utilities",
+      "/playground/patterns",
+    ])
+  })
+
   it("contains 60 components and 10 patterns exactly once", () => {
     expect(getSurfaceCounts()).toEqual({
       components: 60,

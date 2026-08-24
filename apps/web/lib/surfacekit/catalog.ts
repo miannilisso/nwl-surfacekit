@@ -20,21 +20,29 @@ export type SurfaceCatalogEntry = {
 }
 
 export const surfaceCategories = [
-  { id: "form-inputs", name: "Form Inputs", route: "/form-inputs" },
-  { id: "navigation", name: "Navigation", route: "/navigation" },
+  {
+    id: "form-inputs",
+    name: "Form Inputs",
+    route: "/playground/form-inputs",
+  },
+  { id: "navigation", name: "Navigation", route: "/playground/navigation" },
   {
     id: "dialogs-overlays",
     name: "Dialogs & Overlays",
-    route: "/dialogs-overlays",
+    route: "/playground/dialogs-overlays",
   },
-  { id: "data-display", name: "Data Display", route: "/data-display" },
-  { id: "feedback", name: "Feedback", route: "/feedback" },
+  {
+    id: "data-display",
+    name: "Data Display",
+    route: "/playground/data-display",
+  },
+  { id: "feedback", name: "Feedback", route: "/playground/feedback" },
   {
     id: "layout-utilities",
     name: "Layout & Utilities",
-    route: "/layout-utilities",
+    route: "/playground/layout-utilities",
   },
-  { id: "patterns", name: "Patterns", route: "/patterns" },
+  { id: "patterns", name: "Patterns", route: "/playground/patterns" },
 ] as const satisfies ReadonlyArray<{
   id: SurfaceCategory
   name: string

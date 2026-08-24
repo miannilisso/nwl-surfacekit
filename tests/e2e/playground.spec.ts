@@ -38,13 +38,13 @@ for (const category of surfaceCategories) {
 test("playground demos support representative keyboard and pointer workflows", async ({
   page,
 }) => {
-  await page.goto("/form-inputs#checkbox")
+  await page.goto("/playground/form-inputs#checkbox")
   await page.waitForLoadState("networkidle")
   const checkbox = page.getByRole("checkbox", { name: "Include release notes" })
   await checkbox.click()
   await expect(checkbox).not.toBeChecked()
 
-  await page.goto("/navigation#tabs")
+  await page.goto("/playground/navigation#tabs")
   await page.waitForLoadState("networkidle")
   const activityTab = page.getByRole("tab", { name: "Activity" })
   await expectHydrated(activityTab)
@@ -54,7 +54,7 @@ test("playground demos support representative keyboard and pointer workflows", a
     "Recent member"
   )
 
-  await page.goto("/dialogs-overlays#dropdown-menu")
+  await page.goto("/playground/dialogs-overlays#dropdown-menu")
   await page.waitForLoadState("networkidle")
   const menuTrigger = page.getByRole("button", { name: "Workspace actions" })
   await expectHydrated(menuTrigger)

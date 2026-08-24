@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 
-import { FeedbackGallery } from "../../../components/playground/feedback-gallery"
-import { getSurfacesByCategory } from "../../../lib/surfacekit/catalog"
+import { FeedbackGallery } from "@/components/playground/feedback-gallery"
+import { getSurfacesByCategory } from "@/lib/surfacekit/catalog"
 
 export const metadata: Metadata = {
   title: "Feedback | SurfaceKit Playground",

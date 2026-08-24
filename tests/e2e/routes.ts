@@ -13,21 +13,41 @@ export const playgroundRoutes = [
     heading: "Component playground",
     snapshot: "playground",
   },
-  { path: "/form-inputs", heading: "Form Inputs", snapshot: "form-inputs" },
-  { path: "/navigation", heading: "Navigation", snapshot: "navigation" },
   {
-    path: "/dialogs-overlays",
+    path: "/playground/form-inputs",
+    heading: "Form Inputs",
+    snapshot: "form-inputs",
+  },
+  {
+    path: "/playground/navigation",
+    heading: "Navigation",
+    snapshot: "navigation",
+  },
+  {
+    path: "/playground/dialogs-overlays",
     heading: "Dialogs & Overlays",
     snapshot: "dialogs-overlays",
   },
-  { path: "/data-display", heading: "Data Display", snapshot: "data-display" },
-  { path: "/feedback", heading: "Feedback", snapshot: "feedback" },
   {
-    path: "/layout-utilities",
+    path: "/playground/data-display",
+    heading: "Data Display",
+    snapshot: "data-display",
+  },
+  {
+    path: "/playground/feedback",
+    heading: "Feedback",
+    snapshot: "feedback",
+  },
+  {
+    path: "/playground/layout-utilities",
     heading: "Layout & Utilities",
     snapshot: "layout-utilities",
   },
-  { path: "/patterns", heading: "Patterns", snapshot: "patterns" },
+  {
+    path: "/playground/patterns",
+    heading: "Patterns",
+    snapshot: "patterns",
+  },
 ] as const
 
 export const applicationRoutes = [

@@ -40,7 +40,7 @@ test("capabilities page exposes real routes, patterns, and evidence limits", asy
   ).toBeVisible()
   await expect(page.getByRole("link", { name: "Alert" })).toHaveAttribute(
     "href",
-    "/feedback#alert"
+    "/playground/feedback#alert"
   )
 
   const body = await page.locator("body").innerText()

@@ -8,7 +8,9 @@ import { PlaygroundShell } from "./playground-shell"
 vi.mock("next/navigation", () => ({ usePathname: vi.fn() }))
 
 describe("PlaygroundShell", () => {
-  beforeEach(() => vi.mocked(usePathname).mockReturnValue("/data-display"))
+  beforeEach(() =>
+    vi.mocked(usePathname).mockReturnValue("/playground/data-display")
+  )
 
   it("marks only the matching route as current", () => {
     render(

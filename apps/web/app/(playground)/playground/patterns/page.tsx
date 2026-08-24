@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 
-import { PatternsGallery } from "../../../components/playground/patterns-gallery"
-import { getSurfacesByCategory } from "../../../lib/surfacekit/catalog"
+import { PatternsGallery } from "@/components/playground/patterns-gallery"
+import { getSurfacesByCategory } from "@/lib/surfacekit/catalog"
 
 export const metadata: Metadata = {
   title: "Patterns | SurfaceKit Playground",
