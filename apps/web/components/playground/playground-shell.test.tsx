@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react"
+import { render, screen, within } from "@testing-library/react"
 import { usePathname } from "next/navigation"
 import * as React from "react"
 import { beforeEach, describe, expect, it, vi } from "vitest"
@@ -25,11 +25,23 @@ describe("PlaygroundShell", () => {
     expect(
       screen.getByRole("link", { name: /Navigation/ })
     ).not.toHaveAttribute("aria-current")
-    expect(screen.getByRole("link", { name: "Home" })).toHaveAttribute(
-      "href",
-      "/"
-    )
+    expect(
+      within(screen.getByRole("navigation", { name: "Playground" })).getByRole(
+        "link",
+        { name: "Home" }
+      )
+    ).toHaveAttribute("href", "/")
     expect(screen.getByRole("contentinfo")).toHaveTextContent("SurfaceKit")
+  })
+
+  it("keeps Home navigation in the mobile-visible application footer", () => {
+    render(<PlaygroundShell>Examples</PlaygroundShell>)
+
+    expect(
+      within(screen.getByRole("contentinfo")).getByRole("link", {
+        name: "Home",
+      })
+    ).toHaveAttribute("href", "/")
   })
 
   it("keeps the catalog reachable when the desktop sidebar is hidden", () => {

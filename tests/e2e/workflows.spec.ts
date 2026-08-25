@@ -63,6 +63,24 @@ test("playground sidebar home action returns to the SurfaceKit home page", async
   ).toBeVisible()
 })
 
+test("mobile playground footer returns to the SurfaceKit home page", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await openReadyPage(page, "/playground/form-inputs")
+
+  const footer = page.getByRole("contentinfo")
+  const home = footer.getByRole("link", { name: "Home" })
+  await expect(home).toBeVisible()
+  await expectHydrated(home)
+  await home.click()
+
+  await expect(page).toHaveURL(/\/$/)
+  await expect(
+    page.getByRole("heading", { level: 1, name: "SurfaceKit" })
+  ).toBeVisible()
+})
+
 test("playground main content fills the remaining desktop width", async ({
   page,
 }) => {

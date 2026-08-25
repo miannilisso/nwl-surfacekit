@@ -55,9 +55,22 @@ export function PlaygroundShell({ children }: { children: React.ReactNode }) {
         />
       }
       footer={
-        <div className="text-sm text-muted-foreground">
-          <p className="font-medium text-foreground">SurfaceKit</p>
-          <p>Production UI foundations.</p>
+        <div className="flex items-center justify-between gap-4">
+          <div className="text-sm text-muted-foreground">
+            <p className="font-medium text-foreground">SurfaceKit</p>
+            <p>Production UI foundations.</p>
+          </div>
+          <Link
+            href="/"
+            className={buttonVariants({
+              variant: "ghost",
+              size: "sm",
+              className: "md:hidden",
+            })}
+          >
+            <Home className="h-4 w-4" />
+            Home
+          </Link>
         </div>
       }
       sidebar={

@@ -22,6 +22,7 @@ export default meta
 type Story = StoryObj<typeof meta>
 
 export const Overview: Story = {
+  tags: ["dark-a11y"],
   render: () => (
     <main className="min-h-screen bg-background px-6 py-12 text-foreground sm:px-10">
       <div className="mx-auto grid max-w-6xl gap-8">
@@ -31,8 +32,8 @@ export const Overview: Story = {
             Build and review reliable interfaces
           </h1>
           <p className="max-w-2xl text-muted-foreground">
-            Explore SurfaceKit’s 70 public component and pattern stories, then
-            carry the same accessible building blocks into the playground.
+            Explore SurfaceKit’s 70 public-module story files, then carry the
+            same accessible building blocks into the playground.
           </p>
         </header>
 
@@ -104,7 +105,7 @@ export const Overview: Story = {
                 <a href="https://github.com/miannilisso/nwl-surfacekit#readme" />
               }
               nativeButton={false}
-              variant="link"
+              variant="outline"
             >
               Repository documentation
             </Button>

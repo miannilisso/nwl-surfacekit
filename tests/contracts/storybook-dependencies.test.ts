@@ -59,6 +59,15 @@ describe("Storybook dependency policy", () => {
     expect(mainConfig).toContain("maxSize: 750_000")
     expect(mainConfig).toContain("priority: 20")
     expect(storybookVitestConfig).toContain("fileParallelism: false")
+    expect(storybookVitestConfig).toContain(
+      'name: "storybook-dark-introduction"'
+    )
+    expect(storybookVitestConfig).toContain('initialGlobals: { theme: "dark" }')
+    expect(storybookVitestConfig).toContain('include: ["dark-a11y"]')
+    expect(storybookVitestConfig).toContain('name: "storybook-chromium"')
+    expect(storybookVitestConfig).toContain(
+      'name: "storybook-dark-introduction-chromium"'
+    )
     expect(packageJson.engines.node).toBe("^20.19.0 || ^22.13.0 || >=24.0.0")
     expect(packageJson.scripts.storybook).toContain(
       "--initial-path /?path=/story/surfacekit-introduction--overview"
