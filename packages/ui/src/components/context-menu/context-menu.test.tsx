@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react"
+import { render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { describe, expect, it, vi } from "vitest"
 import {
@@ -74,7 +74,7 @@ describe("ContextMenu", () => {
       "context-menu-shortcut"
     )
     await user.keyboard("{Escape}")
-    expect(trigger).toHaveFocus()
+    await waitFor(() => expect(trigger).toHaveFocus())
   })
   it("selects an item and supports nested menus", async () => {
     const user = userEvent.setup()

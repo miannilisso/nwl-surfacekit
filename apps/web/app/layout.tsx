@@ -2,6 +2,7 @@ import { Geist, Geist_Mono, Outfit } from "next/font/google"
 import type { Metadata } from "next"
 
 import "@nwl/surfacekit/globals.css"
+import "./reference-app.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { cn } from "@nwl/surfacekit/lib/utils"
 

@@ -11,7 +11,6 @@ const legacyPlaygroundRedirects = [
 ] as const
 
 const nextConfig: NextConfig = {
-  transpilePackages: ["@nwl/surfacekit"],
   async redirects() {
     return legacyPlaygroundRedirects.map(([source, destination]) => ({
       source,

@@ -1,16 +1,20 @@
 # @nwl/surfacekit
 
-`@nwl/surfacekit` is the shared React 19 source package for SurfaceKit. It exports
+`@nwl/surfacekit` is the shared compiled React 19 package for SurfaceKit. It exports
 60 components, 10 enterprise patterns, Tailwind CSS v4 tokens, hooks, and
 utilities without importing the Next.js reference application or Storybook.
 
 ## Current distribution contract
 
-The package is private and supported only as a `workspace:*` dependency in this
-repository. It exports raw TypeScript/TSX and source CSS; `build` currently
-typechecks with `tsc --noEmit`. There is no compiled JavaScript, declaration,
-or CSS distribution and no release-grade tarball allowlist. Do not treat a
-`pnpm pack` artifact as an externally supported release.
+The package emits ESM JavaScript, source maps, declarations, declaration maps,
+and minified framework-neutral CSS under `dist`. Public exports resolve only to
+that compiled output, and `pnpm pack` is restricted to `dist`, package usage
+documentation, and Apache-2.0 legal material. The workspace reference app uses
+the same compiled export shape.
+
+This artifact boundary is implemented and tested, but the immutable 1.0 GitHub
+Release and the full Next.js/Vite consumer matrix are separate readiness gates.
+Do not treat an arbitrary local tarball as the official 1.0 release.
 
 Consuming code must provide exactly one compatible React installation. The
 package declares `react` and `react-dom` `^19.0.0` as required peers and keeps
@@ -27,7 +31,8 @@ catalog-pinned `19.2.8` development copies for repository tests.
 @nwl/surfacekit/lib/<utility>
 ```
 
-Modules use folder-based source with colocated tests:
+Source modules use folders with colocated tests; the equivalent public export
+resolves to compiled files in `dist`:
 
 ```text
 src/components/button/button.tsx
@@ -87,6 +92,7 @@ pnpm test:contracts
 pnpm test:components:coverage
 pnpm --filter @nwl/surfacekit typecheck
 pnpm --filter @nwl/surfacekit build
+pnpm --dir packages/ui pack
 pnpm test:storybook
 ```
 
@@ -110,16 +116,14 @@ See [USAGE.md](USAGE.md) for consumer setup and examples.
 
 ## Styling boundary
 
-`globals.css` is Tailwind CSS v4 source, not compiled CSS. The repository uses
-`tailwindcss@4.3.3` and `@tailwindcss/postcss@4.3.3` with the exported
-`@nwl/surfacekit/postcss.config`. The stylesheet also imports
-`shadcn/tailwind.css`, so the `shadcn` package remains a runtime dependency for
-this source distribution.
+`globals.css` is compiled, minified CSS. Consumers import it once and do not
+need Tailwind, PostCSS, shadcn CLI, or animation build tooling. The package build
+uses those tools only as development dependencies and limits Tailwind source
+discovery to package implementation files. Generic system fonts are the
+distributable default; the reference application owns its brand-font override.
 
-Disposable Next.js 16.3.2 and Vite 8.2.2 tarball consumers both failed to load
-the stylesheet without that tooling. They built after explicitly installing the
-Tailwind/PostCSS dependencies and loading the exported PostCSS config, but that
-manual evidence is not a supported release contract. Compiled CSS, emitted
-modules/types, restricted tarball contents, and automated consumer fixtures are
-tracked as readiness blockers in the
+The package gate verifies a 30 KB gzip ceiling for compiled CSS and a 15 KB
+gzip ceiling for a production, peer-externalized Button bundle built from the
+exact tarball. Full disposable Next.js 16.3.2 and Vite 8.2.2 consumer fixtures
+remain tracked in the
 [enterprise-readiness audit](../../docs/audits/2026-08-24-surfacekit-enterprise-readiness.md).

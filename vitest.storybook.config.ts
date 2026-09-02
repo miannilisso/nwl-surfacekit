@@ -7,21 +7,6 @@ import { defineConfig } from "vitest/config"
 const repositoryRoot = path.dirname(fileURLToPath(import.meta.url))
 const storybookProjectConfig = {
   extends: true,
-  resolve: {
-    alias: [
-      {
-        find: "@nwl/surfacekit/globals.css",
-        replacement: path.join(
-          repositoryRoot,
-          "packages/ui/src/styles/globals.css"
-        ),
-      },
-      {
-        find: "@nwl/surfacekit",
-        replacement: path.join(repositoryRoot, "packages/ui/src"),
-      },
-    ],
-  },
   optimizeDeps: {
     include: ["@testing-library/dom", "storybook/test"],
   },

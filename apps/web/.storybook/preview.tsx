@@ -1,4 +1,5 @@
 import "@nwl/surfacekit/globals.css"
+import "../app/reference-app.css"
 import type { Preview } from "@storybook/react-vite"
 
 import { withSurfaceKitTheme } from "./theme-decorator"

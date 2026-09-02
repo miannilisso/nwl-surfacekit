@@ -3,9 +3,16 @@
   "version": "0.1.0",
   "license": "Apache-2.0",
   "type": "module",
-  "private": true,
+  "private": false,
   "scripts": {
-    "build": "tsc --noEmit",
+    "build": "node scripts/build.mjs",
+    "build:css": "tailwindcss -i src/styles/globals.css -o dist/globals.css --minify",
+    "build:js": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json --resolve-full-paths --resolve-full-extension .js",
+    "validate:dist": "node scripts/validate-dist.mjs",
+    "dev": "concurrently --kill-others --names js,css \"pnpm run dev:js\" \"pnpm run dev:css\"",
+    "dev:alias": "tsc-alias -p tsconfig.build.json --resolve-full-paths --resolve-full-extension .js --watch",
+    "dev:css": "tailwindcss -i src/styles/globals.css -o dist/globals.css --minify --watch",
+    "dev:js": "concurrently --kill-others --names tsc,alias \"tsc -p tsconfig.build.json --watch --preserveWatchOutput\" \"pnpm run dev:alias\"",
     "lint": "eslint",
     "format": "prettier --write \"**/*.{ts,tsx}\"",
     "typecheck": "tsc --noEmit"
@@ -23,9 +30,7 @@
     "react-day-picker": "catalog:",
     "react-resizable-panels": "catalog:",
     "recharts": "catalog:",
-    "shadcn": "catalog:",
-    "tailwind-merge": "catalog:",
-    "tw-animate-css": "catalog:"
+    "tailwind-merge": "catalog:"
   },
   "peerDependencies": {
     "react": "^19.0.0",
@@ -34,24 +39,52 @@
   "devDependencies": {
     "@nwl/eslint-config": "workspace:*",
     "@nwl/typescript-config": "workspace:*",
-    "@tailwindcss/postcss": "catalog:",
+    "@tailwindcss/cli": "catalog:",
     "@turbo/gen": "catalog:",
     "@types/node": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
+    "concurrently": "catalog:",
     "eslint": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
+    "shadcn": "catalog:",
     "tailwindcss": "catalog:",
+    "tsc-alias": "catalog:",
+    "tw-animate-css": "catalog:",
     "typescript": "catalog:"
   },
+  "files": [
+    "dist",
+    "README.md",
+    "USAGE.md",
+    "LICENSE",
+    "NOTICE"
+  ],
+  "sideEffects": [
+    "**/*.css"
+  ],
   "exports": {
-    "./globals.css": "./src/styles/globals.css",
-    "./postcss.config": "./postcss.config.mjs",
-    "./lib/*": "./src/lib/*.ts",
-    "./components/*": "./src/components/*/index.ts",
-    "./patterns": "./src/patterns/index.ts",
-    "./patterns/*": "./src/patterns/*/index.ts",
-    "./hooks/*": "./src/hooks/*.ts"
+    "./globals.css": "./dist/globals.css",
+    "./lib/*": {
+      "types": "./dist/lib/*.d.ts",
+      "import": "./dist/lib/*.js"
+    },
+    "./components/*": {
+      "types": "./dist/components/*/index.d.ts",
+      "import": "./dist/components/*/index.js"
+    },
+    "./patterns": {
+      "types": "./dist/patterns/index.d.ts",
+      "import": "./dist/patterns/index.js"
+    },
+    "./patterns/*": {
+      "types": "./dist/patterns/*/index.d.ts",
+      "import": "./dist/patterns/*/index.js"
+    },
+    "./hooks/*": {
+      "types": "./dist/hooks/*.d.ts",
+      "import": "./dist/hooks/*.js"
+    }
   }
 }

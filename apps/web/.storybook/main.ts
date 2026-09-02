@@ -1,6 +1,6 @@
 import type { StorybookConfig } from "@storybook/react-vite"
+import tailwindcss from "@tailwindcss/postcss"
 import react from "@vitejs/plugin-react"
-import path from "node:path"
 import { mergeConfig } from "vite"
 
 const config: StorybookConfig = {
@@ -13,20 +13,8 @@ const config: StorybookConfig = {
   viteFinal: async (config) =>
     mergeConfig(config, {
       plugins: [react()],
-      resolve: {
-        alias: [
-          {
-            find: "@nwl/surfacekit/globals.css",
-            replacement: path.resolve(
-              process.cwd(),
-              "packages/ui/src/styles/globals.css"
-            ),
-          },
-          {
-            find: "@nwl/surfacekit",
-            replacement: path.resolve(process.cwd(), "packages/ui/src"),
-          },
-        ],
+      css: {
+        postcss: { plugins: [tailwindcss()] },
       },
       build: {
         chunkSizeWarningLimit: 1000,

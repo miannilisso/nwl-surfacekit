@@ -3,8 +3,7 @@
   "compilerOptions": {
     "types": ["vitest/globals", "@testing-library/jest-dom/vitest"],
     "paths": {
-      "@/*": ["./*"],
-      "@nwl/surfacekit/*": ["../../packages/ui/src/*"]
+      "@/*": ["./*"]
     },
     "plugins": [
       {

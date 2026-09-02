@@ -1,9 +1,9 @@
 # Using @nwl/surfacekit
 
-The package is currently a private source dependency supported only inside this
-workspace. Add it to a workspace app with
-`"@nwl/surfacekit": "workspace:*"`. The app must use React and React DOM 19;
-the package declares both as required `^19.0.0` peers.
+The workspace consumes the package with `"@nwl/surfacekit": "workspace:*"`.
+Built tarballs expose the same compiled ESM, declaration, and CSS shape. The app
+must use React and React DOM 19; the package declares both as required
+`^19.0.0` peers and does not bundle another React copy.
 
 Load the global tokens once near the application root:
 
@@ -29,21 +29,16 @@ Do not import from src or depend on another app's files.
 
 ## Styling setup
 
-The exported stylesheet is Tailwind CSS v4 source. Workspace consumers must use
-the catalog-pinned `tailwindcss` and `@tailwindcss/postcss` packages and load the
-package's PostCSS configuration:
+The exported stylesheet is precompiled and minified. Consumers do not install
+Tailwind, PostCSS, the shadcn CLI, or animation build tooling for SurfaceKit,
+and Next.js does not need `transpilePackages` for the package. Applications may
+run their own CSS pipeline for application-local classes independently of the
+SurfaceKit stylesheet.
 
-```js
-// postcss.config.mjs
-export { default } from "@nwl/surfacekit/postcss.config"
-```
-
-The CSS currently imports `shadcn/tailwind.css`; this is why `shadcn` remains a
-runtime dependency. External tarball consumers are not supported yet. In audit
-fixtures, clean Next.js and Vite apps failed without the Tailwind/PostCSS setup
-and required source transpilation (for example, Next.js
-`transpilePackages: ["@nwl/surfacekit"]`). These requirements will be replaced
-by compiled JavaScript, declarations, and CSS before external release.
+The distributable CSS uses generic system font fallbacks. Applications own any
+brand-font files and override SurfaceKit's font tokens at their root. The
+official external package will be the immutable 1.0 GitHub Release tarball;
+local development tarballs are verification artifacts, not releases.
 
 ## Application-shell example
 
@@ -145,6 +140,7 @@ import {
 ## Styling and composition
 
 - Tailwind CSS v4 variables in globals.css define light and dark tokens.
+- `globals.css` is compiled; consumer Tailwind processing is not required.
 - Components accept their documented className and native element props.
 - Compound components should be composed through their exported children.
 - Prefer public composition hooks such as render and renderItem over wrapping
@@ -164,6 +160,7 @@ pnpm test:contracts
 pnpm test:components:coverage
 pnpm --filter @nwl/surfacekit typecheck
 pnpm --filter @nwl/surfacekit build
+pnpm --dir packages/ui pack
 pnpm test:storybook
 ```
 
