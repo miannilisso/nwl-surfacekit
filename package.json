@@ -1,6 +1,7 @@
 {
   "name": "nwl-surfacekit",
   "version": "0.1.0",
+  "license": "Apache-2.0",
   "type": "module",
   "private": true,
   "scripts": {
@@ -10,6 +11,8 @@
     "format:check": "prettier --check .",
     "lint": "turbo lint",
     "format": "turbo format",
+    "generate:attributions": "node scripts/generate-third-party-attributions.mjs",
+    "check:attributions": "node scripts/generate-third-party-attributions.mjs --check",
     "typecheck": "turbo typecheck",
     "test": "vitest --run",
     "test:a11y": "playwright test --project=chromium tests/e2e/a11y.spec.ts",

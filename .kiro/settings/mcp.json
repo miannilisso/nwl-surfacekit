@@ -2,8 +2,13 @@
   "mcpServers": {
     "code-review-graph": {
       "command": "uvx",
-      "args": ["code-review-graph", "serve"],
-      "cwd": "/home/mianni/Builds/nanewarelabs/nwl-surfacekit",
+      "args": [
+        "--from",
+        "code-review-graph==2.3.8",
+        "code-review-graph",
+        "serve"
+      ],
+      "cwd": ".",
       "type": "stdio"
     }
   }

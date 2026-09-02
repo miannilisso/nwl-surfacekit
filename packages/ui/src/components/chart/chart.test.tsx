@@ -1,4 +1,5 @@
 import { render, renderHook, screen } from "@testing-library/react"
+import { renderToStaticMarkup } from "react-dom/server"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
 import {
@@ -39,6 +40,8 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.unstubAllGlobals()
+  vi.unstubAllEnvs()
+  vi.restoreAllMocks()
 })
 
 describe("Chart", () => {
@@ -49,6 +52,108 @@ describe("Chart", () => {
     expect(css).toContain("--color-requests: #5b6ee1")
     expect(css).toContain(".dark [data-chart=release]")
     expect(css).toContain("--color-errors: #ff6b72")
+  })
+
+  it("keeps the caller id separate from an opaque chart scope", () => {
+    const { container } = render(
+      <ChartContainer id="customer-visible-id" config={config}>
+        <div />
+      </ChartContainer>
+    )
+
+    const chart = container.querySelector("[data-slot=chart]")
+    const scope = chart?.getAttribute("data-chart")
+
+    expect(chart).toHaveAttribute("id", "customer-visible-id")
+    expect(scope).toMatch(/^chart-[A-Za-z_][A-Za-z0-9_-]*$/)
+    expect(scope).not.toBe("chart-customer-visible-id")
+    expect(container.querySelector("style")?.textContent).toContain(
+      `[data-chart=${scope}]`
+    )
+  })
+
+  it("does not serialize hostile chart values into SSR or client stylesheet output", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined)
+    const hostileConfig = {
+      safe: { color: "rebeccapurple" },
+      "bad;key": { color: "#f00" },
+      hostileColor: { color: "</StYlE><img src=x onerror=alert(1)>" },
+      hostileTheme: {
+        theme: { light: "var(--chart-accent)", dark: "rgb(0 0 0); color:red" },
+      },
+    }
+
+    const ssr = renderToStaticMarkup(
+      <ChartStyle id="release" config={hostileConfig} />
+    )
+    const { container } = render(
+      <ChartStyle id="release" config={hostileConfig} />
+    )
+    const css = container.querySelector("style")?.textContent ?? ""
+
+    expect(ssr.match(/<style/g)).toHaveLength(1)
+    expect(ssr.match(/<\/style>/gi)).toHaveLength(1)
+    expect(ssr).not.toMatch(/<img\b/i)
+    expect(css).toContain("--color-safe: rebeccapurple")
+    expect(css).toContain("--color-hostileTheme: var(--chart-accent)")
+    expect(css).not.toContain("bad;key")
+    expect(css).not.toContain("hostileColor")
+    expect(css).not.toContain("color:red")
+    expect(warn).toHaveBeenCalled()
+  })
+
+  it("omits a direct stylesheet with an invalid scope id", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined)
+    const { container } = render(
+      <ChartStyle id={'release"] {} <style'} config={config} />
+    )
+
+    expect(container.querySelector("style")).not.toBeInTheDocument()
+    expect(warn).toHaveBeenCalled()
+  })
+
+  it("does not warn about omitted unsafe values in production", () => {
+    vi.stubEnv("NODE_ENV", "production")
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined)
+
+    render(
+      <ChartStyle
+        id="release"
+        config={{ unsafe: { color: "red; background: black" } }}
+      />
+    )
+
+    expect(warn).not.toHaveBeenCalled()
+  })
+
+  it("preserves legitimate hex, named, current, transparent, and balanced color functions", () => {
+    const legitimateConfig = {
+      hex: { color: "#1234ab" },
+      named: { color: "rebeccapurple" },
+      current: { color: "currentColor" },
+      transparent: { color: "transparent" },
+      function: {
+        color: "color-mix(in srgb, var(--accent) 70%, rgb(0 0 0 / 20%))",
+      },
+      themed: {
+        theme: { light: "hsl(210 40% 50%)", dark: "var(--chart-dark)" },
+      },
+    }
+
+    const { container } = render(
+      <ChartStyle id="release" config={legitimateConfig} />
+    )
+    const css = container.querySelector("style")?.textContent ?? ""
+
+    expect(css).toContain("--color-hex: #1234ab")
+    expect(css).toContain("--color-named: rebeccapurple")
+    expect(css).toContain("--color-current: currentColor")
+    expect(css).toContain("--color-transparent: transparent")
+    expect(css).toContain(
+      "--color-function: color-mix(in srgb, var(--accent) 70%, rgb(0 0 0 / 20%))"
+    )
+    expect(css).toContain("--color-themed: hsl(210 40% 50%)")
+    expect(css).toContain("--color-themed: var(--chart-dark)")
   })
 
   it("renders fixed container, tooltip, legend, and empty payload states", () => {
@@ -77,9 +182,10 @@ describe("Chart", () => {
         </div>
       </ChartContainer>
     )
-    expect(
-      container.querySelector('[data-chart="chart-traffic"]')
-    ).toBeInTheDocument()
+    expect(container.querySelector('[data-slot="chart"]')).toHaveAttribute(
+      "id",
+      "traffic"
+    )
     expect(screen.getAllByText("API requests")).toHaveLength(2)
     expect(screen.getByText("12,400")).toBeVisible()
     expect(container.querySelector("style")?.textContent).toContain(

@@ -6,11 +6,21 @@ import type { TooltipValueType } from "recharts"
 
 import { cn } from "@nwl/surfacekit/lib/utils"
 
+declare const process: { env: { NODE_ENV?: string } }
+
 // Format: { THEME_NAME: CSS_SELECTOR }
 const THEMES = { light: "", dark: ".dark" } as const
 
 const INITIAL_DIMENSION = { width: 320, height: 200 } as const
+const CHART_SCOPE_PATTERN = /^[A-Za-z_][A-Za-z0-9_-]*$/
+const CHART_KEY_PATTERN = /^[A-Za-z_][A-Za-z0-9_-]*$/
+const HEX_COLOR_PATTERN = /^#[0-9a-f]{3,4}(?:[0-9a-f]{2})?$/i
+const NAMED_COLOR_PATTERN = /^[a-z]+$/i
+const COLOR_FUNCTION_PATTERN =
+  /^(?:var|rgb|rgba|hsl|hsla|hwb|lab|lch|oklab|oklch|color|color-mix|light-dark)\(/i
+const STRUCTURAL_STYLE_TOKEN_PATTERN = /[<>{};@\\]|\/\*|\*\//
 type TooltipNameType = number | string
+type RuntimeImportMeta = ImportMeta & { env?: { PROD?: boolean } }
 
 export type ChartConfig = Record<
   string,
@@ -57,11 +67,12 @@ function ChartContainer({
   }
 }) {
   const uniqueId = React.useId()
-  const chartId = `chart-${id ?? uniqueId.replace(/:/g, "")}`
+  const chartId = `chart-${uniqueId.replace(/:/g, "")}`
 
   return (
     <ChartContext.Provider value={{ config }}>
       <div
+        id={id}
         data-slot="chart"
         data-chart={chartId}
         className={cn(
@@ -81,37 +92,94 @@ function ChartContainer({
   )
 }
 
-const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
-  const colorConfig = Object.entries(config).filter(
-    ([, config]) => config.theme ?? config.color
-  )
+function warnInvalidChartStyleValue(kind: "scope" | "series key" | "color") {
+  const importMeta = import.meta as RuntimeImportMeta
+  const nodeEnvironment =
+    typeof process === "undefined" ? undefined : process.env.NODE_ENV
 
-  if (!colorConfig.length) {
-    return null
+  if (importMeta.env?.PROD === true || nodeEnvironment === "production") {
+    return
+  }
+
+  console.warn(`ChartStyle omitted an invalid ${kind}.`)
+}
+
+function hasBalancedParentheses(value: string) {
+  let depth = 0
+
+  for (const character of value) {
+    if (character === "(") {
+      depth += 1
+    } else if (character === ")") {
+      depth -= 1
+      if (depth < 0) {
+        return false
+      }
+    }
+  }
+
+  return depth === 0
+}
+
+function isSafeChartColor(value: string) {
+  const color = value.trim()
+
+  if (!color || STRUCTURAL_STYLE_TOKEN_PATTERN.test(color)) {
+    return false
   }
 
   return (
-    <style
-      dangerouslySetInnerHTML={{
-        __html: Object.entries(THEMES)
-          .map(
-            ([theme, prefix]) => `
-${prefix} [data-chart=${id}] {
-${colorConfig
-  .map(([key, itemConfig]) => {
-    const color =
-      itemConfig.theme?.[theme as keyof typeof itemConfig.theme] ??
-      itemConfig.color
-    return color ? `  --color-${key}: ${color};` : null
-  })
-  .join("\n")}
-}
-`
-          )
-          .join("\n"),
-      }}
-    />
+    HEX_COLOR_PATTERN.test(color) ||
+    NAMED_COLOR_PATTERN.test(color) ||
+    (COLOR_FUNCTION_PATTERN.test(color) && hasBalancedParentheses(color))
   )
+}
+
+function getChartStyles(id: string, config: ChartConfig) {
+  if (!CHART_SCOPE_PATTERN.test(id)) {
+    warnInvalidChartStyleValue("scope")
+    return ""
+  }
+
+  const validConfig = Object.entries(config).flatMap(([key, itemConfig]) => {
+    if (!CHART_KEY_PATTERN.test(key)) {
+      warnInvalidChartStyleValue("series key")
+      return []
+    }
+
+    return [[key, itemConfig] as const]
+  })
+
+  return Object.entries(THEMES)
+    .flatMap(([theme, prefix]) => {
+      const variables = validConfig.flatMap(([key, itemConfig]) => {
+        const color =
+          itemConfig.theme?.[theme as keyof typeof itemConfig.theme] ??
+          itemConfig.color
+
+        if (!color) {
+          return []
+        }
+
+        if (!isSafeChartColor(color)) {
+          warnInvalidChartStyleValue("color")
+          return []
+        }
+
+        return [`  --color-${key}: ${color.trim()};`]
+      })
+
+      return variables.length
+        ? [`\n${prefix} [data-chart=${id}] {\n${variables.join("\n")}\n}\n`]
+        : []
+    })
+    .join("\n")
+}
+
+const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
+  const styles = getChartStyles(id, config)
+
+  return styles ? <style>{styles}</style> : null
 }
 
 const ChartTooltip = RechartsPrimitive.Tooltip
