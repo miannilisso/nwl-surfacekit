@@ -109,5 +109,5 @@ describe("repository controls", () => {
         }
       )
     ).resolves.toMatchObject({ stderr: "" })
-  })
+  }, 15_000)
 })

@@ -72,6 +72,45 @@ describe("Chart", () => {
     )
   })
 
+  it("keeps a hostile native id out of the client chart scope and markup", () => {
+    const hostileId = 'native"><img data-native-id-pwned="true">'
+    const { container } = render(
+      <ChartContainer id={hostileId} config={config}>
+        <div />
+      </ChartContainer>
+    )
+    const chart = container.querySelector("[data-slot=chart]")
+    const scope = chart?.getAttribute("data-chart") ?? ""
+
+    expect(chart?.getAttribute("id")).toBe(hostileId)
+    expect(scope).toMatch(/^chart-[A-Za-z_][A-Za-z0-9_-]*$/)
+    expect(scope).not.toContain(hostileId)
+    expect(container.querySelector("[data-native-id-pwned]")).toBeNull()
+    expect(container.querySelector("style")?.textContent).not.toContain(
+      hostileId
+    )
+  })
+
+  it("keeps a hostile native id inert in SSR output", () => {
+    const hostileId = 'native"><img data-native-id-pwned="true">'
+    const markup = renderToStaticMarkup(
+      <ChartContainer id={hostileId} config={config}>
+        <div />
+      </ChartContainer>
+    )
+    const serverDocument = document.implementation.createHTMLDocument()
+    serverDocument.body.innerHTML = markup
+    const chart = serverDocument.querySelector("[data-slot=chart]")
+    const scope = chart?.getAttribute("data-chart") ?? ""
+
+    expect(chart?.getAttribute("id")).toBe(hostileId)
+    expect(scope).toMatch(/^chart-[A-Za-z_][A-Za-z0-9_-]*$/)
+    expect(scope).not.toContain(hostileId)
+    expect(markup.match(/<style\b/g)).toHaveLength(1)
+    expect(markup).not.toMatch(/<img\b/i)
+    expect(serverDocument.querySelector("[data-native-id-pwned]")).toBeNull()
+  })
+
   it("does not serialize hostile chart values into SSR or client stylesheet output", () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined)
     const hostileConfig = {
