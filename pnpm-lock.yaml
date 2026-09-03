@@ -132,6 +132,9 @@ catalogs:
     next-themes:
       specifier: 0.4.6
       version: 0.4.6
+    postcss:
+      specifier: 8.5.26
+      version: 8.5.26
     prettier:
       specifier: 3.9.6
       version: 3.9.6
@@ -252,6 +255,9 @@ importers:
       jsdom:
         specifier: 'catalog:'
         version: 30.0.1
+      postcss:
+        specifier: 'catalog:'
+        version: 8.5.26
       prettier:
         specifier: 'catalog:'
         version: 3.9.6
@@ -319,6 +325,9 @@ importers:
       eslint:
         specifier: 'catalog:'
         version: 10.9.0(jiti@2.7.0)(supports-color@10.2.2)
+      postcss:
+        specifier: 'catalog:'
+        version: 8.5.26
       tailwindcss:
         specifier: 'catalog:'
         version: 4.3.3
@@ -4560,10 +4569,6 @@ packages:
     resolution: {integrity: sha512-g50586zr4bZmwFiTlflMu8E0bDTb5I5gertgwAKmsdUlTQIhZtunzUlD1WSzwcVWPoAVpsrA6vlfCD7oXvRwgg==}
     engines: {node: ^10 || ^12 || >=14}
 
-  postcss@8.5.25:
-    resolution: {integrity: sha512-DTPx3RWSSnWyzLxQnlH0rJP+EW5ekl16ZU4/psbIhA0e53kJfdgaN5vKM+xP7yJtXVu+nfdVFmlgFDEKAe4Pyw==}
-    engines: {node: ^10 || ^12 || >=14}
-
   postcss@8.5.26:
     resolution: {integrity: sha512-u82N74LFzG8ca+dD8puPnplTXoGH4fTPpVGuIbt36G3qvNlkvfD0lEAZSxaly3KX8TS/L1A1gsCEmvKmBcVbkQ==}
     engines: {node: ^10 || ^12 || >=14}
@@ -7051,7 +7056,7 @@ snapshots:
       '@alloc/quick-lru': 5.2.0
       '@tailwindcss/node': 4.3.3
       '@tailwindcss/oxide': 4.3.3
-      postcss: 8.5.25
+      postcss: 8.5.26
       tailwindcss: 4.3.3
 
   '@testing-library/dom@10.4.1':
@@ -9396,12 +9401,6 @@ snapshots:
       picocolors: 1.1.1
       source-map-js: 1.2.1
 
-  postcss@8.5.25:
-    dependencies:
-      nanoid: 3.3.18
-      picocolors: 1.1.1
-      source-map-js: 1.2.1
-
   postcss@8.5.26:
     dependencies:
       nanoid: 3.3.18
@@ -9814,7 +9813,7 @@ snapshots:
       kleur: 4.1.5
       open: 11.0.0
       ora: 8.2.0
-      postcss: 8.5.25
+      postcss: 8.5.26
       postcss-selector-parser: 7.1.4
       prompts: 2.4.2
       recast: 0.23.12

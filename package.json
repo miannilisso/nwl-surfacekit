@@ -50,6 +50,7 @@
     "@vitest/coverage-v8": "catalog:",
     "concurrently": "catalog:",
     "jsdom": "catalog:",
+    "postcss": "catalog:",
     "prettier": "catalog:",
     "prettier-plugin-tailwindcss": "catalog:",
     "storybook": "catalog:",

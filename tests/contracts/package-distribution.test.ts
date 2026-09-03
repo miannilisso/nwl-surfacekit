@@ -15,6 +15,7 @@ import process from "node:process"
 import { promisify } from "node:util"
 import { gzipSync } from "node:zlib"
 
+import postcss from "postcss"
 import { afterAll, beforeAll, describe, expect, it } from "vitest"
 
 const execFileAsync = promisify(execFile)
@@ -23,6 +24,8 @@ const packageRoot = path.join(repositoryRoot, "packages/ui")
 let temporaryRoot = ""
 let tarballPath = ""
 let packedFiles: string[] = []
+let consumerRoot = ""
+let consumerLockfile = ""
 
 type ExportTarget = {
   import: string
@@ -87,6 +90,105 @@ async function distSnapshot() {
   )
 }
 
+async function writeConsumerFixture(root: string) {
+  await mkdir(root)
+  await writeFile(
+    path.join(root, "package.json"),
+    JSON.stringify({
+      name: "surfacekit-package-consumer",
+      private: true,
+      type: "module",
+      dependencies: {
+        "@nwl/surfacekit": `file:../${path.basename(tarballPath)}`,
+        react: "19.2.8",
+        "react-dom": "19.2.8",
+      },
+    })
+  )
+  await writeFile(
+    path.join(root, "button-entry.js"),
+    'export { Button } from "@nwl/surfacekit/components/button"\n'
+  )
+  await writeFile(
+    path.join(root, "css-entry.js"),
+    'import "@nwl/surfacekit/globals.css"\n'
+  )
+  await writeFile(
+    path.join(root, "vite.config.mjs"),
+    `const entry = process.env.SURFACEKIT_CONSUMER_ENTRY ?? "button-entry.js"
+
+export default {
+  build: {
+    emptyOutDir: true,
+    lib: { entry, formats: ["es"], fileName: "surfacekit-consumer" },
+    minify: true,
+    rolldownOptions: { external: [/^react(?:-dom)?(?:\\/.*)?$/] },
+  },
+}
+`
+  )
+}
+
+async function createOfflineConsumer(root: string) {
+  await writeConsumerFixture(root)
+  await execFileAsync(
+    "pnpm",
+    [
+      "install",
+      "--lockfile-only",
+      "--offline",
+      "--ignore-workspace",
+      "--config.minimum-release-age=0",
+    ],
+    { cwd: root, maxBuffer: 10 * 1024 * 1024 }
+  )
+  const lockfile = await readFile(path.join(root, "pnpm-lock.yaml"), "utf8")
+  await execFileAsync(
+    "pnpm",
+    [
+      "install",
+      "--frozen-lockfile",
+      "--offline",
+      "--ignore-workspace",
+      "--config.minimum-release-age=0",
+    ],
+    { cwd: root, maxBuffer: 10 * 1024 * 1024 }
+  )
+  return lockfile
+}
+
+async function buildConsumer(entry: string) {
+  await execFileAsync(
+    process.execPath,
+    [path.join(repositoryRoot, "node_modules/vite/bin/vite.js"), "build"],
+    {
+      cwd: consumerRoot,
+      env: { ...process.env, SURFACEKIT_CONSUMER_ENTRY: entry },
+      maxBuffer: 10 * 1024 * 1024,
+    }
+  )
+}
+
+async function buildReferenceCss(input: string, output: string, from = input) {
+  await execFileAsync(
+    "pnpm",
+    [
+      "--filter",
+      "web",
+      "exec",
+      "node",
+      "scripts/build-reference-css.mjs",
+      "--input",
+      input,
+      "--output",
+      output,
+      "--from",
+      from,
+    ],
+    { cwd: repositoryRoot, maxBuffer: 10 * 1024 * 1024 }
+  )
+}
+
 function resolveTarget(
   exports: Record<string, ExportTarget | string>,
   subpath: string
@@ -128,7 +230,9 @@ beforeAll(async () => {
   }
   tarballPath = packResult.filename
   packedFiles = packResult.files.map(({ path }) => path).sort()
-}, 60_000)
+  consumerRoot = path.join(temporaryRoot, "consumer")
+  consumerLockfile = await createOfflineConsumer(consumerRoot)
+}, 120_000)
 
 afterAll(async () => {
   if (temporaryRoot) await rm(temporaryRoot, { recursive: true, force: true })
@@ -160,11 +264,22 @@ describe("SurfaceKit compiled distribution", () => {
           access(path.join(packageRoot, emittedPath))
         ).resolves.toBeUndefined()
       }
-
-      await expect(
-        import(`@nwl/surfacekit${subpath.slice(1)}`)
-      ).resolves.toEqual(expect.any(Object))
     }
+
+    const publicSpecifiers = moduleExports.map(
+      (subpath) => `@nwl/surfacekit${subpath.slice(1)}`
+    )
+    await expect(
+      execFileAsync(
+        process.execPath,
+        [
+          "--input-type=module",
+          "--eval",
+          `for (const specifier of ${JSON.stringify(publicSpecifiers)}) await import(specifier)`,
+        ],
+        { cwd: consumerRoot, maxBuffer: 10 * 1024 * 1024 }
+      )
+    ).resolves.toEqual(expect.objectContaining({ stderr: "" }))
 
     expect(manifest.private).toBe(false)
     expect(manifest.files).toEqual(
@@ -191,6 +306,27 @@ describe("SurfaceKit compiled distribution", () => {
   }, 30_000)
 
   it("ships self-contained compiled CSS with bounded package-only discovery", async () => {
+    const probe = path.join(temporaryRoot, "css-boundary-probe.tsx")
+    const referenceInput = path.join(temporaryRoot, "reference-app-input.css")
+    const appCssOutput = path.join(temporaryRoot, "reference-app.css")
+    const referenceSourcePath = path.join(
+      repositoryRoot,
+      "apps/web/app/reference-app.css"
+    )
+
+    await writeFile(
+      probe,
+      'export const Probe = () => <div className="bg-[#123456] rounded-md" />\n'
+    )
+    await writeFile(
+      referenceInput,
+      `${await readFile(referenceSourcePath, "utf8")}\n@source "${probe}";\n`
+    )
+
+    // Rebuild while the probe exists: package discovery must remain isolated.
+    await execFileAsync("pnpm", ["--filter", "@nwl/surfacekit", "build"], {
+      cwd: repositoryRoot,
+    })
     const css = await readFile(path.join(packageRoot, "dist/globals.css"))
     const cssSource = css.toString("utf8")
     const cssGzipBytes = gzipSync(css, { level: 9 }).byteLength
@@ -201,44 +337,74 @@ describe("SurfaceKit compiled distribution", () => {
     expect(cssSource).toContain("--background:")
     expect(cssSource).toContain(".dark")
     expect(cssSource).toContain("ui-sans-serif")
+    expect(cssSource).not.toContain("#123456")
     expect(cssGzipBytes).toBeLessThanOrEqual(30 * 1024)
     if (process.env.SURFACEKIT_SIZE_REPORT === "1") {
       process.stdout.write(`SurfaceKit CSS gzip: ${cssGzipBytes} bytes\n`)
     }
 
-    const packageProbe = path.join(
-      repositoryRoot,
-      "apps/web/components/surfacekit-package-css-probe.tsx"
+    await buildReferenceCss(referenceInput, appCssOutput, referenceSourcePath)
+    const appCss = await readFile(appCssOutput, "utf8")
+    expect(appCss).toContain("#123456")
+    expect(appCss).not.toMatch(/@layer\s+(?:theme|base|components)\b/)
+    expect(appCss).not.toContain(
+      "*,:after,:before,::backdrop{box-sizing:border-box"
     )
-    const appCssOutput = path.join(temporaryRoot, "reference-app.css")
+    expect(appCss).not.toMatch(/\.rounded-md\s*\{/)
 
-    try {
-      await writeFile(
-        packageProbe,
-        'export const Probe = () => <div className="bg-[#123456]" />\n'
-      )
-      await execFileAsync(
-        "pnpm",
-        [
-          "--filter",
-          "@nwl/surfacekit",
-          "exec",
-          "tailwindcss",
-          "-i",
-          path.join(repositoryRoot, "apps/web/app/reference-app.css"),
-          "-o",
-          appCssOutput,
-          "--minify",
-        ],
-        { cwd: repositoryRoot }
-      )
+    const packageSelectors = new Set<string>()
+    const appSelectors = new Set<string>()
+    postcss
+      .parse(cssSource)
+      .walkRules((rule) => packageSelectors.add(rule.selector))
+    postcss.parse(appCss).walkRules((rule) => appSelectors.add(rule.selector))
+    expect(
+      [...appSelectors].filter((selector) => packageSelectors.has(selector))
+    ).toEqual([])
 
-      expect(await readFile(appCssOutput, "utf8")).toContain("#123456")
-      expect(cssSource).not.toContain("#123456")
-    } finally {
-      await rm(packageProbe, { force: true })
+    const packageRadius = cssSource.match(/\.rounded-md\{([^}]+)\}/)?.[1]
+    expect(packageRadius).toContain("border-radius:calc(var(--radius) * .8)")
+
+    for (const importPath of [
+      "apps/web/app/layout.tsx",
+      "apps/web/.storybook/preview.tsx",
+    ]) {
+      const imports = await readFile(
+        path.join(repositoryRoot, importPath),
+        "utf8"
+      )
+      expect(
+        imports.indexOf('import "@nwl/surfacekit/globals.css"')
+      ).toBeLessThan(
+        imports.indexOf('import "./reference-app.css"') >= 0
+          ? imports.indexOf('import "./reference-app.css"')
+          : imports.indexOf('import "../app/reference-app.css"')
+      )
     }
   }, 30_000)
+
+  it("loads compiled CSS from the exact tarball without Tailwind installed", async () => {
+    await expect(
+      access(path.join(consumerRoot, "node_modules/tailwindcss"))
+    ).rejects.toThrow()
+    expect(consumerLockfile).not.toMatch(/(?:^|\/)tailwindcss@/m)
+    expect(
+      (await readdir(path.join(consumerRoot, "node_modules/.pnpm"))).some(
+        (entry) => entry.startsWith("tailwindcss@")
+      )
+    ).toBe(false)
+
+    await buildConsumer("css-entry.js")
+    const emittedCss = (await listFiles(path.join(consumerRoot, "dist"))).find(
+      (file) => file.endsWith(".css")
+    )
+    expect(emittedCss).toBeDefined()
+    const css = await readFile(emittedCss!, "utf8")
+    expect(css).toContain("--background:")
+    expect(css).not.toMatch(
+      /@(import|source|apply|theme|custom-variant|plugin|config)\b/
+    )
+  })
 
   it("packs only approved runtime, documentation, and legal files", () => {
     expect(packedFiles).toEqual(
@@ -316,62 +482,19 @@ describe("SurfaceKit compiled distribution", () => {
   })
 
   it("tree-shakes Button from the exact tarball below 15 KB gzip", async () => {
-    const consumerRoot = path.join(temporaryRoot, "button-consumer")
-    await mkdir(consumerRoot)
-    await writeFile(
-      path.join(consumerRoot, "package.json"),
-      JSON.stringify({
-        name: "surfacekit-button-consumer",
-        private: true,
-        type: "module",
-        dependencies: {
-          "@nwl/surfacekit": `file:${tarballPath}`,
-          react: "19.2.8",
-          "react-dom": "19.2.8",
-        },
-      })
-    )
-    await writeFile(
-      path.join(consumerRoot, "index.js"),
-      'export { Button } from "@nwl/surfacekit/components/button"\n'
-    )
-    await writeFile(
-      path.join(consumerRoot, "vite.config.mjs"),
-      `export default {
-  build: {
-    lib: { entry: "index.js", formats: ["es"], fileName: "button" },
-    minify: true,
-    rolldownOptions: { external: [/^react(?:-dom)?(?:\\/.*)?$/] },
-  },
-}
-`
-    )
+    const repeatConsumerRoot = path.join(temporaryRoot, "consumer-repeat")
+    const repeatedLockfile = await createOfflineConsumer(repeatConsumerRoot)
+    expect(repeatedLockfile).toBe(consumerLockfile)
 
-    try {
-      await execFileAsync(
-        "pnpm",
-        [
-          "install",
-          "--ignore-workspace",
-          "--prefer-offline",
-          "--config.minimum-release-age=0",
-        ],
-        { cwd: consumerRoot, maxBuffer: 10 * 1024 * 1024 }
-      )
-    } catch (error) {
-      const failure = error as Error & { stderr?: string; stdout?: string }
-      throw new Error(
-        `Consumer install failed:\n${failure.stdout ?? ""}\n${failure.stderr ?? failure.message}`
-      )
-    }
-    await execFileAsync(
-      "node",
-      [path.join(repositoryRoot, "node_modules/vite/bin/vite.js"), "build"],
-      { cwd: consumerRoot, maxBuffer: 10 * 1024 * 1024 }
-    )
+    await buildConsumer("button-entry.js")
+    const bundlePath = path.join(consumerRoot, "dist/surfacekit-consumer.js")
+    const firstBundle = await readFile(bundlePath)
+    await rm(path.join(consumerRoot, "dist"), { recursive: true, force: true })
+    await buildConsumer("button-entry.js")
+    const secondBundle = await readFile(bundlePath)
+    expect(secondBundle).toEqual(firstBundle)
 
-    const bundle = await readFile(path.join(consumerRoot, "dist/button.js"))
-    const bundleGzipBytes = gzipSync(bundle, { level: 9 }).byteLength
+    const bundleGzipBytes = gzipSync(secondBundle, { level: 9 }).byteLength
     expect(bundleGzipBytes).toBeLessThanOrEqual(15 * 1024)
     if (process.env.SURFACEKIT_SIZE_REPORT === "1") {
       process.stdout.write(

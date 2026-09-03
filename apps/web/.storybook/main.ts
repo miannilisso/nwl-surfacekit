@@ -1,7 +1,17 @@
 import type { StorybookConfig } from "@storybook/react-vite"
 import tailwindcss from "@tailwindcss/postcss"
 import react from "@vitejs/plugin-react"
+import { fileURLToPath } from "node:url"
 import { mergeConfig } from "vite"
+
+import { dedupeSurfaceKitCss } from "../postcss/dedupe-surfacekit-css.mjs"
+
+const packageCssPath = fileURLToPath(
+  new URL("../../../packages/ui/dist/globals.css", import.meta.url)
+)
+const referenceCssPath = fileURLToPath(
+  new URL("../app/reference-app.css", import.meta.url)
+)
 
 const config: StorybookConfig = {
   stories: ["./introduction.stories.tsx", "../stories/**/*.stories.{ts,tsx}"],
@@ -14,7 +24,12 @@ const config: StorybookConfig = {
     mergeConfig(config, {
       plugins: [react()],
       css: {
-        postcss: { plugins: [tailwindcss()] },
+        postcss: {
+          plugins: [
+            tailwindcss(),
+            dedupeSurfaceKitCss({ packageCssPath, referenceCssPath }),
+          ],
+        },
       },
       build: {
         chunkSizeWarningLimit: 1000,
