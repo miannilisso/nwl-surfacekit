@@ -60,6 +60,21 @@ describe("SurfaceKit reference CSS deduplication", () => {
     expect(result.css).toBe(".review-extension{background:blue}")
   })
 
+  it("removes source longhands folded into an owned canonical shorthand", async () => {
+    const declarations = [
+      "margin-top:1rem",
+      "margin-right:2rem",
+      "margin-bottom:1rem",
+      "margin-left:2rem",
+    ].join(";")
+    const result = await processReferenceCss(
+      `.review-folding{${declarations}}`,
+      `.review-folding{${declarations};color:blue}`
+    )
+
+    expect(result.css).toBe(".review-folding{color:blue}")
+  })
+
   it("treats a fallback matching a package-owned custom property as equivalent", async () => {
     const result = await processReferenceCss(
       ":root{--spacing:.25rem}@layer utilities{.mt-2{margin-top:calc(var(--spacing)*2)}}",

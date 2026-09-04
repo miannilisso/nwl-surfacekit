@@ -179,10 +179,74 @@ function sameValues(a, b) {
   return JSON.stringify(a) === JSON.stringify(b)
 }
 
+function sameDeclarations(a, b) {
+  return (
+    a.size === b.size &&
+    [...a].every(([property, values]) => sameValues(b.get(property), values))
+  )
+}
+
 function packageDeclarationsCover(packageDeclarations, appDeclarations) {
   return [...appDeclarations].every(([property, values]) =>
     sameValues(packageDeclarations.get(property), values)
   )
+}
+
+function nodesWithoutOwnedDeclarations(rule, ownedProperties) {
+  if (ownedProperties.size === 0) return rule.nodes.map((node) => node.clone())
+
+  // LightningCSS may fold several source longhands into one canonical
+  // shorthand. Rebuild the remaining declaration block from that canonical
+  // representation so removal uses the same property groups as comparison.
+  // An empty variable map keeps app-owned fallback values intact.
+  const canonical = canonicalDeclarations(rule, new Map())
+  const remaining = new Map(
+    [...canonical].filter(([property]) => !ownedProperties.has(property))
+  )
+  const retainedSourceDeclarations = rule.nodes.filter((node) => {
+    if (node.type !== "decl") return false
+    const singleDeclarationRule = rule.clone({ nodes: [node.clone()] })
+    return [
+      ...canonicalDeclarations(singleDeclarationRule, new Map()).keys(),
+    ].some((property) => remaining.has(property))
+  })
+  const retainedCanonical = canonicalDeclarations(
+    rule.clone({
+      nodes: retainedSourceDeclarations.map((node) => node.clone()),
+    }),
+    new Map()
+  )
+
+  if (sameDeclarations(retainedCanonical, remaining)) {
+    const retained = new Set(retainedSourceDeclarations)
+    return rule.nodes.flatMap((node) =>
+      node.type !== "decl" || retained.has(node) ? node.clone() : []
+    )
+  }
+
+  const remainingDeclarations = []
+  for (const [property, values] of remaining) {
+    for (const [value, important] of values) {
+      remainingDeclarations.push(
+        postcss.decl({ prop: property, value, important })
+      )
+    }
+  }
+
+  let declarationsInserted = false
+  return rule.nodes.flatMap((node) => {
+    if (node.type !== "decl") return node.clone()
+    if (declarationsInserted) return []
+    declarationsInserted = true
+    return remainingDeclarations
+  })
+}
+
+function addSelectorGroup(selectorGroups, selector, nodes) {
+  const groupKey = JSON.stringify(nodes.map((node) => node.toString()))
+  const group = selectorGroups.get(groupKey) ?? { nodes, selectors: [] }
+  group.selectors.push(selector)
+  selectorGroups.set(groupKey, group)
 }
 
 function selectorKey(rule, selector) {
@@ -252,11 +316,11 @@ export function dedupeSurfaceKitCss({ packageCssPath, referenceCssPath }) {
             selectorKey(rule, selector)
           )
           if (!packageDeclarationSets) {
-            const allNodes = rule.nodes.map((_, index) => index)
-            const groupKey = JSON.stringify(allNodes)
-            const selectors = selectorGroups.get(groupKey) ?? []
-            selectors.push(selector)
-            selectorGroups.set(groupKey, selectors)
+            addSelectorGroup(
+              selectorGroups,
+              selector,
+              rule.nodes.map((node) => node.clone())
+            )
             continue
           }
           const ownedProperties = new Set()
@@ -281,28 +345,21 @@ export function dedupeSurfaceKitCss({ packageCssPath, referenceCssPath }) {
               `Conflicting SurfaceKit CSS selector ${selector} in the same at-rule context`
             )
           }
-          const remainingNodes = rule.nodes.flatMap((node, index) =>
-            node.type === "decl" && ownedProperties.has(node.prop) ? [] : index
+          const remainingNodes = nodesWithoutOwnedDeclarations(
+            rule,
+            ownedProperties
           )
           if (remainingNodes.length === 0) continue
-          const groupKey = JSON.stringify(remainingNodes)
-          const selectors = selectorGroups.get(groupKey) ?? []
-          selectors.push(selector)
-          selectorGroups.set(groupKey, selectors)
+          addSelectorGroup(selectorGroups, selector, remainingNodes)
         }
 
         if (selectorGroups.size === 0) {
           rule.remove()
           return
         }
-        const replacements = [...selectorGroups].map(
-          ([nodeIndexes, selectors]) =>
-            rule.clone({
-              selector: selectors.join(","),
-              nodes: JSON.parse(nodeIndexes).map((index) =>
-                rule.nodes[index].clone()
-              ),
-            })
+        const replacements = [...selectorGroups.values()].map(
+          ({ nodes, selectors }) =>
+            rule.clone({ selector: selectors.join(","), nodes })
         )
         rule.replaceWith(...replacements)
       })
