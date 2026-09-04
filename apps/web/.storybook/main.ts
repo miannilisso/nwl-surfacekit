@@ -4,10 +4,11 @@ import react from "@vitejs/plugin-react"
 import { fileURLToPath } from "node:url"
 import { mergeConfig } from "vite"
 
-import { dedupeSurfaceKitCss } from "../postcss/dedupe-surfacekit-css.mjs"
+import { referenceAppSources } from "../postcss/reference-app-sources.mjs"
 
-const packageCssPath = fileURLToPath(
-  new URL("../../../packages/ui/dist/globals.css", import.meta.url)
+const appRoot = fileURLToPath(new URL("..", import.meta.url))
+const packageSourceRoot = fileURLToPath(
+  new URL("../../../packages/ui/src", import.meta.url)
 )
 const referenceCssPath = fileURLToPath(
   new URL("../app/reference-app.css", import.meta.url)
@@ -26,8 +27,12 @@ const config: StorybookConfig = {
       css: {
         postcss: {
           plugins: [
+            referenceAppSources({
+              appRoot,
+              packageSourceRoot,
+              referenceCssPath,
+            }),
             tailwindcss(),
-            dedupeSurfaceKitCss({ packageCssPath, referenceCssPath }),
           ],
         },
       },

@@ -23,12 +23,12 @@
   "devDependencies": {
     "@nwl/eslint-config": "workspace:^",
     "@nwl/typescript-config": "workspace:*",
+    "@tailwindcss/oxide": "catalog:",
     "@tailwindcss/postcss": "catalog:",
     "@types/node": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
     "eslint": "catalog:",
-    "lightningcss": "catalog:",
     "postcss": "catalog:",
     "tailwindcss": "catalog:",
     "typescript": "catalog:"

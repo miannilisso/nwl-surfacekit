@@ -5,7 +5,7 @@ import process from "node:process"
 import tailwindcss from "@tailwindcss/postcss"
 import postcss from "postcss"
 
-import { dedupeSurfaceKitCss } from "../postcss/dedupe-surfacekit-css.mjs"
+import { referenceAppSources } from "../postcss/reference-app-sources.mjs"
 
 function readArgument(name) {
   const index = process.argv.indexOf(name)
@@ -17,13 +17,18 @@ function readArgument(name) {
 const input = readArgument("--input")
 const output = readArgument("--output")
 const from = readArgument("--from")
-const packageCssPath = fileURLToPath(
-  new URL("../../../packages/ui/dist/globals.css", import.meta.url)
+const appRoot = fileURLToPath(new URL("..", import.meta.url))
+const packageSourceRoot = fileURLToPath(
+  new URL("../../../packages/ui/src", import.meta.url)
 )
 const source = await readFile(input, "utf8")
 const result = await postcss([
+  referenceAppSources({
+    appRoot,
+    packageSourceRoot,
+    referenceCssPath: from,
+  }),
   tailwindcss(),
-  dedupeSurfaceKitCss({ packageCssPath, referenceCssPath: from }),
 ]).process(source, {
   from,
   to: output,

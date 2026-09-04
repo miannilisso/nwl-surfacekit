@@ -39,6 +39,9 @@ catalogs:
     '@tailwindcss/cli':
       specifier: 4.3.3
       version: 4.3.3
+    '@tailwindcss/oxide':
+      specifier: 4.3.3
+      version: 4.3.3
     '@tailwindcss/postcss':
       specifier: 4.3.3
       version: 4.3.3
@@ -316,6 +319,9 @@ importers:
       '@nwl/typescript-config':
         specifier: workspace:*
         version: link:../../packages/typescript-config
+      '@tailwindcss/oxide':
+        specifier: 'catalog:'
+        version: 4.3.3
       '@tailwindcss/postcss':
         specifier: 'catalog:'
         version: 4.3.3
@@ -331,9 +337,6 @@ importers:
       eslint:
         specifier: 'catalog:'
         version: 10.9.0(jiti@2.7.0)(supports-color@10.2.2)
-      lightningcss:
-        specifier: 'catalog:'
-        version: 1.33.0
       postcss:
         specifier: 'catalog:'
         version: 8.5.26

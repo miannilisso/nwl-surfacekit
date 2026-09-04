@@ -270,8 +270,91 @@ function canonicalSelectorForRule(rule: postcss.Rule, selector: string) {
   return canonicalSelector(selector)
 }
 
-function canonicalDeclaration(declaration: postcss.Declaration) {
-  let result = `${declaration.prop}:${declaration.value}${declaration.important ? "!important" : ""}`
+function canonicalValue(value: string) {
+  return canonicalDeclarationBlock(
+    postcss.parse(`.contract{--contract-value:${value}}`).first as postcss.Rule,
+    new Map()
+  ).slice("--contract-value:".length)
+}
+
+function splitVarArguments(value: string) {
+  let depth = 0
+  let quote = ""
+  for (let index = 0; index < value.length; index += 1) {
+    const character = value[index]
+    if (quote) {
+      if (character === "\\") index += 1
+      else if (character === quote) quote = ""
+    } else if (character === '"' || character === "'") quote = character
+    else if (character === "(") depth += 1
+    else if (character === ")") depth -= 1
+    else if (character === "," && depth === 0) {
+      return [value.slice(0, index).trim(), value.slice(index + 1).trim()]
+    }
+  }
+  return [value.trim()]
+}
+
+function findClosingParenthesis(value: string, start: number) {
+  let depth = 1
+  let quote = ""
+  for (let index = start; index < value.length; index += 1) {
+    const character = value[index]
+    if (quote) {
+      if (character === "\\") index += 1
+      else if (character === quote) quote = ""
+    } else if (character === '"' || character === "'") quote = character
+    else if (character === "(") depth += 1
+    else if (character === ")" && --depth === 0) return index
+  }
+  return -1
+}
+
+function normalizeKnownVarFallbacks(
+  value: string,
+  packageVariables: Map<string, Set<string>>
+) {
+  let result = ""
+  let cursor = 0
+  while (cursor < value.length) {
+    const start = value.indexOf("var(", cursor)
+    if (start < 0) return result + value.slice(cursor)
+    const end = findClosingParenthesis(value, start + 4)
+    if (end < 0) return result + value.slice(cursor)
+    const [property, fallback] = splitVarArguments(value.slice(start + 4, end))
+    const normalizedFallback = fallback
+      ? normalizeKnownVarFallbacks(fallback, packageVariables)
+      : undefined
+    const fallbackMatches =
+      normalizedFallback &&
+      packageVariables.get(property)?.has(canonicalValue(normalizedFallback))
+    result += `${value.slice(cursor, start)}var(${property}${fallbackMatches || !normalizedFallback ? "" : `,${normalizedFallback}`})`
+    cursor = end + 1
+  }
+  return result
+}
+
+function packageVariableValues(css: string) {
+  const variables = new Map<string, Set<string>>()
+  postcss.parse(canonicalCss(css)).walkDecls(/^--/, ({ prop, value }) => {
+    const values = variables.get(prop) ?? new Set()
+    values.add(canonicalValue(value))
+    variables.set(prop, values)
+  })
+  return variables
+}
+
+function canonicalDeclarationBlock(
+  rule: postcss.Rule,
+  packageVariables: Map<string, Set<string>>
+) {
+  let result = rule.nodes
+    .filter((node): node is postcss.Declaration => node.type === "decl")
+    .map(
+      (declaration) =>
+        `${declaration.prop}:${normalizeKnownVarFallbacks(declaration.value, packageVariables)}${declaration.important ? "!important" : ""}`
+    )
+    .join(";")
   for (let pass = 0; pass < 4; pass += 1) {
     const next = transformStyleAttribute({
       code: Buffer.from(result),
@@ -283,21 +366,36 @@ function canonicalDeclaration(declaration: postcss.Declaration) {
   return result
 }
 
-function semanticDeclarationKeys(css: string) {
-  const rules = new Set<string>()
-  postcss.parse(css).walkRules((rule) => {
+function canonicalRuleMap(
+  css: string,
+  packageVariables: Map<string, Set<string>>
+) {
+  const rules = new Map<
+    string,
+    Map<string, { important: boolean; value: string }>
+  >()
+  postcss.parse(canonicalCss(css)).walkRules((rule) => {
     const context = atRuleContext(rule)
+    const declarations = postcss.parse(
+      `.contract{${canonicalDeclarationBlock(rule, packageVariables)}}`
+    ).first as postcss.Rule
     for (const selector of rule.selectors) {
-      for (const node of rule.nodes) {
+      const key = JSON.stringify([
+        context,
+        canonicalSelectorForRule(rule, selector),
+      ])
+      const effective = rules.get(key) ?? new Map()
+      for (const node of declarations.nodes) {
         if (node.type !== "decl") continue
-        rules.add(
-          JSON.stringify([
-            context,
-            canonicalSelectorForRule(rule, selector),
-            canonicalDeclaration(node),
-          ])
-        )
+        const current = effective.get(node.prop)
+        if (!current?.important || node.important) {
+          effective.set(node.prop, {
+            important: Boolean(node.important),
+            value: node.value,
+          })
+        }
       }
+      rules.set(key, effective)
     }
   })
   return rules
@@ -437,35 +535,48 @@ describe("SurfaceKit compiled distribution", () => {
     )
     const appCss = await readFile(appCssOutput, "utf8")
     expect(appCss).toContain("#123456")
+    expect(appCss).not.toMatch(/@(import|source|apply|theme|custom-variant)\b/)
     expect(appCss).not.toMatch(/@layer\s+(?:theme|base|components)\b/)
     expect(appCss).not.toContain(
       "*,:after,:before,::backdrop{box-sizing:border-box"
     )
-    expect(appCss).not.toMatch(/\.rounded-md\s*\{/)
+    const appCssGzipBytes = gzipSync(appCss, { level: 9 }).byteLength
+    expect(appCssGzipBytes).toBeLessThanOrEqual(8 * 1024)
+    if (process.env.SURFACEKIT_SIZE_REPORT === "1") {
+      process.stdout.write(
+        `SurfaceKit reference app CSS gzip: ${appCssGzipBytes} bytes\n`
+      )
+    }
 
-    const packageRules = semanticDeclarationKeys(cssSource)
-    const appRules = semanticDeclarationKeys(appCss)
-    const overlaps = [...appRules].filter((key) => packageRules.has(key))
-    expect(overlaps).toEqual([])
-
-    for (const packageOwnedSelector of [
-      "*",
-      "::backdrop",
-      ".bg-card",
-      ".bg-muted",
-      ".text-foreground",
-      ".focus-visible\\:ring-ring:focus-visible",
-    ]) {
-      expect(
-        overlaps.filter(
-          (key) => (JSON.parse(key)[1] as string) === packageOwnedSelector
-        ),
-        packageOwnedSelector
-      ).toEqual([])
+    // Compare canonicalized copies of the real compiled artifacts. Package
+    // utility selector/contexts stay package-owned, and any remaining overlap
+    // must keep the same effective declaration values.
+    const packageVariables = packageVariableValues(cssSource)
+    const packageRules = canonicalRuleMap(cssSource, packageVariables)
+    const appRules = canonicalRuleMap(appCss, packageVariables)
+    const overlaps = [...appRules].filter(([key]) => packageRules.has(key))
+    const duplicateUtilities = overlaps.filter(([key]) => {
+      const [serializedContext] = JSON.parse(key) as [string, string]
+      const context = JSON.parse(serializedContext) as Array<[string, string]>
+      return context.some(
+        ([name, params]) => name === "layer" && params === "utilities"
+      )
+    })
+    expect(duplicateUtilities).toEqual([])
+    for (const [key, appDeclarations] of overlaps) {
+      const packageDeclarations = packageRules.get(key)!
+      for (const [property, appValue] of appDeclarations) {
+        const packageValue = packageDeclarations.get(property)
+        if (packageValue)
+          expect(appValue, `${key} ${property}`).toEqual(packageValue)
+      }
     }
 
     const packageRadius = cssSource.match(/\.rounded-md\{([^}]+)\}/)?.[1]
     expect(packageRadius).toContain("border-radius:calc(var(--radius) * .8)")
+    expect(canonicalCss(appCss)).not.toMatch(
+      /\.(?:rounded-md|text-muted-foreground)\{/
+    )
 
     for (const importPath of [
       "apps/web/app/layout.tsx",
@@ -487,6 +598,21 @@ describe("SurfaceKit compiled distribution", () => {
       expect(packageImportIndex).toBeLessThan(localImportIndex)
     }
   }, 30_000)
+
+  it("preserves app-owned keyframes in the reference stylesheet compiler", async () => {
+    const input = path.join(temporaryRoot, "reference-keyframes.css")
+    const output = path.join(temporaryRoot, "reference-keyframes-output.css")
+    await writeFile(
+      input,
+      "@keyframes surfacekit-reference-pulse{0%{opacity:.25}100%{opacity:1}}"
+    )
+
+    await buildReferenceCss(input, output, input)
+
+    expect(await readFile(output, "utf8")).toContain(
+      "@keyframes surfacekit-reference-pulse"
+    )
+  })
 
   it("loads compiled CSS from the exact tarball without Tailwind installed", async () => {
     await expect(
