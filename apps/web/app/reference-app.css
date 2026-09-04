@@ -1,4 +1,4 @@
-@import "tailwindcss/utilities.css" source(none);
+@import "tailwindcss/utilities.css" layer(utilities) source(none);
 @reference "tailwindcss/theme.css";
 @reference "../../../packages/ui/src/styles/theme.css";
 

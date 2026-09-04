@@ -15,6 +15,7 @@ import process from "node:process"
 import { promisify } from "node:util"
 import { gzipSync } from "node:zlib"
 
+import { transform, transformStyleAttribute } from "lightningcss"
 import postcss from "postcss"
 import { afterAll, beforeAll, describe, expect, it } from "vitest"
 
@@ -214,6 +215,94 @@ function resolveTarget(
   throw new Error(`Missing public export for ${subpath}`)
 }
 
+function canonicalCss(css: string) {
+  let result = css
+  for (let pass = 0; pass < 4; pass += 1) {
+    const next = transform({
+      filename: "contract.css",
+      code: Buffer.from(result),
+      minify: true,
+    }).code.toString()
+    if (next === result) return result
+    result = next
+  }
+  return result
+}
+
+function canonicalAtRule(name: string, params: string) {
+  const body = name.endsWith("keyframes")
+    ? "to{opacity:1}"
+    : ".contract{--contract:0}"
+  const atRule = postcss.parse(canonicalCss(`@${name} ${params}{${body}}`))
+    .first as postcss.AtRule
+  return [atRule.name, atRule.params]
+}
+
+function atRuleContext(rule: postcss.Rule) {
+  const context: Array<[string, string]> = []
+  let parent = rule.parent
+  while (parent) {
+    if (parent.type === "atrule") {
+      context.unshift(
+        canonicalAtRule(parent.name, parent.params) as [string, string]
+      )
+    }
+    parent = parent.parent
+  }
+  return JSON.stringify(context)
+}
+
+function canonicalSelector(selector: string) {
+  const rule = postcss.parse(
+    canonicalCss(`${selector}{--surfacekit-selector:0}`)
+  ).first as postcss.Rule
+  return rule.selector
+}
+
+function canonicalSelectorForRule(rule: postcss.Rule, selector: string) {
+  let parent = rule.parent
+  while (parent) {
+    if (parent.type === "atrule" && parent.name.endsWith("keyframes")) {
+      return selector.trim().replace(/\s+/g, "")
+    }
+    parent = parent.parent
+  }
+  return canonicalSelector(selector)
+}
+
+function canonicalDeclaration(declaration: postcss.Declaration) {
+  let result = `${declaration.prop}:${declaration.value}${declaration.important ? "!important" : ""}`
+  for (let pass = 0; pass < 4; pass += 1) {
+    const next = transformStyleAttribute({
+      code: Buffer.from(result),
+      minify: true,
+    }).code.toString()
+    if (next === result) return result
+    result = next
+  }
+  return result
+}
+
+function semanticDeclarationKeys(css: string) {
+  const rules = new Set<string>()
+  postcss.parse(css).walkRules((rule) => {
+    const context = atRuleContext(rule)
+    for (const selector of rule.selectors) {
+      for (const node of rule.nodes) {
+        if (node.type !== "decl") continue
+        rules.add(
+          JSON.stringify([
+            context,
+            canonicalSelectorForRule(rule, selector),
+            canonicalDeclaration(node),
+          ])
+        )
+      }
+    }
+  })
+  return rules
+}
+
 beforeAll(async () => {
   temporaryRoot = await mkdtemp(path.join(tmpdir(), "surfacekit-package-"))
   await execFileAsync("pnpm", ["--filter", "@nwl/surfacekit", "build"], {
@@ -306,24 +395,22 @@ describe("SurfaceKit compiled distribution", () => {
   }, 30_000)
 
   it("ships self-contained compiled CSS with bounded package-only discovery", async () => {
-    const probe = path.join(temporaryRoot, "css-boundary-probe.tsx")
-    const referenceInput = path.join(temporaryRoot, "reference-app-input.css")
     const appCssOutput = path.join(temporaryRoot, "reference-app.css")
     const referenceSourcePath = path.join(
       repositoryRoot,
       "apps/web/app/reference-app.css"
     )
-
-    await writeFile(
-      probe,
-      'export const Probe = () => <div className="bg-[#123456] rounded-md" />\n'
+    const sentinelSource = await readFile(
+      path.join(
+        repositoryRoot,
+        "apps/web/stories/fixtures/reference-css-sentinel.ts"
+      ),
+      "utf8"
     )
-    await writeFile(
-      referenceInput,
-      `${await readFile(referenceSourcePath, "utf8")}\n@source "${probe}";\n`
-    )
+    expect(sentinelSource).toContain('"bg-[#123456]"')
 
-    // Rebuild while the probe exists: package discovery must remain isolated.
+    // Rebuild with the tracked app/story sentinel present: package discovery
+    // must remain isolated from every reference-app source glob.
     await execFileAsync("pnpm", ["--filter", "@nwl/surfacekit", "build"], {
       cwd: repositoryRoot,
     })
@@ -343,7 +430,11 @@ describe("SurfaceKit compiled distribution", () => {
       process.stdout.write(`SurfaceKit CSS gzip: ${cssGzipBytes} bytes\n`)
     }
 
-    await buildReferenceCss(referenceInput, appCssOutput, referenceSourcePath)
+    await buildReferenceCss(
+      referenceSourcePath,
+      appCssOutput,
+      referenceSourcePath
+    )
     const appCss = await readFile(appCssOutput, "utf8")
     expect(appCss).toContain("#123456")
     expect(appCss).not.toMatch(/@layer\s+(?:theme|base|components)\b/)
@@ -352,15 +443,26 @@ describe("SurfaceKit compiled distribution", () => {
     )
     expect(appCss).not.toMatch(/\.rounded-md\s*\{/)
 
-    const packageSelectors = new Set<string>()
-    const appSelectors = new Set<string>()
-    postcss
-      .parse(cssSource)
-      .walkRules((rule) => packageSelectors.add(rule.selector))
-    postcss.parse(appCss).walkRules((rule) => appSelectors.add(rule.selector))
-    expect(
-      [...appSelectors].filter((selector) => packageSelectors.has(selector))
-    ).toEqual([])
+    const packageRules = semanticDeclarationKeys(cssSource)
+    const appRules = semanticDeclarationKeys(appCss)
+    const overlaps = [...appRules].filter((key) => packageRules.has(key))
+    expect(overlaps).toEqual([])
+
+    for (const packageOwnedSelector of [
+      "*",
+      "::backdrop",
+      ".bg-card",
+      ".bg-muted",
+      ".text-foreground",
+      ".focus-visible\\:ring-ring:focus-visible",
+    ]) {
+      expect(
+        overlaps.filter(
+          (key) => (JSON.parse(key)[1] as string) === packageOwnedSelector
+        ),
+        packageOwnedSelector
+      ).toEqual([])
+    }
 
     const packageRadius = cssSource.match(/\.rounded-md\{([^}]+)\}/)?.[1]
     expect(packageRadius).toContain("border-radius:calc(var(--radius) * .8)")
@@ -373,13 +475,16 @@ describe("SurfaceKit compiled distribution", () => {
         path.join(repositoryRoot, importPath),
         "utf8"
       )
-      expect(
-        imports.indexOf('import "@nwl/surfacekit/globals.css"')
-      ).toBeLessThan(
-        imports.indexOf('import "./reference-app.css"') >= 0
-          ? imports.indexOf('import "./reference-app.css"')
-          : imports.indexOf('import "../app/reference-app.css"')
+      const packageImportIndex = imports.indexOf(
+        'import "@nwl/surfacekit/globals.css"'
       )
+      const localImportIndex = Math.max(
+        imports.indexOf('import "./reference-app.css"'),
+        imports.indexOf('import "../app/reference-app.css"')
+      )
+      expect(packageImportIndex).toBeGreaterThanOrEqual(0)
+      expect(localImportIndex).toBeGreaterThanOrEqual(0)
+      expect(packageImportIndex).toBeLessThan(localImportIndex)
     }
   }, 30_000)
 

@@ -123,6 +123,9 @@ catalogs:
     jsdom:
       specifier: 30.0.1
       version: 30.0.1
+    lightningcss:
+      specifier: 1.33.0
+      version: 1.33.0
     lucide-react:
       specifier: 1.34.0
       version: 1.34.0
@@ -255,6 +258,9 @@ importers:
       jsdom:
         specifier: 'catalog:'
         version: 30.0.1
+      lightningcss:
+        specifier: 'catalog:'
+        version: 1.33.0
       postcss:
         specifier: 'catalog:'
         version: 8.5.26
@@ -325,6 +331,9 @@ importers:
       eslint:
         specifier: 'catalog:'
         version: 10.9.0(jiti@2.7.0)(supports-color@10.2.2)
+      lightningcss:
+        specifier: 'catalog:'
+        version: 1.33.0
       postcss:
         specifier: 'catalog:'
         version: 8.5.26
