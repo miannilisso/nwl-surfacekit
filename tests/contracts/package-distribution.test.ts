@@ -238,7 +238,7 @@ function canonicalAtRule(name: string, params: string) {
   return [atRule.name, atRule.params]
 }
 
-function atRuleContext(rule: postcss.Rule) {
+function atRuleContext(rule: postcss.Rule | postcss.AtRule) {
   const context: Array<[string, string]> = []
   let parent = rule.parent
   while (parent) {
@@ -345,7 +345,7 @@ function packageVariableValues(css: string) {
 }
 
 function canonicalDeclarationBlock(
-  rule: postcss.Rule,
+  rule: postcss.Rule | postcss.AtRule,
   packageVariables: Map<string, Set<string>>
 ) {
   let result = rule.nodes
@@ -400,6 +400,113 @@ function canonicalRuleMap(
   })
   return rules
 }
+
+function canonicalDeclarationAtRuleMap(
+  css: string,
+  packageVariables: Map<string, Set<string>>
+) {
+  const atRules = new Map<
+    string,
+    Map<string, { important: boolean; value: string }>
+  >()
+  postcss.parse(canonicalCss(css)).walkAtRules((atRule) => {
+    if (!atRule.nodes?.some((node) => node.type === "decl")) return
+    const key = JSON.stringify([
+      atRuleContext(atRule),
+      atRule.name,
+      atRule.params,
+    ])
+    const declarations = postcss.parse(
+      `.contract{${canonicalDeclarationBlock(atRule, packageVariables)}}`
+    ).first as postcss.Rule
+    const effective = new Map<string, { important: boolean; value: string }>()
+    for (const node of declarations.nodes) {
+      if (node.type !== "decl") continue
+      const current = effective.get(node.prop)
+      if (!current?.important || node.important) {
+        effective.set(node.prop, {
+          important: Boolean(node.important),
+          value: node.value,
+        })
+      }
+    }
+    atRules.set(key, effective)
+  })
+  return atRules
+}
+
+function declarationConflicts(
+  packageDeclarations: ReturnType<typeof canonicalRuleMap>,
+  appDeclarations: ReturnType<typeof canonicalRuleMap>
+) {
+  const conflicts: string[] = []
+  for (const [key, appValues] of appDeclarations) {
+    const packageValues = packageDeclarations.get(key)
+    if (!packageValues) continue
+    for (const [property, appValue] of appValues) {
+      const packageValue = packageValues.get(property)
+      if (
+        packageValue &&
+        (appValue.important !== packageValue.important ||
+          appValue.value !== packageValue.value)
+      ) {
+        conflicts.push(
+          `${key} ${property}: package=${JSON.stringify(packageValue)} app=${JSON.stringify(appValue)}`
+        )
+      }
+    }
+  }
+  return conflicts
+}
+
+function cascadeConflicts(packageCss: string, appCss: string) {
+  const packageVariables = packageVariableValues(packageCss)
+  return [
+    ...declarationConflicts(
+      canonicalRuleMap(packageCss, packageVariables),
+      canonicalRuleMap(appCss, packageVariables)
+    ),
+    ...declarationConflicts(
+      canonicalDeclarationAtRuleMap(packageCss, packageVariables),
+      canonicalDeclarationAtRuleMap(appCss, packageVariables)
+    ),
+  ]
+}
+
+it("accepts equivalent at-rule descriptors and rejects non-neutral descriptor conflicts", () => {
+  const packageCss = `
+    @layer properties {
+      @property --surfacekit-contract-length {
+        syntax: "<length>";
+        inherits: false;
+        initial-value: 0px;
+      }
+    }
+  `
+  const equivalentAppCss = `
+    @layer properties {
+      @property --surfacekit-contract-length {
+        syntax: "<length>";
+        inherits: false;
+        initial-value: 0;
+      }
+    }
+  `
+  const conflictingAppCss = `
+    @layer properties {
+      @property --surfacekit-contract-length {
+        syntax: "<length>";
+        inherits: false;
+        initial-value: 1px;
+      }
+    }
+  `
+
+  expect(cascadeConflicts(packageCss, equivalentAppCss)).toEqual([])
+  expect(cascadeConflicts(packageCss, conflictingAppCss)).toEqual([
+    expect.stringContaining("initial-value"),
+  ])
+})
 
 beforeAll(async () => {
   temporaryRoot = await mkdtemp(path.join(tmpdir(), "surfacekit-package-"))
@@ -563,14 +670,7 @@ describe("SurfaceKit compiled distribution", () => {
       )
     })
     expect(duplicateUtilities).toEqual([])
-    for (const [key, appDeclarations] of overlaps) {
-      const packageDeclarations = packageRules.get(key)!
-      for (const [property, appValue] of appDeclarations) {
-        const packageValue = packageDeclarations.get(property)
-        if (packageValue)
-          expect(appValue, `${key} ${property}`).toEqual(packageValue)
-      }
-    }
+    expect(cascadeConflicts(cssSource, appCss)).toEqual([])
 
     const packageRadius = cssSource.match(/\.rounded-md\{([^}]+)\}/)?.[1]
     expect(packageRadius).toContain("border-radius:calc(var(--radius) * .8)")
