@@ -401,25 +401,48 @@ function canonicalRuleMap(
   return rules
 }
 
-function canonicalDeclarationAtRuleMap(
+type DeclarationValue = { important: boolean; value: string }
+type DeclarationMap = Map<string, DeclarationValue>
+type DeclarationOccurrences = Map<string, DeclarationMap[]>
+
+const fontFaceIdentityDescriptors = [
+  "font-family",
+  "font-style",
+  "font-weight",
+  "font-stretch",
+  "unicode-range",
+]
+
+function declarationAtRuleKey(
+  atRule: postcss.AtRule,
+  declarations: DeclarationMap
+) {
+  const identity =
+    atRule.name === "font-face"
+      ? fontFaceIdentityDescriptors.flatMap((descriptor) => {
+          const value = declarations.get(descriptor)
+          return value ? [[descriptor, value] as const] : []
+        })
+      : []
+  return JSON.stringify([
+    atRuleContext(atRule),
+    atRule.name,
+    atRule.params,
+    identity,
+  ])
+}
+
+function canonicalDeclarationAtRuleOccurrences(
   css: string,
   packageVariables: Map<string, Set<string>>
 ) {
-  const atRules = new Map<
-    string,
-    Map<string, { important: boolean; value: string }>
-  >()
+  const atRules: DeclarationOccurrences = new Map()
   postcss.parse(canonicalCss(css)).walkAtRules((atRule) => {
     if (!atRule.nodes?.some((node) => node.type === "decl")) return
-    const key = JSON.stringify([
-      atRuleContext(atRule),
-      atRule.name,
-      atRule.params,
-    ])
     const declarations = postcss.parse(
       `.contract{${canonicalDeclarationBlock(atRule, packageVariables)}}`
     ).first as postcss.Rule
-    const effective = new Map<string, { important: boolean; value: string }>()
+    const effective: DeclarationMap = new Map()
     for (const node of declarations.nodes) {
       if (node.type !== "decl") continue
       const current = effective.get(node.prop)
@@ -430,9 +453,48 @@ function canonicalDeclarationAtRuleMap(
         })
       }
     }
-    atRules.set(key, effective)
+    const key = declarationAtRuleKey(atRule, effective)
+    const occurrences = atRules.get(key) ?? []
+    occurrences.push(effective)
+    atRules.set(key, occurrences)
   })
   return atRules
+}
+
+function declarationMapsEqual(left: DeclarationMap, right: DeclarationMap) {
+  if (left.size !== right.size) return false
+  for (const [property, leftValue] of left) {
+    const rightValue = right.get(property)
+    if (
+      !rightValue ||
+      leftValue.important !== rightValue.important ||
+      leftValue.value !== rightValue.value
+    ) {
+      return false
+    }
+  }
+  return true
+}
+
+function declarationMapConflicts(
+  key: string,
+  packageValues: DeclarationMap,
+  appValues: DeclarationMap
+) {
+  const conflicts: string[] = []
+  for (const [property, appValue] of appValues) {
+    const packageValue = packageValues.get(property)
+    if (
+      packageValue &&
+      (appValue.important !== packageValue.important ||
+        appValue.value !== packageValue.value)
+    ) {
+      conflicts.push(
+        `${key} ${property}: package=${JSON.stringify(packageValue)} app=${JSON.stringify(appValue)}`
+      )
+    }
+  }
+  return conflicts
 }
 
 function declarationConflicts(
@@ -443,20 +505,58 @@ function declarationConflicts(
   for (const [key, appValues] of appDeclarations) {
     const packageValues = packageDeclarations.get(key)
     if (!packageValues) continue
-    for (const [property, appValue] of appValues) {
-      const packageValue = packageValues.get(property)
-      if (
-        packageValue &&
-        (appValue.important !== packageValue.important ||
-          appValue.value !== packageValue.value)
-      ) {
-        conflicts.push(
-          `${key} ${property}: package=${JSON.stringify(packageValue)} app=${JSON.stringify(appValue)}`
-        )
+    conflicts.push(...declarationMapConflicts(key, packageValues, appValues))
+  }
+  return conflicts
+}
+
+function declarationAtRuleConflicts(
+  packageDeclarations: DeclarationOccurrences,
+  appDeclarations: DeclarationOccurrences
+) {
+  const conflicts = new Set<string>()
+  for (const [key, appOccurrences] of appDeclarations) {
+    const packageOccurrences = packageDeclarations.get(key)
+    if (!packageOccurrences) continue
+    const [, name] = JSON.parse(key) as [string, string]
+
+    if (name === "property") {
+      const packageValues = packageOccurrences.at(-1)
+      const appValues = appOccurrences.at(-1)
+      if (packageValues && appValues) {
+        for (const conflict of declarationMapConflicts(
+          key,
+          packageValues,
+          appValues
+        )) {
+          conflicts.add(conflict)
+        }
+      }
+      continue
+    }
+
+    const unmatchedPackage = [...packageOccurrences]
+    const unmatchedApp = appOccurrences.filter((appValues) => {
+      const match = unmatchedPackage.findIndex((packageValues) =>
+        declarationMapsEqual(packageValues, appValues)
+      )
+      if (match < 0) return true
+      unmatchedPackage.splice(match, 1)
+      return false
+    })
+    for (const appValues of unmatchedApp) {
+      for (const packageValues of packageOccurrences) {
+        for (const conflict of declarationMapConflicts(
+          key,
+          packageValues,
+          appValues
+        )) {
+          conflicts.add(conflict)
+        }
       }
     }
   }
-  return conflicts
+  return [...conflicts]
 }
 
 function cascadeConflicts(packageCss: string, appCss: string) {
@@ -466,9 +566,9 @@ function cascadeConflicts(packageCss: string, appCss: string) {
       canonicalRuleMap(packageCss, packageVariables),
       canonicalRuleMap(appCss, packageVariables)
     ),
-    ...declarationConflicts(
-      canonicalDeclarationAtRuleMap(packageCss, packageVariables),
-      canonicalDeclarationAtRuleMap(appCss, packageVariables)
+    ...declarationAtRuleConflicts(
+      canonicalDeclarationAtRuleOccurrences(packageCss, packageVariables),
+      canonicalDeclarationAtRuleOccurrences(appCss, packageVariables)
     ),
   ]
 }
@@ -506,6 +606,58 @@ it("accepts equivalent at-rule descriptors and rejects non-neutral descriptor co
   expect(cascadeConflicts(packageCss, conflictingAppCss)).toEqual([
     expect.stringContaining("initial-value"),
   ])
+})
+
+it("does not hide an earlier page descriptor conflict behind a later match", () => {
+  const packageCss = "@page contract { margin: 0; }"
+  const appCss = `
+    @page contract { margin: 1in; }
+    @page contract { margin: 0; }
+  `
+
+  expect(cascadeConflicts(packageCss, appCss)).toEqual([
+    expect.stringContaining("margin"),
+  ])
+})
+
+it("compares repeated font faces as order-independent occurrences", () => {
+  const firstFace = `
+    @font-face {
+      font-family: "Surface Repeated";
+      font-style: normal;
+      font-weight: 400;
+      src: url("/first.woff2") format("woff2");
+    }
+  `
+  const secondFace = `
+    @font-face {
+      font-family: "Surface Repeated";
+      font-style: normal;
+      font-weight: 400;
+      src: url("/second.woff2") format("woff2");
+    }
+  `
+
+  expect(
+    cascadeConflicts(`${firstFace}${secondFace}`, `${secondFace}${firstFace}`)
+  ).toEqual([])
+})
+
+it("uses the last property registration as the effective definition", () => {
+  const property = (initialValue: string) => `
+    @property --surfacekit-effective-property {
+      syntax: "<length>";
+      inherits: false;
+      initial-value: ${initialValue};
+    }
+  `
+
+  expect(
+    cascadeConflicts(
+      `${property("2px")}${property("0")}`,
+      `${property("1px")}${property("0px")}`
+    )
+  ).toEqual([])
 })
 
 beforeAll(async () => {

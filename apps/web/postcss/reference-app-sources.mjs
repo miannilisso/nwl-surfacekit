@@ -1,3 +1,4 @@
+import { existsSync } from "node:fs"
 import path from "node:path"
 
 import { Scanner } from "@tailwindcss/oxide"
@@ -30,21 +31,56 @@ function scan(base, patterns, negatedPatterns = []) {
   return { candidates: new Set(scanner.scan()), scanner }
 }
 
+function isWithin(directory, base) {
+  const relative = path.relative(base, directory)
+  return (
+    relative === "" ||
+    (relative !== ".." &&
+      !relative.startsWith(`..${path.sep}`) &&
+      !path.isAbsolute(relative))
+  )
+}
+
+function addAncestorDirectories(file, bases, watchedDirectories) {
+  const directory = path.dirname(path.resolve(file))
+  for (const base of bases) {
+    if (!isWithin(directory, base)) continue
+    let current = directory
+    while (true) {
+      watchedDirectories.add(current)
+      if (current === base) break
+      const parent = path.dirname(current)
+      if (parent === current) break
+      current = parent
+    }
+  }
+}
+
 function registerDependencies(result, scanners, watchedDirectories) {
   const parent = result.opts.from
   const files = new Set(scanners.flatMap(({ files }) => files))
   const directories = new Map()
+  const stableDirectories = new Set()
 
   for (const scanner of scanners) {
     for (const { base, pattern } of scanner.globs) {
-      watchedDirectories.add(path.resolve(base))
-      directories.set(`${path.resolve(base)}\0${pattern}`, {
-        dir: path.resolve(base),
+      const directory = path.resolve(base)
+      stableDirectories.add(directory)
+      watchedDirectories.add(directory)
+      directories.set(`${directory}\0${pattern}`, {
+        dir: directory,
         glob: pattern.replaceAll("\\", "/"),
       })
     }
   }
-  for (const file of files) watchedDirectories.add(path.dirname(file))
+  for (const directory of watchedDirectories) {
+    if (!stableDirectories.has(directory) && !existsSync(directory)) {
+      watchedDirectories.delete(directory)
+    }
+  }
+  for (const file of files) {
+    addAncestorDirectories(file, stableDirectories, watchedDirectories)
+  }
 
   // The normal file/glob messages drive framework watch invalidation. Keep
   // source directories as dependencies too so Tailwind's cached compiler sees

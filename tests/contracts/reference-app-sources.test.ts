@@ -1,11 +1,4 @@
-import {
-  mkdir,
-  mkdtemp,
-  readFile,
-  rm,
-  unlink,
-  writeFile,
-} from "node:fs/promises"
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import path from "node:path"
 
@@ -94,6 +87,10 @@ it("registers every scanned file and stable source glob as a PostCSS dependency"
       ])
     )
     expect(directories).toHaveLength(8)
+    expect(new Set(files).size).toBe(files.length)
+    expect(
+      new Set(directories.map(({ dir, glob }) => `${dir}\0${glob}`)).size
+    ).toBe(directories.length)
     expect(directories).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -128,7 +125,7 @@ it("recompiles added and removed utility candidates without restarting the proce
     const source = await readFile(referenceCssPath, "utf8")
     const addedSource = path.join(
       fixture.appRoot,
-      "stories/nested/added.stories.tsx"
+      "stories/nested/deeper/added.stories.tsx"
     )
     const processor = postcss([
       referenceAppSources({
@@ -138,15 +135,76 @@ it("recompiles added and removed utility candidates without restarting the proce
       }),
       tailwindcss(),
     ])
-    const compile = async () =>
-      (await processor.process(source, { from: referenceCssPath })).css
+    const compile = () => processor.process(source, { from: referenceCssPath })
 
-    expect(await compile()).not.toContain("#abcdef")
+    expect((await compile()).css).not.toContain("#abcdef")
     await mkdir(path.dirname(addedSource), { recursive: true })
     await writeFile(addedSource, 'export const className = "text-[#abcdef]"\n')
-    expect(await compile()).toContain("#abcdef")
-    await unlink(addedSource)
-    expect(await compile()).not.toContain("#abcdef")
+    expect((await compile()).css).toContain("#abcdef")
+    await rm(path.dirname(addedSource), { recursive: true })
+    const afterRemoval = await compile()
+    expect(afterRemoval.css).not.toContain("#abcdef")
+    const dependencyFiles = afterRemoval.messages
+      .filter(
+        (message): message is DependencyMessage =>
+          message.type === "dependency" &&
+          message.plugin === "surfacekit-reference-app-sources"
+      )
+      .map(({ file }) => file)
+    expect(dependencyFiles).toContain(path.dirname(path.dirname(addedSource)))
+    expect(dependencyFiles).not.toContain(path.dirname(addedSource))
+    expect(dependencyFiles).not.toContain(addedSource)
+    expect(new Set(dependencyFiles).size).toBe(dependencyFiles.length)
+  } finally {
+    await rm(fixture.root, { recursive: true, force: true })
+  }
+})
+
+it("recompiles package-side candidate subtraction after nested directory changes", async () => {
+  const fixture = await sourceFixture()
+  try {
+    await writeFile(
+      fixture.appSource,
+      'export const className = "text-[#fedcba]"\n'
+    )
+    const source = await readFile(referenceCssPath, "utf8")
+    const packageCandidate = path.join(
+      fixture.packageSourceRoot,
+      "components/nested/deeper/shared.tsx"
+    )
+    const processor = postcss([
+      referenceAppSources({
+        appRoot: fixture.appRoot,
+        packageSourceRoot: fixture.packageSourceRoot,
+        referenceCssPath,
+      }),
+      tailwindcss(),
+    ])
+    const compile = () => processor.process(source, { from: referenceCssPath })
+
+    expect((await compile()).css).toContain("#fedcba")
+    await mkdir(path.dirname(packageCandidate), { recursive: true })
+    await writeFile(
+      packageCandidate,
+      'export const className = "text-[#fedcba]"\n'
+    )
+    expect((await compile()).css).not.toContain("#fedcba")
+    await rm(path.dirname(packageCandidate), { recursive: true })
+    const afterRemoval = await compile()
+    expect(afterRemoval.css).toContain("#fedcba")
+    const dependencyFiles = afterRemoval.messages
+      .filter(
+        (message): message is DependencyMessage =>
+          message.type === "dependency" &&
+          message.plugin === "surfacekit-reference-app-sources"
+      )
+      .map(({ file }) => file)
+    expect(dependencyFiles).toContain(
+      path.dirname(path.dirname(packageCandidate))
+    )
+    expect(dependencyFiles).not.toContain(path.dirname(packageCandidate))
+    expect(dependencyFiles).not.toContain(packageCandidate)
+    expect(new Set(dependencyFiles).size).toBe(dependencyFiles.length)
   } finally {
     await rm(fixture.root, { recursive: true, force: true })
   }
