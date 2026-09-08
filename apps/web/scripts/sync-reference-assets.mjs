@@ -1,11 +1,19 @@
 import { createHash } from "node:crypto"
-import { copyFile, mkdir, readFile, stat } from "node:fs/promises"
+import { copyFile, mkdir, readFile, stat, writeFile } from "node:fs/promises"
 import path from "node:path"
 import process from "node:process"
 import { fileURLToPath } from "node:url"
 
 const repositoryRoot = fileURLToPath(new URL("../../..", import.meta.url))
 const checkOnly = process.argv.includes("--check")
+const serviceWorkerTemplatePath = path.join(
+  repositoryRoot,
+  "apps/web/pwa/service-worker.template.js"
+)
+const serviceWorkerOutputPath = path.join(
+  repositoryRoot,
+  "apps/web/public/sw.js"
+)
 
 const assetPairs = [
   ["assets/favicons/favicon.ico", "apps/web/app/favicon.ico"],
@@ -74,6 +82,18 @@ async function isIdentical(source, destination) {
   }
 }
 
+async function isByteIdentical(destination, expectedBytes) {
+  try {
+    const destinationBytes = await readFile(destination)
+    return digest(destinationBytes) === digest(expectedBytes)
+  } catch (error) {
+    if (error && typeof error === "object" && error.code === "ENOENT") {
+      return false
+    }
+    throw error
+  }
+}
+
 const drifted = []
 for (const [sourceRelative, destinationRelative] of assetPairs) {
   const source = path.join(repositoryRoot, sourceRelative)
@@ -87,6 +107,25 @@ for (const [sourceRelative, destinationRelative] of assetPairs) {
   }
 }
 
+const serviceWorkerTemplate = await readFile(serviceWorkerTemplatePath, "utf8")
+const revisionHash = createHash("sha256").update(serviceWorkerTemplate)
+for (const [sourceRelative] of assetPairs.slice(0, 8)) {
+  revisionHash.update(sourceRelative)
+  revisionHash.update(await readFile(path.join(repositoryRoot, sourceRelative)))
+}
+const revision = revisionHash.digest("hex").slice(0, 16)
+const serviceWorker = serviceWorkerTemplate.replaceAll(
+  "__SURFACEKIT_CACHE_REVISION__",
+  revision
+)
+if (!(await isByteIdentical(serviceWorkerOutputPath, serviceWorker))) {
+  drifted.push(path.relative(repositoryRoot, serviceWorkerOutputPath))
+  if (!checkOnly) {
+    await mkdir(path.dirname(serviceWorkerOutputPath), { recursive: true })
+    await writeFile(serviceWorkerOutputPath, serviceWorker)
+  }
+}
+
 if (checkOnly && drifted.length > 0) {
   throw new Error(
     `Reference assets are missing or stale:\n${drifted.map((file) => `- ${file}`).join("\n")}`
@@ -95,5 +134,5 @@ if (checkOnly && drifted.length > 0) {
 
 const verb = checkOnly ? "Verified" : "Synced"
 console.log(
-  `${verb} ${assetPairs.length} assets from the canonical assets tree.`
+  `${verb} ${assetPairs.length} assets from the canonical assets tree with service worker revision ${revision}.`
 )

@@ -58,11 +58,19 @@ class MemoryCache {
   }
 }
 
-async function loadServiceWorker(network: typeof fetch) {
+type WorkerOptions = {
+  revision?: string
+  stores?: Map<string, MemoryCache>
+}
+
+async function loadServiceWorker(
+  network: typeof fetch,
+  { revision, stores = new Map<string, MemoryCache>() }: WorkerOptions = {}
+) {
   const listeners = new Map<string, Listener>()
-  const stores = new Map<string, MemoryCache>()
-  stores.set("unrelated-cache", new MemoryCache(network))
-  stores.set("surfacekit-obsolete", new MemoryCache(network))
+  if (!stores.has("unrelated-cache")) {
+    stores.set("unrelated-cache", new MemoryCache(network))
+  }
 
   const cacheStorage = {
     async open(name: string) {
@@ -80,7 +88,10 @@ async function loadServiceWorker(network: typeof fetch) {
   const skipWaiting = vi.fn(async () => undefined)
   const claim = vi.fn(async () => undefined)
   const worker = {
-    location: { origin: "https://surfacekit.test" },
+    location: {
+      href: "https://surfacekit.test/sw.js",
+      origin: "https://surfacekit.test",
+    },
     registration: { scope: "https://surfacekit.test/" },
     clients: { claim },
     skipWaiting,
@@ -88,7 +99,17 @@ async function loadServiceWorker(network: typeof fetch) {
       listeners.set(type, listener)
     },
   }
-  const source = await readFile("apps/web/public/sw.js", "utf8")
+  let source = await readFile("apps/web/public/sw.js", "utf8")
+  if (revision) {
+    const replaced = source.replace(
+      /const CACHE_REVISION = "[a-f0-9-]+"/,
+      `const CACHE_REVISION = "${revision}"`
+    )
+    if (replaced === source) {
+      throw new Error("The generated worker does not expose a cache revision")
+    }
+    source = replaced
+  }
   vm.runInNewContext(source, {
     URL,
     Request,
@@ -142,50 +163,113 @@ function fetchEvent(request: Request) {
 
 describe("SurfaceKit service worker", () => {
   let network: ReturnType<typeof vi.fn<typeof fetch>>
+  const iconPaths = [
+    "/favicon.ico",
+    "/favicons/apple-icon.png",
+    "/favicons/icon0.svg",
+    "/favicons/icon1.png",
+    "/favicons/nwl-surfacekit.png",
+    "/favicons/nwl-surfacekit.svg",
+    "/favicons/web-app-manifest-192x192.png",
+    "/favicons/web-app-manifest-512x512.png",
+  ]
 
   beforeEach(() => {
     network = vi.fn(async (input: RequestInfo | URL) => {
       const request = input instanceof Request ? input : new Request(input)
-      return new Response(`online:${new URL(request.url).pathname}`, {
+      const response = new Response(`online:${new URL(request.url).pathname}`, {
         headers: { "Content-Type": "text/plain" },
         status: 200,
       })
+      Object.defineProperty(response, "url", { value: request.url })
+      return response
     })
   })
 
-  it("pre-caches only explicit supplied icons and deletes only obsolete SurfaceKit caches", async () => {
+  it("pre-caches only explicit supplied icons and claims the first generation", async () => {
     const runtime = await loadServiceWorker(network)
     const install = waitableEvent()
     await runtime.dispatch("install", install.event)
     await install.settled()
 
     const cacheNames = [...runtime.stores.keys()]
-    const currentName = cacheNames.find(
-      (name) => /^surfacekit-/.test(name) && name !== "surfacekit-obsolete"
+    const currentName = cacheNames.find((name) =>
+      name.startsWith("surfacekit-precache-")
     )
     expect(currentName).toBeDefined()
     expect(
       [...runtime.stores.get(currentName!)!.entries.keys()].sort()
-    ).toEqual(
-      [
-        "/favicon.ico",
-        "/favicons/apple-icon.png",
-        "/favicons/icon0.svg",
-        "/favicons/icon1.png",
-        "/favicons/nwl-surfacekit.png",
-        "/favicons/nwl-surfacekit.svg",
-        "/favicons/web-app-manifest-192x192.png",
-        "/favicons/web-app-manifest-512x512.png",
-      ].sort()
-    )
+    ).toEqual(iconPaths.toSorted())
+
+    expect(network).toHaveBeenCalledTimes(iconPaths.length)
+    for (const [request] of network.mock.calls) {
+      expect(request).toBeInstanceOf(Request)
+      expect((request as Request).cache).toBe("reload")
+      expect((request as Request).redirect).toBe("error")
+      expect(new URL((request as Request).url).origin).toBe(
+        "https://surfacekit.test"
+      )
+    }
 
     const activate = waitableEvent()
     await runtime.dispatch("activate", activate.event)
     await activate.settled()
-    expect(runtime.stores.has("surfacekit-obsolete")).toBe(false)
     expect(runtime.stores.has("unrelated-cache")).toBe(true)
     expect(runtime.claim).toHaveBeenCalledOnce()
   })
+
+  it.each([
+    [
+      "redirected",
+      (request: Request) => {
+        const response = new Response("redirected", { status: 200 })
+        Object.defineProperties(response, {
+          redirected: { value: true },
+          url: { value: request.url },
+        })
+        return response
+      },
+    ],
+    [
+      "cross-origin",
+      () => {
+        const response = new Response("foreign", { status: 200 })
+        Object.defineProperty(response, "url", {
+          value: "https://cdn.example.test/icon.svg",
+        })
+        return response
+      },
+    ],
+    [
+      "failed",
+      (request: Request) => {
+        const response = new Response("error", { status: 503 })
+        Object.defineProperty(response, "url", { value: request.url })
+        return response
+      },
+    ],
+  ])(
+    "rejects a %s response while installing supplied icons",
+    async (_case, invalidResponse) => {
+      network.mockImplementationOnce(async (input) => {
+        const request = input instanceof Request ? input : new Request(input)
+        return invalidResponse(request)
+      })
+      const runtime = await loadServiceWorker(network)
+      const install = waitableEvent()
+
+      await runtime.dispatch("install", install.event)
+
+      await expect(install.settled()).rejects.toThrow(
+        /pre-cache supplied icon/i
+      )
+      expect(
+        [...runtime.stores.keys()].some((name) =>
+          name.startsWith("surfacekit-precache-")
+        )
+      ).toBe(false)
+    }
+  )
 
   it("keeps documents network-first and falls back to a branded non-sensitive shell", async () => {
     network.mockRejectedValueOnce(new TypeError("offline"))
@@ -233,8 +317,11 @@ describe("SurfaceKit service worker", () => {
     expect(network).not.toHaveBeenCalled()
   })
 
-  it("caches only successful non-redirected immutable assets and caps the cache", async () => {
+  it("caps runtime assets without evicting the offline shell icons", async () => {
     const runtime = await loadServiceWorker(network)
+    const install = waitableEvent()
+    await runtime.dispatch("install", install.event)
+    await install.settled()
 
     for (let index = 0; index < 70; index += 1) {
       const event = fetchEvent(
@@ -247,11 +334,16 @@ describe("SurfaceKit service worker", () => {
       await Promise.all(event.pending)
     }
 
-    const surfaceCache = [...runtime.stores.entries()].find(([name]) =>
-      /^surfacekit-/.test(name)
+    const precache = [...runtime.stores.entries()].find(([name]) =>
+      name.startsWith("surfacekit-precache-")
     )?.[1]
-    expect(surfaceCache).toBeDefined()
-    expect(surfaceCache!.entries.size).toBeLessThanOrEqual(64)
+    const runtimeCache = [...runtime.stores.entries()].find(([name]) =>
+      name.startsWith("surfacekit-runtime-")
+    )?.[1]
+    expect(precache).toBeDefined()
+    expect(runtimeCache).toBeDefined()
+    expect(runtimeCache!.entries.size).toBeLessThanOrEqual(64)
+    expect([...precache!.entries.keys()].sort()).toEqual(iconPaths.toSorted())
 
     network.mockResolvedValueOnce(new Response("error", { status: 500 }))
     const failed = fetchEvent(
@@ -260,7 +352,7 @@ describe("SurfaceKit service worker", () => {
     await runtime.dispatch("fetch", failed.event)
     expect((await failed.response())?.status).toBe(500)
     await Promise.all(failed.pending)
-    expect(surfaceCache!.entries.has("/_next/static/chunks/failure.js")).toBe(
+    expect(runtimeCache!.entries.has("/_next/static/chunks/failure.js")).toBe(
       false
     )
 
@@ -273,19 +365,43 @@ describe("SurfaceKit service worker", () => {
     await runtime.dispatch("fetch", redirected.event)
     expect((await redirected.response())?.redirected).toBe(true)
     await Promise.all(redirected.pending)
-    expect(surfaceCache!.entries.has("/_next/static/chunks/redirect.js")).toBe(
+    expect(runtimeCache!.entries.has("/_next/static/chunks/redirect.js")).toBe(
       false
     )
   })
 
-  it("activates an explicitly accepted staged update", async () => {
-    const runtime = await loadServiceWorker(network)
-    const update = waitableEvent()
-    await runtime.dispatch("message", {
-      ...update.event,
-      data: { type: "SURFACEKIT_ACTIVATE_UPDATE" },
+  it("keeps two generations isolated until the old generation can retire", async () => {
+    const stores = new Map<string, MemoryCache>()
+    const first = await loadServiceWorker(network, {
+      revision: "generation-one",
+      stores,
     })
-    await update.settled()
-    expect(runtime.skipWaiting).toHaveBeenCalledOnce()
+    const firstInstall = waitableEvent()
+    await first.dispatch("install", firstInstall.event)
+    await firstInstall.settled()
+    const firstActivate = waitableEvent()
+    await first.dispatch("activate", firstActivate.event)
+    await firstActivate.settled()
+    expect(first.claim).toHaveBeenCalledOnce()
+
+    const second = await loadServiceWorker(network, {
+      revision: "generation-two",
+      stores,
+    })
+    const secondInstall = waitableEvent()
+    await second.dispatch("install", secondInstall.event)
+    await secondInstall.settled()
+
+    expect(stores.has("surfacekit-precache-generation-one")).toBe(true)
+    expect(stores.has("surfacekit-precache-generation-two")).toBe(true)
+    expect(second.skipWaiting).not.toHaveBeenCalled()
+
+    const secondActivate = waitableEvent()
+    await second.dispatch("activate", secondActivate.event)
+    await secondActivate.settled()
+    expect(stores.has("surfacekit-precache-generation-one")).toBe(false)
+    expect(stores.has("surfacekit-precache-generation-two")).toBe(true)
+    expect(stores.has("unrelated-cache")).toBe(true)
+    expect(second.claim).not.toHaveBeenCalled()
   })
 })

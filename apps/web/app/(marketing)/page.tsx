@@ -78,7 +78,6 @@ export default function Page() {
                 alt="NWL SurfaceKit mark"
                 width={48}
                 height={48}
-                priority
                 className="size-12 rounded-xl"
               />
               <Badge className="w-fit" variant="secondary">

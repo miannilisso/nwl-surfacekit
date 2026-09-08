@@ -99,6 +99,29 @@ describe("reference-app assets", () => {
       stat(path.join(repositoryRoot, "packages/ui/dist/fonts"))
     ).rejects.toMatchObject({ code: "ENOENT" })
   })
+
+  it("generates a revisioned worker from its source and cached canonical assets", async () => {
+    const template = await readFile(
+      path.join(repositoryRoot, "apps/web/pwa/service-worker.template.js"),
+      "utf8"
+    )
+    const worker = await readFile(
+      path.join(repositoryRoot, "apps/web/public/sw.js"),
+      "utf8"
+    )
+    const revisionHash = createHash("sha256").update(template)
+    for (const [source] of synchronizedAssets.slice(0, 8)) {
+      revisionHash.update(source)
+      revisionHash.update(await readFile(path.join(repositoryRoot, source)))
+    }
+    const revision = revisionHash.digest("hex").slice(0, 16)
+
+    expect(template).toContain("__SURFACEKIT_CACHE_REVISION__")
+    expect(worker).toBe(
+      template.replaceAll("__SURFACEKIT_CACHE_REVISION__", revision)
+    )
+    expect(worker).toContain(`const CACHE_REVISION = "${revision}"`)
+  })
 })
 
 describe("PWA metadata and headers", () => {

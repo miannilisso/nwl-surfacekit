@@ -1,3 +1,5 @@
+import { readFile } from "node:fs/promises"
+
 import { expect, test, type Page } from "@playwright/test"
 
 const storybookUrl =
@@ -43,7 +45,10 @@ test("Next and Storybook load and apply the same local variable fonts", async ({
   const externalFontRequests: string[] = []
   const localFontResponses = new Map<string, number>()
   page.on("request", (request) => {
-    if (/fonts\.(?:googleapis|gstatic)\.com/i.test(request.url())) {
+    if (request.resourceType() !== "font") return
+
+    const documentUrl = request.frame().url() || page.url()
+    if (new URL(request.url()).origin !== new URL(documentUrl).origin) {
       externalFontRequests.push(request.url())
     }
   })
@@ -59,6 +64,11 @@ test("Next and Storybook load and apply the same local variable fonts", async ({
     page.getByRole("heading", { level: 1, name: "SurfaceKit" })
   ).toBeVisible()
   await expect(page.getByAltText("NWL SurfaceKit mark")).toBeVisible()
+  await expect(
+    page.locator(
+      'link[rel="preload"][as="image"][href*="nwl-surfacekit"], link[rel="preload"][as="image"][imagesrcset*="nwl-surfacekit"]'
+    )
+  ).toHaveCount(0)
   const nextFonts = await fontState(page)
   expect(nextFonts.body).toMatch(/^"?Outfit"?(?:,|$)/)
   expect(nextFonts.heading).toMatch(/^"?Geist"?(?:,|$)/)
@@ -153,6 +163,79 @@ test("production registers a secure root service worker and recovers after offli
     "x-content-type-options": "nosniff",
   })
 
+  const staticAsset = await page.evaluate(() =>
+    performance
+      .getEntriesByType("resource")
+      .map((entry) => new URL(entry.name))
+      .find(
+        (url) =>
+          url.pathname.startsWith("/_next/static/") &&
+          url.pathname.endsWith(".js")
+      )
+      ?.toString()
+  )
+  expect(staticAsset).toBeDefined()
+  await page.evaluate(async (asset) => {
+    for (let index = 0; index < 70; index += 1) {
+      const url = new URL(asset)
+      url.searchParams.set("surfacekit-pressure", String(index))
+      const response = await fetch(url)
+      if (!response.ok) throw new Error(`Unable to fetch ${url}`)
+    }
+
+    await Promise.allSettled([
+      fetch("/api/surfacekit-cache-probe"),
+      fetch("/auth/surfacekit-cache-probe"),
+      fetch("/security-challenge/surfacekit-cache-probe"),
+      fetch("/_next/static/surfacekit-missing.js"),
+      fetch(asset, { method: "POST" }),
+      fetch(`${asset}?surfacekit-rsc-probe=1`, { headers: { RSC: "1" } }),
+      fetch(`${asset}?surfacekit-action-probe=1`, {
+        headers: { "Next-Action": "surfacekit-probe" },
+      }),
+    ])
+  }, staticAsset)
+
+  await expect
+    .poll(async () =>
+      page.evaluate(async () => {
+        const names = await caches.keys()
+        const runtime = names.find((name) =>
+          name.startsWith("surfacekit-runtime-")
+        )
+        return runtime ? (await (await caches.open(runtime)).keys()).length : 0
+      })
+    )
+    .toBe(64)
+
+  const cacheState = await page.evaluate(async () => {
+    const result: Record<string, string[]> = {}
+    for (const name of await caches.keys()) {
+      if (!name.startsWith("surfacekit-")) continue
+      result[name] = (await (await caches.open(name)).keys()).map(
+        (request) => new URL(request.url).pathname + new URL(request.url).search
+      )
+    }
+    return result
+  })
+  const precache = Object.entries(cacheState).find(([name]) =>
+    name.startsWith("surfacekit-precache-")
+  )?.[1]
+  const runtimeCache = Object.entries(cacheState).find(([name]) =>
+    name.startsWith("surfacekit-runtime-")
+  )?.[1]
+  expect(precache).toEqual(
+    expect.arrayContaining([
+      "/favicons/nwl-surfacekit.svg",
+      "/favicons/web-app-manifest-192x192.png",
+      "/favicons/web-app-manifest-512x512.png",
+    ])
+  )
+  expect(runtimeCache).toHaveLength(64)
+  expect(Object.values(cacheState).flat().join("\n")).not.toMatch(
+    /surfacekit-(?:cache|missing|rsc|action)-probe|\/api\/|\/auth\/|security-challenge/
+  )
+
   await page.setViewportSize({ width: 320, height: 720 })
   await context.setOffline(true)
   await page.goto("/offline-check", { waitUntil: "domcontentloaded" })
@@ -172,6 +255,99 @@ test("production registers a secure root service worker and recovers after offli
   await expect(
     page.getByRole("heading", { level: 1, name: "Component playground" })
   ).toBeVisible()
+})
+
+test("a second worker generation remains staged beside the active generation", async ({
+  browserName,
+  context,
+  page,
+}) => {
+  test.skip(
+    browserName !== "chromium",
+    "PWA lifecycle coverage is Chromium-specific"
+  )
+
+  const firstSource = await readFile("apps/web/public/sw.js", "utf8")
+  const firstRevision = firstSource.match(
+    /const CACHE_REVISION = "([a-f0-9]+)"/
+  )?.[1]
+  expect(firstRevision).toBeDefined()
+  const secondRevision = "2222222222222222"
+  const secondSource = firstSource.replace(
+    `const CACHE_REVISION = "${firstRevision}"`,
+    `const CACHE_REVISION = "${secondRevision}"`
+  )
+
+  await context.route("**/sw-generation-two.js", async (route) => {
+    await route.fulfill({
+      body: secondSource,
+      contentType: "application/javascript; charset=utf-8",
+      headers: {
+        "Cache-Control": "no-cache, no-store, must-revalidate",
+        "Service-Worker-Allowed": "/",
+        "X-Content-Type-Options": "nosniff",
+      },
+    })
+  })
+
+  await page.goto("/playground")
+  const initial = await page.evaluate(async () => {
+    const registration = await navigator.serviceWorker.ready
+    return registration.active?.scriptURL
+  })
+  expect(initial).toBe("http://127.0.0.1:3000/sw.js")
+
+  await page.evaluate(async () => {
+    const registration = await navigator.serviceWorker.register(
+      "/sw-generation-two.js",
+      { scope: "/", updateViaCache: "none" }
+    )
+    const worker = registration.installing ?? registration.waiting
+    if (worker && worker.state !== "installed") {
+      await new Promise<void>((resolve, reject) => {
+        const timeout = window.setTimeout(
+          () => reject(new Error("Second worker did not finish installing")),
+          10_000
+        )
+        worker.addEventListener("statechange", () => {
+          if (worker.state === "installed") {
+            window.clearTimeout(timeout)
+            resolve()
+          }
+        })
+      })
+    }
+  })
+
+  await expect
+    .poll(() =>
+      page.evaluate(async () => {
+        const registration = await navigator.serviceWorker.getRegistration("/")
+        return {
+          active: registration?.active?.scriptURL,
+          controller: navigator.serviceWorker.controller?.scriptURL,
+          waiting: registration?.waiting?.scriptURL,
+        }
+      })
+    )
+    .toEqual({
+      active: "http://127.0.0.1:3000/sw.js",
+      controller: "http://127.0.0.1:3000/sw.js",
+      waiting: "http://127.0.0.1:3000/sw-generation-two.js",
+    })
+
+  expect(
+    await page.evaluate(async () =>
+      (await caches.keys()).filter((name) =>
+        name.startsWith("surfacekit-precache-")
+      )
+    )
+  ).toEqual(
+    expect.arrayContaining([
+      `surfacekit-precache-${firstRevision}`,
+      `surfacekit-precache-${secondRevision}`,
+    ])
+  )
 })
 
 test("Storybook never registers the reference application service worker", async ({
