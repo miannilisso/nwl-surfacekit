@@ -151,7 +151,12 @@ it("recompiles added and removed utility candidates without restarting the proce
           message.plugin === "surfacekit-reference-app-sources"
       )
       .map(({ file }) => file)
-    expect(dependencyFiles).toContain(path.dirname(path.dirname(addedSource)))
+    expect(dependencyFiles.every((file) => path.extname(file) !== "")).toBe(
+      true
+    )
+    expect(dependencyFiles).not.toContain(
+      path.dirname(path.dirname(addedSource))
+    )
     expect(dependencyFiles).not.toContain(path.dirname(addedSource))
     expect(dependencyFiles).not.toContain(addedSource)
     expect(new Set(dependencyFiles).size).toBe(dependencyFiles.length)
@@ -199,7 +204,10 @@ it("recompiles package-side candidate subtraction after nested directory changes
           message.plugin === "surfacekit-reference-app-sources"
       )
       .map(({ file }) => file)
-    expect(dependencyFiles).toContain(
+    expect(dependencyFiles.every((file) => path.extname(file) !== "")).toBe(
+      true
+    )
+    expect(dependencyFiles).not.toContain(
       path.dirname(path.dirname(packageCandidate))
     )
     expect(dependencyFiles).not.toContain(path.dirname(packageCandidate))

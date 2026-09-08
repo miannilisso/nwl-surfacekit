@@ -12,5 +12,7 @@ test-results/
 blob-report/
 .vitest/
 .code-review-graph/
+.superpowers/
 .worktrees/
+assets/
 pnpm-lock.yaml

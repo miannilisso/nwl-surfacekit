@@ -16,6 +16,7 @@ const referenceCssPath = fileURLToPath(
 
 const config: StorybookConfig = {
   stories: ["./introduction.stories.tsx", "../stories/**/*.stories.{ts,tsx}"],
+  staticDirs: ["../public"],
   addons: ["@storybook/addon-a11y", "@storybook/addon-vitest"],
   framework: {
     name: "@storybook/react-vite",

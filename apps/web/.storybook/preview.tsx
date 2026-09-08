@@ -1,4 +1,5 @@
 import "@nwl/surfacekit/globals.css"
+import "../app/reference-fonts.css"
 import "../app/reference-app.css"
 import type { Preview } from "@storybook/react-vite"
 

@@ -1,17 +1,11 @@
-import path from "node:path"
-import { fileURLToPath } from "node:url"
+import { resolveReferenceAppPaths } from "./postcss/reference-app-paths.mjs"
 
-const sourcePlugin = fileURLToPath(
-  new URL("./postcss/reference-app-sources.mjs", import.meta.url)
-)
-const referenceCssPath = fileURLToPath(
-  new URL("./app/reference-app.css", import.meta.url)
-)
-const packageStylePath = fileURLToPath(
-  new URL("../../packages/ui/src/styles/globals.css", import.meta.url)
-)
-const appRoot = path.dirname(path.dirname(referenceCssPath))
-const packageSourceRoot = path.dirname(path.dirname(packageStylePath))
+// Turbopack bundles this configuration before executing it, so relative URLs
+// derived from import.meta.url would point into `.next/build/assets`. Package
+// scripts execute Next with the web workspace as cwd; anchor source discovery
+// there to keep production and development builds deterministic.
+const { appRoot, packageSourceRoot, referenceCssPath, sourcePlugin } =
+  resolveReferenceAppPaths()
 
 /** @type {import('postcss-load-config').Config} */
 const config = {

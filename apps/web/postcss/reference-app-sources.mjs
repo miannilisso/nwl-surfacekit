@@ -1,4 +1,4 @@
-import { existsSync } from "node:fs"
+import { createHash } from "node:crypto"
 import path from "node:path"
 
 import { Scanner } from "@tailwindcss/oxide"
@@ -17,6 +17,8 @@ const packageSourcePatterns = [
   "lib/**/*.{ts,tsx}",
 ]
 
+const candidateFingerprintPrefix = "surfacekit-candidates:"
+
 function scan(base, patterns, negatedPatterns = []) {
   const scanner = new Scanner({
     sources: [
@@ -31,61 +33,25 @@ function scan(base, patterns, negatedPatterns = []) {
   return { candidates: new Set(scanner.scan()), scanner }
 }
 
-function isWithin(directory, base) {
-  const relative = path.relative(base, directory)
-  return (
-    relative === "" ||
-    (relative !== ".." &&
-      !relative.startsWith(`..${path.sep}`) &&
-      !path.isAbsolute(relative))
-  )
-}
-
-function addAncestorDirectories(file, bases, watchedDirectories) {
-  const directory = path.dirname(path.resolve(file))
-  for (const base of bases) {
-    if (!isWithin(directory, base)) continue
-    let current = directory
-    while (true) {
-      watchedDirectories.add(current)
-      if (current === base) break
-      const parent = path.dirname(current)
-      if (parent === current) break
-      current = parent
-    }
-  }
-}
-
-function registerDependencies(result, scanners, watchedDirectories) {
+function registerDependencies(result, scanners) {
   const parent = result.opts.from
   const files = new Set(scanners.flatMap(({ files }) => files))
   const directories = new Map()
-  const stableDirectories = new Set()
 
   for (const scanner of scanners) {
     for (const { base, pattern } of scanner.globs) {
       const directory = path.resolve(base)
-      stableDirectories.add(directory)
-      watchedDirectories.add(directory)
       directories.set(`${directory}\0${pattern}`, {
         dir: directory,
         glob: pattern.replaceAll("\\", "/"),
       })
     }
   }
-  for (const directory of watchedDirectories) {
-    if (!stableDirectories.has(directory) && !existsSync(directory)) {
-      watchedDirectories.delete(directory)
-    }
-  }
-  for (const file of files) {
-    addAncestorDirectories(file, stableDirectories, watchedDirectories)
-  }
 
-  // The normal file/glob messages drive framework watch invalidation. Keep
-  // source directories as dependencies too so Tailwind's cached compiler sees
-  // a changed mtime when a previously scanned source file is removed.
-  for (const file of [...files, ...watchedDirectories].sort()) {
+  // PostCSS `dependency` messages must point to files; Turbopack treats a
+  // directory-valued dependency as a file read and aborts the build. Source
+  // directories are covered by the corresponding `dir-dependency` globs.
+  for (const file of [...files].sort()) {
     result.messages.push({
       type: "dependency",
       plugin: "surfacekit-reference-app-sources",
@@ -118,10 +84,15 @@ export function referenceAppSources({
   packageSourceRoot,
   referenceCssPath,
 }) {
-  const watchedDirectories = new Set()
-
   return {
     postcssPlugin: "surfacekit-reference-app-sources",
+    OnceExit(root) {
+      root.walkComments((comment) => {
+        if (comment.text.startsWith(candidateFingerprintPrefix)) {
+          comment.remove()
+        }
+      })
+    },
     Once(root, { result }) {
       if (
         !root.source?.input.file ||
@@ -134,16 +105,21 @@ export function referenceAppSources({
       const packageSources = scan(packageSourceRoot, packageSourcePatterns, [
         "**/*.test.{ts,tsx}",
       ])
-      registerDependencies(
-        result,
-        [app.scanner, packageSources.scanner],
-        watchedDirectories
-      )
+      registerDependencies(result, [app.scanner, packageSources.scanner])
 
       root.walkAtRules("source", (atRule) => atRule.remove())
-      for (const candidate of [...app.candidates]
+      const appOnlyCandidates = [...app.candidates]
         .filter((value) => !packageSources.candidates.has(value))
-        .sort()) {
+        .sort()
+      const fingerprint = createHash("sha256")
+        .update(appOnlyCandidates.join("\0"))
+        .digest("hex")
+      const fingerprintComment = `${candidateFingerprintPrefix}${fingerprint}`
+      root.prepend({ text: fingerprintComment })
+      if (root.source?.input.css) {
+        root.source.input.css = `${root.source.input.css}\n/* ${fingerprintComment} */`
+      }
+      for (const candidate of appOnlyCandidates) {
         root.append({
           name: "source",
           params: `inline(${cssString(candidate)})`,

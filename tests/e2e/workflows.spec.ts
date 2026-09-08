@@ -53,7 +53,9 @@ test("playground sidebar home action returns to the SurfaceKit home page", async
 }) => {
   await openReadyPage(page, "/playground/form-inputs")
 
-  const home = page.getByRole("link", { name: "Home" })
+  const home = page
+    .getByRole("navigation", { name: "Playground" })
+    .getByRole("link", { name: "Home" })
   await expectHydrated(home)
   await home.click()
 

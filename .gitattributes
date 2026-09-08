@@ -1,0 +1,3 @@
+# User-supplied brand and font sources are canonical opaque assets. Keep their
+# original bytes (including upstream line endings) unchanged across checkouts.
+assets/** binary

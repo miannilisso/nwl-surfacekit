@@ -13,6 +13,8 @@
     "format": "turbo format",
     "generate:attributions": "node scripts/generate-third-party-attributions.mjs",
     "check:attributions": "node scripts/generate-third-party-attributions.mjs --check",
+    "sync:reference-assets": "node apps/web/scripts/sync-reference-assets.mjs",
+    "check:reference-assets": "node apps/web/scripts/sync-reference-assets.mjs --check",
     "typecheck": "turbo typecheck",
     "test": "vitest --run",
     "test:a11y": "playwright test --project=chromium tests/e2e/a11y.spec.ts",
@@ -22,14 +24,14 @@
     "test:contracts": "vitest --run tests/contracts",
     "test:env": "node tests/env/no-server-env-in-client.mjs",
     "test:e2e": "playwright test",
-    "test:e2e:production": "pnpm build:packages && pnpm --filter web build && playwright test --config playwright.production.config.ts",
+    "test:e2e:production": "pnpm build:packages && pnpm --filter web build && pnpm build-storybook && playwright test --config playwright.production.config.ts",
     "test:storybook": "vitest --config vitest.storybook.config.ts --run",
     "test:visual": "playwright test --project=chromium tests/e2e/visual.spec.ts",
     "test:watch": "vitest",
-    "verify": "CI=1 TERM=dumb sh -c 'pnpm format:check && pnpm lint && pnpm typecheck && pnpm test:contracts && pnpm test:components:coverage && pnpm build && pnpm build-storybook && pnpm test:storybook && pnpm test:env && pnpm playwright test --config playwright.production.config.ts'",
-    "verify:ci": "CI=1 TERM=dumb sh -c 'pnpm format:check && pnpm lint && pnpm typecheck && pnpm test:contracts && pnpm test:components:coverage && pnpm build && pnpm build-storybook && pnpm test:storybook && pnpm test:env && pnpm playwright test --config playwright.production.config.ts'",
-    "storybook": "pnpm build:packages && concurrently --kill-others --names package,storybook \"pnpm --filter @nwl/surfacekit dev\" \"storybook dev -p 6006 --config-dir apps/web/.storybook --initial-path /?path=/story/surfacekit-introduction--overview\"",
-    "build-storybook": "pnpm build:packages && storybook build --config-dir apps/web/.storybook"
+    "verify": "CI=1 TERM=dumb sh -c 'pnpm format:check && pnpm lint && pnpm typecheck && pnpm check:reference-assets && pnpm test:contracts && pnpm test:components:coverage && pnpm build && pnpm build-storybook && pnpm test:storybook && pnpm test:env && pnpm playwright test --config playwright.production.config.ts'",
+    "verify:ci": "CI=1 TERM=dumb sh -c 'pnpm format:check && pnpm lint && pnpm typecheck && pnpm check:reference-assets && pnpm test:contracts && pnpm test:components:coverage && pnpm build && pnpm build-storybook && pnpm test:storybook && pnpm test:env && pnpm playwright test --config playwright.production.config.ts'",
+    "storybook": "pnpm sync:reference-assets && pnpm build:packages && concurrently --kill-others --names package,storybook \"pnpm --filter @nwl/surfacekit dev\" \"storybook dev -p 6006 --config-dir apps/web/.storybook --initial-path /?path=/story/surfacekit-introduction--overview\"",
+    "build-storybook": "pnpm sync:reference-assets && pnpm build:packages && storybook build --config-dir apps/web/.storybook"
   },
   "devDependencies": {
     "@nwl/eslint-config": "workspace:*",

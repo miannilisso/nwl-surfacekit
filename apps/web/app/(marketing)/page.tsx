@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import Image from "next/image"
 import Link from "next/link"
 import { Badge } from "@nwl/surfacekit/components/badge"
 import { buttonVariants } from "@nwl/surfacekit/components/button"
@@ -71,9 +72,19 @@ export default function Page() {
       >
         <Card className="border-primary/20 bg-card/90">
           <CardHeader>
-            <Badge className="w-fit" variant="secondary">
-              Verified inventory
-            </Badge>
+            <div className="flex items-center gap-3">
+              <Image
+                src="/favicons/nwl-surfacekit.svg"
+                alt="NWL SurfaceKit mark"
+                width={48}
+                height={48}
+                priority
+                className="size-12 rounded-xl"
+              />
+              <Badge className="w-fit" variant="secondary">
+                Verified inventory
+              </Badge>
+            </div>
             <CardTitle>One source-to-demo contract</CardTitle>
             <CardDescription>
               Behavioral tests, Storybook documentation, catalog metadata, and
