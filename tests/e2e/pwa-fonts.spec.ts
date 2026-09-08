@@ -4,6 +4,16 @@ import { expect, test, type Page } from "@playwright/test"
 
 const storybookUrl =
   "http://127.0.0.1:6006/iframe.html?id=surfacekit-introduction--overview&viewMode=story"
+const canonicalIconPaths = [
+  "/favicon.ico",
+  "/favicons/apple-icon.png",
+  "/favicons/icon0.svg",
+  "/favicons/icon1.png",
+  "/favicons/nwl-surfacekit.png",
+  "/favicons/nwl-surfacekit.svg",
+  "/favicons/web-app-manifest-192x192.png",
+  "/favicons/web-app-manifest-512x512.png",
+]
 
 async function fontState(page: Page) {
   return page.evaluate(async () => {
@@ -183,6 +193,13 @@ test("production registers a secure root service worker and recovers after offli
       if (!response.ok) throw new Error(`Unable to fetch ${url}`)
     }
 
+    for (let index = 0; index < 70; index += 1) {
+      const response = await fetch(
+        `/favicons/nwl-surfacekit.svg?review=${index}`
+      )
+      if (!response.ok) throw new Error("Unable to fetch icon variant")
+    }
+
     await Promise.allSettled([
       fetch("/api/surfacekit-cache-probe"),
       fetch("/auth/surfacekit-cache-probe"),
@@ -224,13 +241,7 @@ test("production registers a secure root service worker and recovers after offli
   const runtimeCache = Object.entries(cacheState).find(([name]) =>
     name.startsWith("surfacekit-runtime-")
   )?.[1]
-  expect(precache).toEqual(
-    expect.arrayContaining([
-      "/favicons/nwl-surfacekit.svg",
-      "/favicons/web-app-manifest-192x192.png",
-      "/favicons/web-app-manifest-512x512.png",
-    ])
-  )
+  expect(precache?.toSorted()).toEqual(canonicalIconPaths.toSorted())
   expect(runtimeCache).toHaveLength(64)
   expect(Object.values(cacheState).flat().join("\n")).not.toMatch(
     /surfacekit-(?:cache|missing|rsc|action)-probe|\/api\/|\/auth\/|security-challenge/

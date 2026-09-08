@@ -370,6 +370,33 @@ describe("SurfaceKit service worker", () => {
     )
   })
 
+  it("ignores query-bearing icon variants without growing either cache", async () => {
+    const runtime = await loadServiceWorker(network)
+    const install = waitableEvent()
+    await runtime.dispatch("install", install.event)
+    await install.settled()
+
+    for (let index = 0; index < 70; index += 1) {
+      const event = fetchEvent(
+        new Request(
+          `https://surfacekit.test/favicons/nwl-surfacekit.svg?review=${index}`
+        )
+      )
+      await runtime.dispatch("fetch", event.event)
+      expect(await event.response()).toBeUndefined()
+      await Promise.all(event.pending)
+    }
+
+    const precache = [...runtime.stores.entries()].find(([name]) =>
+      name.startsWith("surfacekit-precache-")
+    )?.[1]
+    const runtimeCache = [...runtime.stores.entries()].find(([name]) =>
+      name.startsWith("surfacekit-runtime-")
+    )?.[1]
+    expect([...precache!.entries.keys()].sort()).toEqual(iconPaths.toSorted())
+    expect(runtimeCache).toBeUndefined()
+  })
+
   it("keeps two generations isolated until the old generation can retire", async () => {
     const stores = new Map<string, MemoryCache>()
     const first = await loadServiceWorker(network, {

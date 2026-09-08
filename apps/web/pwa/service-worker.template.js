@@ -53,8 +53,14 @@ function isFrameworkDataRequest(request) {
   )
 }
 
-function isCacheablePath(pathname) {
-  return pathname.startsWith("/_next/static/") || ICON_PATH_SET.has(pathname)
+function isCanonicalIconUrl(url) {
+  return (
+    ICON_PATH_SET.has(url.pathname) && url.search === "" && url.hash === ""
+  )
+}
+
+function isCacheableUrl(url) {
+  return url.pathname.startsWith("/_next/static/") || isCanonicalIconUrl(url)
 }
 
 function isSafeRequest(request, url) {
@@ -119,7 +125,7 @@ async function trimRuntimeCache(cache) {
 }
 
 async function immutableResponse(request, event, url) {
-  const cacheName = ICON_PATH_SET.has(url.pathname)
+  const cacheName = isCanonicalIconUrl(url)
     ? PRECACHE_NAME
     : RUNTIME_NAME
   const cache = await caches.open(cacheName)
@@ -189,7 +195,7 @@ self.addEventListener("fetch", (event) => {
     return
   }
 
-  if (isCacheablePath(url.pathname)) {
+  if (isCacheableUrl(url)) {
     event.respondWith(immutableResponse(request, event, url))
   }
 })
