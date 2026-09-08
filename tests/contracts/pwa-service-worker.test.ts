@@ -431,4 +431,45 @@ describe("SurfaceKit service worker", () => {
     expect(stores.has("unrelated-cache")).toBe(true)
     expect(second.claim).not.toHaveBeenCalled()
   })
+
+  it("prunes superseded staging generations while retaining the active worker", async () => {
+    const stores = new Map<string, MemoryCache>()
+    const activeRevision = "1111111111111111"
+    const active = await loadServiceWorker(network, {
+      revision: activeRevision,
+      stores,
+    })
+    const activeInstall = waitableEvent()
+    await active.dispatch("install", activeInstall.event)
+    await activeInstall.settled()
+    const activeActivate = waitableEvent()
+    await active.dispatch("activate", activeActivate.event)
+    await activeActivate.settled()
+
+    for (let generation = 2; generation <= 6; generation += 1) {
+      const revision = String(generation).repeat(16)
+      const staging = await loadServiceWorker(network, { revision, stores })
+      const install = waitableEvent()
+      await staging.dispatch("install", install.event)
+      await install.settled()
+
+      expect(
+        [...stores.keys()]
+          .filter((name) => name.startsWith("surfacekit-precache-"))
+          .sort()
+      ).toEqual(
+        [
+          `surfacekit-precache-${activeRevision}`,
+          `surfacekit-precache-${revision}`,
+        ].sort()
+      )
+      expect(staging.skipWaiting).not.toHaveBeenCalled()
+      expect(staging.claim).not.toHaveBeenCalled()
+    }
+
+    expect(active.claim).toHaveBeenCalledOnce()
+    expect(stores.has("surfacekit-precache-1111111111111111")).toBe(true)
+    expect(stores.has("surfacekit-precache-6666666666666666")).toBe(true)
+    expect(stores.has("unrelated-cache")).toBe(true)
+  })
 })

@@ -268,7 +268,7 @@ test("production registers a secure root service worker and recovers after offli
   ).toBeVisible()
 })
 
-test("a second worker generation remains staged beside the active generation", async ({
+test("only the newest of five worker updates remains staged beside the active generation", async ({
   browserName,
   context,
   page,
@@ -283,15 +283,18 @@ test("a second worker generation remains staged beside the active generation", a
     /const CACHE_REVISION = "([a-f0-9]+)"/
   )?.[1]
   expect(firstRevision).toBeDefined()
-  const secondRevision = "2222222222222222"
-  const secondSource = firstSource.replace(
-    `const CACHE_REVISION = "${firstRevision}"`,
-    `const CACHE_REVISION = "${secondRevision}"`
-  )
-
-  await context.route("**/sw-generation-two.js", async (route) => {
+  await context.route("**/sw-generation-*.js", async (route) => {
+    const generation = new URL(route.request().url()).pathname.match(
+      /sw-generation-(\d+)\.js$/
+    )?.[1]
+    if (!generation) throw new Error("Missing worker generation")
+    const revision = generation.repeat(16)
+    const source = firstSource.replace(
+      `const CACHE_REVISION = "${firstRevision}"`,
+      `const CACHE_REVISION = "${revision}"`
+    )
     await route.fulfill({
-      body: secondSource,
+      body: source,
       contentType: "application/javascript; charset=utf-8",
       headers: {
         "Cache-Control": "no-cache, no-store, must-revalidate",
@@ -308,27 +311,29 @@ test("a second worker generation remains staged beside the active generation", a
   })
   expect(initial).toBe("http://127.0.0.1:3000/sw.js")
 
-  await page.evaluate(async () => {
-    const registration = await navigator.serviceWorker.register(
-      "/sw-generation-two.js",
-      { scope: "/", updateViaCache: "none" }
-    )
-    const worker = registration.installing ?? registration.waiting
-    if (worker && worker.state !== "installed") {
-      await new Promise<void>((resolve, reject) => {
-        const timeout = window.setTimeout(
-          () => reject(new Error("Second worker did not finish installing")),
-          10_000
-        )
-        worker.addEventListener("statechange", () => {
-          if (worker.state === "installed") {
-            window.clearTimeout(timeout)
-            resolve()
-          }
+  for (let generation = 2; generation <= 6; generation += 1) {
+    await page.evaluate(async (value) => {
+      const registration = await navigator.serviceWorker.register(
+        `/sw-generation-${value}.js`,
+        { scope: "/", updateViaCache: "none" }
+      )
+      const worker = registration.installing ?? registration.waiting
+      if (worker && worker.state !== "installed") {
+        await new Promise<void>((resolve, reject) => {
+          const timeout = window.setTimeout(
+            () => reject(new Error("Updated worker did not finish installing")),
+            10_000
+          )
+          worker.addEventListener("statechange", () => {
+            if (worker.state === "installed") {
+              window.clearTimeout(timeout)
+              resolve()
+            }
+          })
         })
-      })
-    }
-  })
+      }
+    }, generation)
+  }
 
   await expect
     .poll(() =>
@@ -344,20 +349,20 @@ test("a second worker generation remains staged beside the active generation", a
     .toEqual({
       active: "http://127.0.0.1:3000/sw.js",
       controller: "http://127.0.0.1:3000/sw.js",
-      waiting: "http://127.0.0.1:3000/sw-generation-two.js",
+      waiting: "http://127.0.0.1:3000/sw-generation-6.js",
     })
 
   expect(
     await page.evaluate(async () =>
-      (await caches.keys()).filter((name) =>
-        name.startsWith("surfacekit-precache-")
-      )
+      (await caches.keys())
+        .filter((name) => name.startsWith("surfacekit-precache-"))
+        .sort()
     )
   ).toEqual(
-    expect.arrayContaining([
+    [
       `surfacekit-precache-${firstRevision}`,
-      `surfacekit-precache-${secondRevision}`,
-    ])
+      "surfacekit-precache-6666666666666666",
+    ].sort()
   )
 })
 

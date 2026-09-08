@@ -2,6 +2,8 @@ const CACHE_PREFIX = "surfacekit-"
 const CACHE_REVISION = "__SURFACEKIT_CACHE_REVISION__"
 const PRECACHE_NAME = `${CACHE_PREFIX}precache-${CACHE_REVISION}`
 const RUNTIME_NAME = `${CACHE_PREFIX}runtime-${CACHE_REVISION}`
+const METADATA_NAME = `${CACHE_PREFIX}metadata`
+const ACTIVE_REVISION_PATH = "/__surfacekit/active-revision"
 const RUNTIME_ENTRY_LIMIT = 64
 const ICON_PATHS = [
   "/favicon.ico",
@@ -54,9 +56,7 @@ function isFrameworkDataRequest(request) {
 }
 
 function isCanonicalIconUrl(url) {
-  return (
-    ICON_PATH_SET.has(url.pathname) && url.search === "" && url.hash === ""
-  )
+  return ICON_PATH_SET.has(url.pathname) && url.search === "" && url.hash === ""
 }
 
 function isCacheableUrl(url) {
@@ -115,6 +115,65 @@ async function precacheIcons() {
   }
 }
 
+function generationCacheNames(revision) {
+  return new Set([
+    `${CACHE_PREFIX}precache-${revision}`,
+    `${CACHE_PREFIX}runtime-${revision}`,
+  ])
+}
+
+function isGenerationCache(name) {
+  return /^surfacekit-(?:precache|runtime)-[a-f0-9]{16}$/.test(name)
+}
+
+async function readActiveRevision() {
+  const metadata = await caches.open(METADATA_NAME)
+  const response = await metadata.match(
+    new Request(new URL(ACTIVE_REVISION_PATH, self.location.origin))
+  )
+  if (!response) return undefined
+
+  const revision = await response.text()
+  return /^[a-f0-9]{16}$/.test(revision) ? revision : undefined
+}
+
+async function writeActiveRevision() {
+  const metadata = await caches.open(METADATA_NAME)
+  await metadata.put(
+    new Request(new URL(ACTIVE_REVISION_PATH, self.location.origin)),
+    new Response(CACHE_REVISION, {
+      headers: { "Content-Type": "text/plain; charset=utf-8" },
+    })
+  )
+}
+
+async function pruneSupersededStagingCaches() {
+  const activeRevision = await readActiveRevision()
+  if (!activeRevision || activeRevision === CACHE_REVISION) return
+
+  const retainedNames = new Set([
+    METADATA_NAME,
+    ...generationCacheNames(activeRevision),
+    ...generationCacheNames(CACHE_REVISION),
+  ])
+  const names = await caches.keys()
+  await Promise.all(
+    names
+      .filter((name) => isGenerationCache(name) && !retainedNames.has(name))
+      .map((name) => caches.delete(name))
+  )
+}
+
+async function installGeneration() {
+  await precacheIcons()
+  try {
+    await pruneSupersededStagingCaches()
+  } catch (error) {
+    await caches.delete(PRECACHE_NAME)
+    throw error
+  }
+}
+
 async function trimRuntimeCache(cache) {
   const keys = await cache.keys()
   const excess = keys.length - RUNTIME_ENTRY_LIMIT
@@ -125,9 +184,7 @@ async function trimRuntimeCache(cache) {
 }
 
 async function immutableResponse(request, event, url) {
-  const cacheName = isCanonicalIconUrl(url)
-    ? PRECACHE_NAME
-    : RUNTIME_NAME
+  const cacheName = isCanonicalIconUrl(url) ? PRECACHE_NAME : RUNTIME_NAME
   const cache = await caches.open(cacheName)
   const cached = await cache.match(request)
   if (cached) return cached
@@ -165,13 +222,14 @@ async function navigationResponse(request) {
 }
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(precacheIcons())
+  event.waitUntil(installGeneration())
 })
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then(async (names) => {
-      const currentNames = new Set([PRECACHE_NAME, RUNTIME_NAME])
+      await writeActiveRevision()
+      const currentNames = new Set([METADATA_NAME, PRECACHE_NAME, RUNTIME_NAME])
       const staleNames = names.filter(
         (name) => name.startsWith(CACHE_PREFIX) && !currentNames.has(name)
       )
