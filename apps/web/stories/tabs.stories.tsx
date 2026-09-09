@@ -21,8 +21,16 @@ function TabsExample({
     ? ["Overview", "Members", "Roles", "Policies", "Sessions", "Audit events"]
     : ["Overview", "Activity", "Audit"]
   return (
-    <Tabs defaultValue="Overview" className="w-[34rem] max-w-full">
-      <div className={overflow ? "overflow-x-auto pb-1" : undefined}>
+    <Tabs
+      defaultValue="Overview"
+      className="w-[34rem] max-w-[calc(100vw-2rem)]"
+    >
+      <div
+        data-scroll-boundary={overflow ? "tabs" : undefined}
+        className={
+          overflow ? "overflow-x-auto overscroll-x-contain pb-1" : undefined
+        }
+      >
         <TabsList
           aria-label="Workspace sections"
           variant={underline ? "line" : "default"}

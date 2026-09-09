@@ -2,6 +2,10 @@ import { ArrowRight } from "lucide-react"
 
 import { Button } from "../../components/button"
 import { cn } from "../../lib/utils"
+import {
+  MobileNavigation,
+  type MobileNavigationOptions,
+} from "../mobile-navigation"
 
 interface WebShellProps extends React.ComponentProps<"div"> {
   header?: React.ReactNode
@@ -23,7 +27,7 @@ function WebShell({
     <div
       data-slot="web-shell"
       className={cn(
-        "flex min-h-screen flex-col bg-background text-foreground",
+        "flex min-h-dvh flex-col bg-background text-foreground",
         className
       )}
       {...props}
@@ -37,7 +41,7 @@ function WebShell({
         {children}
       </main>
       {footer ? (
-        <footer className="border-t border-border bg-background px-6 py-5">
+        <footer className="border-t border-border bg-background ps-[max(1.5rem,env(safe-area-inset-left))] pe-[max(1.5rem,env(safe-area-inset-right))] pt-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
           {footer}
         </footer>
       ) : null}
@@ -49,51 +53,92 @@ interface WebShellHeaderProps extends React.ComponentProps<"header"> {
   title: string
   links?: Array<{ label: string; href: string }>
   cta?: React.ReactNode
+  mobileNavigation?: MobileNavigationOptions
 }
 
 function WebShellHeader({
   title,
   links = [],
   cta,
+  mobileNavigation,
   className,
   ...props
 }: WebShellHeaderProps) {
+  const primaryNavigation = (
+    <>
+      {links.map((link, index) => (
+        <a
+          key={`${index}-${link.href}`}
+          href={link.href}
+          className="transition-colors hover:text-foreground"
+        >
+          {link.label}
+        </a>
+      ))}
+    </>
+  )
+
   return (
     <header
       data-slot="web-shell-header"
       className={cn(
-        "mx-auto flex min-h-16 w-full max-w-6xl items-center justify-between gap-6 px-6 py-3",
+        "mx-auto flex min-h-16 w-full max-w-6xl items-center justify-between gap-4 ps-[max(1rem,env(safe-area-inset-left))] pe-[max(1rem,env(safe-area-inset-right))] pt-[max(0.75rem,env(safe-area-inset-top))] pb-3 sm:gap-6 sm:px-6",
         className
       )}
       {...props}
     >
-      <a href="/" className="text-base font-semibold">
+      <a
+        href="/"
+        className="inline-flex min-h-11 items-center text-base font-semibold sm:min-h-0"
+      >
         {title}
       </a>
       <nav
         aria-label="Primary"
         className="hidden items-center gap-5 text-sm text-muted-foreground sm:flex"
       >
-        {links.map((link, index) => (
-          <a
-            key={`${index}-${link.href}`}
-            href={link.href}
-            className="transition-colors hover:text-foreground"
-          >
-            {link.label}
-          </a>
-        ))}
+        {primaryNavigation}
       </nav>
-      {cta ?? (
-        <Button
-          render={<a href="/playground" />}
-          nativeButton={false}
-          size="sm"
-          variant="outline"
-        >
-          Playground
-        </Button>
-      )}
+      <div className={cn(mobileNavigation && "hidden sm:block")}>
+        {cta ?? (
+          <Button
+            render={<a href="/playground" />}
+            nativeButton={false}
+            size="sm"
+            variant="outline"
+          >
+            Playground
+          </Button>
+        )}
+      </div>
+      {mobileNavigation ? (
+        <MobileNavigation
+          navigation={
+            <nav
+              aria-label="Primary"
+              className="flex min-h-full flex-col gap-2 text-sm text-foreground [&_a]:flex [&_a]:min-h-11 [&_a]:items-center [&_a]:rounded-md [&_a]:px-3 [&_a]:hover:bg-muted"
+            >
+              {primaryNavigation}
+              <div className="mt-auto border-t border-border pt-4">
+                {cta ?? (
+                  <Button
+                    render={<a href="/playground" />}
+                    nativeButton={false}
+                    variant="outline"
+                    className="w-full"
+                  >
+                    Playground
+                  </Button>
+                )}
+              </div>
+            </nav>
+          }
+          options={mobileNavigation}
+          defaultTitle="Primary navigation"
+          defaultTriggerLabel="Open primary navigation"
+          triggerClassName="sm:hidden"
+        />
+      ) : null}
     </header>
   )
 }
@@ -118,7 +163,7 @@ function WebShellFooter({ links, className, ...props }: WebShellFooterProps) {
           <a
             key={`${index}-${link.href}`}
             href={link.href}
-            className="hover:text-foreground"
+            className="inline-flex min-h-11 min-w-11 items-center hover:text-foreground sm:min-h-0 sm:min-w-0"
           >
             {link.label}
           </a>
@@ -174,4 +219,10 @@ function WebHero({
   )
 }
 
-export { WebHero, WebShell, WebShellFooter, WebShellHeader }
+export {
+  WebHero,
+  WebShell,
+  WebShellFooter,
+  WebShellHeader,
+  type MobileNavigationOptions,
+}

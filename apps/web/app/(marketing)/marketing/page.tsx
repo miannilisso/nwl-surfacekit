@@ -47,6 +47,10 @@ export default function MarketingPage() {
           title="SurfaceKit"
           links={links}
           cta={<WebShellActions />}
+          mobileNavigation={{
+            title: "SurfaceKit navigation",
+            closeLabel: "Close site navigation",
+          }}
         />
       }
       footer={<WebShellFooter links={links} />}

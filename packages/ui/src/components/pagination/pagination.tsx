@@ -14,7 +14,11 @@ function Pagination({ className, ...props }: React.ComponentProps<"nav">) {
       role="navigation"
       aria-label="pagination"
       data-slot="pagination"
-      className={cn("mx-auto flex w-full justify-center", className)}
+      data-scroll-boundary="pagination"
+      className={cn(
+        "mx-auto flex w-full max-w-full justify-start overflow-x-auto overscroll-x-contain sm:justify-center",
+        className
+      )}
       {...props}
     />
   )
@@ -27,7 +31,7 @@ function PaginationContent({
   return (
     <ul
       data-slot="pagination-content"
-      className={cn("flex items-center gap-1", className)}
+      className={cn("flex w-max items-center gap-1", className)}
       {...props}
     />
   )
@@ -56,6 +60,7 @@ function PaginationLink({
       data-active={isActive}
       className={cn(
         buttonVariants({ variant: isActive ? "outline" : "ghost", size }),
+        "min-h-11 min-w-11 sm:min-h-0 sm:min-w-0",
         className
       )}
       {...props}

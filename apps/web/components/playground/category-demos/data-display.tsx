@@ -258,8 +258,18 @@ export function ChartDemo() {
           <YAxis />
           <ChartTooltip content={<ChartTooltipContent />} />
           <ChartLegend content={<ChartLegendContent />} />
-          <Bar dataKey="requests" fill="var(--color-requests)" radius={8} />
-          <Bar dataKey="errors" fill="var(--color-errors)" radius={8} />
+          <Bar
+            dataKey="requests"
+            fill="var(--color-requests)"
+            isAnimationActive={false}
+            radius={8}
+          />
+          <Bar
+            dataKey="errors"
+            fill="var(--color-errors)"
+            isAnimationActive={false}
+            radius={8}
+          />
         </BarChart>
       </ChartContainer>
     </figure>

@@ -27,7 +27,11 @@ function CarouselExample({
   return (
     <Carousel
       aria-label="Release highlights"
-      className={vertical ? "h-72 w-80" : "w-[34rem] max-w-[calc(100vw-7rem)]"}
+      className={
+        vertical
+          ? "h-72 w-80 max-w-[calc(100vw-2rem)]"
+          : "w-[34rem] max-w-[calc(100vw-7rem)]"
+      }
       orientation={vertical ? "vertical" : "horizontal"}
       opts={{ align: "start", loop }}
     >

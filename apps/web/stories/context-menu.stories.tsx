@@ -29,7 +29,7 @@ function ContextExample({
         render={
           <div
             tabIndex={0}
-            className="grid h-40 w-80 place-items-center rounded-2xl border border-dashed text-sm text-muted-foreground"
+            className="grid h-40 w-80 max-w-[calc(100vw-2rem)] place-items-center rounded-2xl border border-dashed px-3 text-center text-sm text-muted-foreground"
           />
         }
       >

@@ -16,7 +16,7 @@ export function ComponentPreview({
     <section
       id={entry.id}
       aria-labelledby={titleId}
-      className="scroll-mt-24 space-y-4 rounded-3xl border bg-card p-4 shadow-sm sm:p-6"
+      className="max-w-full min-w-0 scroll-mt-24 space-y-4 rounded-3xl border bg-card p-4 shadow-sm sm:p-6"
     >
       <header className="flex flex-wrap items-start justify-between gap-3">
         <div className="max-w-2xl space-y-1">

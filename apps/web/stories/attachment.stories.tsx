@@ -93,11 +93,13 @@ export const File: Story = {
 export const Image: Story = { args: { image: true } }
 export const Group: Story = {
   render: () => (
-    <AttachmentGroup aria-label="Release files">
-      <FileAttachment />
-      <FileAttachment image />
-      <FileAttachment />
-    </AttachmentGroup>
+    <div className="w-[min(32rem,calc(100vw-2rem))] max-w-full">
+      <AttachmentGroup aria-label="Release files">
+        <FileAttachment />
+        <FileAttachment image />
+        <FileAttachment />
+      </AttachmentGroup>
+    </div>
   ),
 }
 export const Uploading: Story = { args: { state: "uploading" } }

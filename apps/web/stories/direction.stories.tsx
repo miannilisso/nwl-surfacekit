@@ -8,7 +8,10 @@ import {
 function DirectionSample({ label }: { label: string }) {
   const direction = useDirection()
   return (
-    <section dir={direction} className="w-80 rounded-2xl border p-4">
+    <section
+      dir={direction}
+      className="w-80 max-w-[calc(100vw-2rem)] rounded-2xl border p-4"
+    >
       <p className="font-medium">{label}</p>
       <p className="mt-2 text-sm text-muted-foreground">
         {direction === "rtl"

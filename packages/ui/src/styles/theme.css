@@ -42,4 +42,5 @@
   --font-sans: var(--font-sans);
   --font-heading: var(--font-heading);
   --font-mono: var(--font-mono);
+  --spacing-touch-target: var(--touch-target-size);
 }

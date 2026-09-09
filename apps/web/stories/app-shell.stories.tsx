@@ -34,6 +34,7 @@ function ShellExample({
   return (
     <AppShell
       className={mobile ? "max-w-md" : undefined}
+      mobileNavigation={{ title: "Workspace navigation" }}
       mainProps={embedded ? { role: "presentation" } : undefined}
       topbar={<AppTopbar title="Production workspace" eyebrow="SurfaceKit" />}
       sidebar={

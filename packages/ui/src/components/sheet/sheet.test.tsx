@@ -13,13 +13,15 @@ import {
 
 function Example({
   side = "right" as const,
+  closeLabel,
 }: {
   side?: "top" | "right" | "bottom" | "left"
+  closeLabel?: string
 }) {
   return (
     <Sheet>
       <SheetTrigger>Open panel</SheetTrigger>
-      <SheetContent side={side}>
+      <SheetContent side={side} closeLabel={closeLabel}>
         <SheetHeader>
           <SheetTitle>Workspace settings</SheetTitle>
           <SheetDescription>Manage workspace policy.</SheetDescription>
@@ -57,5 +59,16 @@ describe("Sheet", () => {
     await screen.findByRole("dialog")
     await user.keyboard("{Escape}")
     await waitFor(() => expect(trigger).toHaveFocus())
+  })
+
+  it("accepts an accessible close label", async () => {
+    const user = userEvent.setup()
+    render(<Example closeLabel="Close workspace settings" />)
+    await user.click(screen.getByRole("button", { name: "Open panel" }))
+    expect(
+      await screen.findByRole("button", {
+        name: "Close workspace settings",
+      })
+    ).toBeVisible()
   })
 })

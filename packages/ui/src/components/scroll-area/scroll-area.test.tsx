@@ -48,6 +48,9 @@ describe("ScrollArea", () => {
     )
     expect(
       container.querySelector('[data-slot="scroll-area-viewport"]')
+    ).toHaveAttribute("data-scroll-boundary", "scroll-area")
+    expect(
+      container.querySelector('[data-slot="scroll-area-viewport"]')
     ).toHaveTextContent("Event 20")
     await waitFor(() =>
       expect(
@@ -75,5 +78,8 @@ describe("ScrollArea", () => {
     expect(
       Array.from(bars, (bar) => bar.getAttribute("data-orientation")).sort()
     ).toEqual(["horizontal", "vertical"])
+    expect(
+      container.querySelector('[data-slot="scroll-area-thumb"]')
+    ).toHaveClass("bg-(--scrollbar-thumb)")
   })
 })

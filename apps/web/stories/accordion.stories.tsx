@@ -15,7 +15,7 @@ function AccordionExample({ multiple, disabled, long }: ExampleProps) {
     <Accordion
       multiple={multiple}
       defaultValue={multiple ? ["profile", "billing"] : undefined}
-      className="w-[34rem] max-w-full"
+      className="w-[34rem] max-w-[calc(100vw-2rem)]"
     >
       <AccordionItem value="profile">
         <AccordionTrigger>Profile and access</AccordionTrigger>

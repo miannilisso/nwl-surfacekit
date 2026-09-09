@@ -71,7 +71,7 @@ function CommandExample({
       </>
     )
   return (
-    <div className="w-96 max-w-full rounded-3xl border">
+    <div className="w-96 max-w-[calc(100vw-2rem)] rounded-3xl border">
       <PaletteContent empty={empty} />
     </div>
   )

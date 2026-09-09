@@ -16,7 +16,7 @@ function Tabs({
       data-orientation={orientation}
       orientation={orientation}
       className={cn(
-        "group/tabs flex gap-2 data-horizontal:flex-col",
+        "group/tabs flex min-w-0 gap-2 data-horizontal:flex-col",
         className
       )}
       {...props}
@@ -25,7 +25,7 @@ function Tabs({
 }
 
 const tabsListVariants = cva(
-  "group/tabs-list inline-flex w-fit items-center justify-center rounded-2xl p-[3px] text-muted-foreground group-data-horizontal/tabs:h-8 group-data-vertical/tabs:h-fit group-data-vertical/tabs:flex-col group-data-vertical/tabs:p-1 data-[variant=line]:rounded-none",
+  "group/tabs-list inline-flex w-fit max-w-full items-center justify-start overflow-x-auto overscroll-x-contain rounded-2xl p-[3px] text-muted-foreground outline-none group-data-horizontal/tabs:min-h-8 group-data-vertical/tabs:h-fit group-data-vertical/tabs:flex-col group-data-vertical/tabs:p-1 focus-visible:ring-2 focus-visible:ring-ring/50 data-[variant=line]:rounded-none",
   {
     variants: {
       variant: {
@@ -47,6 +47,7 @@ function TabsList({
   return (
     <TabsPrimitive.List
       data-slot="tabs-list"
+      data-scroll-boundary="tabs"
       data-variant={variant}
       className={cn(tabsListVariants({ variant }), className)}
       {...props}

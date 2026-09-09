@@ -16,7 +16,7 @@ const meta = {
   },
   args: { ratio: 16 / 9 },
   render: (args) => (
-    <div className="w-80 overflow-hidden rounded-lg border bg-muted">
+    <div className="w-80 max-w-[calc(100vw-2rem)] overflow-hidden rounded-lg border bg-muted">
       <AspectRatio {...args}>
         <div className="flex size-full items-center justify-center bg-linear-to-br from-primary/15 via-background to-primary/35 font-medium">
           {args.ratio}:1
@@ -38,7 +38,7 @@ export const Square: Story = {
 export const Portrait: Story = {
   args: { ratio: 3 / 4 },
   render: (args) => (
-    <div className="w-48 overflow-hidden rounded-lg border bg-muted">
+    <div className="w-48 max-w-[calc(100vw-2rem)] overflow-hidden rounded-lg border bg-muted">
       <AspectRatio {...args}>
         <div className="flex size-full items-center justify-center bg-linear-to-b from-primary/20 to-primary/5 font-medium">
           Portrait

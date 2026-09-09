@@ -18,6 +18,11 @@ const meta = {
     },
   },
   args: { month },
+  render: (args) => (
+    <div className="w-[min(42rem,calc(100vw-2rem))] max-w-full overflow-x-auto overscroll-x-contain">
+      <Calendar {...args} />
+    </div>
+  ),
 } satisfies Meta<typeof Calendar>
 
 export default meta

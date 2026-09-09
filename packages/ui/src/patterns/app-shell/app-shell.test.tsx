@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react"
+import { render, screen, waitFor, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { describe, expect, it, vi } from "vitest"
 
@@ -123,5 +123,147 @@ describe("AppShell", () => {
     await user.click(screen.getByRole("button", { name: "Toggle theme" }))
 
     expect(theme.setTheme).toHaveBeenCalledWith("dark")
+  })
+
+  it("opens mobile navigation with an accessible controlled state", async () => {
+    const user = userEvent.setup()
+    const onOpenChange = vi.fn()
+
+    render(
+      <AppShell
+        sidebar={
+          <AppSidebar
+            label="Workspace navigation"
+            items={[{ label: "Overview", href: "/overview" }]}
+          />
+        }
+        mobileNavigation={{ open: false, onOpenChange }}
+      >
+        Workspace
+      </AppShell>
+    )
+
+    await user.click(
+      screen.getByRole("button", { name: "Open workspace navigation" })
+    )
+
+    expect(onOpenChange).toHaveBeenCalledWith(true)
+  })
+
+  it("traps mobile navigation focus and restores it after Escape", async () => {
+    const user = userEvent.setup()
+
+    render(
+      <AppShell
+        sidebar={
+          <AppSidebar
+            label="Workspace navigation"
+            items={[{ label: "Overview", href: "/overview" }]}
+          />
+        }
+        mobileNavigation={{ title: "Workspace navigation" }}
+      >
+        <button type="button">Background action</button>
+      </AppShell>
+    )
+
+    const trigger = screen.getByRole("button", {
+      name: "Open workspace navigation",
+    })
+    await user.click(trigger)
+    const dialog = await screen.findByRole("dialog", {
+      name: "Workspace navigation",
+    })
+
+    expect(within(dialog).getByRole("link", { name: "Overview" })).toBeVisible()
+    expect(document.body).toHaveStyle({
+      overflowX: "hidden",
+      overflowY: "hidden",
+    })
+
+    await user.keyboard("{Escape}")
+    await waitFor(() =>
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
+    )
+    expect(trigger).toHaveFocus()
+    expect(document.body.style.overflow).toBe("")
+  })
+
+  it("closes mobile navigation after link activation", async () => {
+    const user = userEvent.setup()
+
+    render(
+      <AppShell
+        sidebar={
+          <AppSidebar
+            label="Workspace navigation"
+            items={[{ label: "Reports", href: "#reports" }]}
+          />
+        }
+        mobileNavigation={{ defaultOpen: true }}
+      >
+        Workspace
+      </AppShell>
+    )
+
+    const dialog = await screen.findByRole("dialog")
+    await user.click(within(dialog).getByRole("link", { name: "Reports" }))
+
+    await waitFor(() =>
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
+    )
+  })
+
+  it("closes uncontrolled mobile navigation when the route identity changes", async () => {
+    const sidebar = (
+      <AppSidebar
+        label="Workspace navigation"
+        items={[{ label: "Overview", href: "/overview" }]}
+      />
+    )
+    const { rerender } = render(
+      <AppShell
+        sidebar={sidebar}
+        mobileNavigation={{ defaultOpen: true, routeKey: "/overview" }}
+      >
+        Workspace
+      </AppShell>
+    )
+
+    expect(await screen.findByRole("dialog")).toBeVisible()
+
+    rerender(
+      <AppShell
+        sidebar={sidebar}
+        mobileNavigation={{ defaultOpen: true, routeKey: "/reports" }}
+      >
+        Workspace
+      </AppShell>
+    )
+
+    await waitFor(() =>
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
+    )
+  })
+
+  it("restores body scrolling when open mobile navigation unmounts", async () => {
+    const { unmount } = render(
+      <AppShell
+        sidebar={
+          <AppSidebar items={[{ label: "Overview", href: "/overview" }]} />
+        }
+        mobileNavigation={{ defaultOpen: true }}
+      >
+        Workspace
+      </AppShell>
+    )
+
+    expect(await screen.findByRole("dialog")).toBeVisible()
+    expect(document.body).toHaveStyle({
+      overflowX: "hidden",
+      overflowY: "hidden",
+    })
+    unmount()
+    expect(document.body.style.overflow).toBe("")
   })
 })

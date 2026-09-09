@@ -781,6 +781,13 @@ describe("SurfaceKit compiled distribution", () => {
     expect(cssSource).toContain("--background:")
     expect(cssSource).toContain(".dark")
     expect(cssSource).toContain("ui-sans-serif")
+    expect(cssSource).toContain("--touch-target-size:")
+    expect(cssSource).toContain("--scrollbar-size:")
+    expect(cssSource).toContain("--scrollbar-thumb-hover:")
+    expect(cssSource).toContain("--scrollbar-thumb-active:")
+    expect(cssSource).toContain(".surface-scrollbar")
+    expect(cssSource).toContain("@media (forced-colors:active)")
+    expect(cssSource).toContain("::-webkit-scrollbar-thumb:active")
     expect(cssSource).not.toContain("#123456")
     expect(cssGzipBytes).toBeLessThanOrEqual(30 * 1024)
     if (process.env.SURFACEKIT_SIZE_REPORT === "1") {

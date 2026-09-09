@@ -26,17 +26,29 @@ async function prepareRoute(page: Page, path: string) {
 
   if (path === "/playground/data-display") {
     const bars = page.locator("#chart .recharts-bar-rectangle")
+    let previousHeights = ""
+    let stableBarSamples = 0
     await expect
-      .poll(() =>
-        bars.evaluateAll(
-          (elements) =>
-            elements.length === 8 &&
-            elements.every(
-              (element) => element.getBoundingClientRect().height > 1
-            )
-        )
+      .poll(
+        async () => {
+          const heights = await bars.evaluateAll((elements) =>
+            elements.map((element) => element.getBoundingClientRect().height)
+          )
+          const sample = heights.map((height) => Math.round(height)).join(",")
+          const hasRenderedBars =
+            heights.length === 8 && heights.every((height) => height > 0.5)
+
+          stableBarSamples =
+            hasRenderedBars && sample === previousHeights
+              ? stableBarSamples + 1
+              : 0
+          previousHeights = sample
+
+          return stableBarSamples
+        },
+        { intervals: [100, 150, 250, 400, 500], timeout: 10_000 }
       )
-      .toBe(true)
+      .toBeGreaterThanOrEqual(3)
   }
 
   let previousHeight = -1

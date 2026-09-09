@@ -69,6 +69,13 @@ describe("MessageScroller", () => {
       "data-slot",
       "message-scroller-viewport"
     )
+    expect(screen.getByLabelText("Conversation")).toHaveAttribute(
+      "data-scroll-boundary",
+      "message-scroller"
+    )
+    expect(screen.getByLabelText("Conversation")).toHaveClass(
+      "surface-scrollbar"
+    )
     expect(
       container.querySelectorAll('[data-slot="message-scroller-item"]')
     ).toHaveLength(3)

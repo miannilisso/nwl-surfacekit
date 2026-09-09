@@ -18,7 +18,7 @@ const meta = {
   },
   args: { placeholder: "Describe this release…" },
   render: (args) => (
-    <div className="grid w-80 gap-2">
+    <div className="grid w-80 max-w-[calc(100vw-2rem)] gap-2">
       <Label htmlFor="release-notes-textarea">Release notes</Label>
       <Textarea id="release-notes-textarea" {...args} />
     </div>
@@ -33,7 +33,7 @@ export const Default: Story = {}
 export const Invalid: Story = {
   args: { "aria-invalid": true, "aria-describedby": "notes-error" },
   render: (args) => (
-    <div className="grid w-80 gap-2">
+    <div className="grid w-80 max-w-[calc(100vw-2rem)] gap-2">
       <Label htmlFor="invalid-notes">Release notes</Label>
       <Textarea id="invalid-notes" {...args} />
       <p id="notes-error" className="text-sm text-destructive">

@@ -55,7 +55,7 @@ export const CardLoading: Story = {
     <div
       aria-label="Loading release card"
       role="status"
-      className="w-80 space-y-4 rounded-lg border p-5"
+      className="w-80 max-w-[calc(100vw-2rem)] space-y-4 rounded-lg border p-5"
     >
       <Skeleton className="h-5 w-40" />
       <div className="space-y-2">

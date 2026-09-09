@@ -19,45 +19,47 @@ function PaginationExample({ page = 3 }: { page?: number }) {
   )
 
   return (
-    <Pagination>
-      <PaginationContent>
-        <PaginationItem>
-          <PaginationPrevious
-            href={`#page-${Math.max(1, page - 1)}`}
-            aria-disabled={page === 1}
-          />
-        </PaginationItem>
-        {page > 2 && (
+    <div className="w-[min(32rem,calc(100vw-2rem))] max-w-full">
+      <Pagination>
+        <PaginationContent>
           <PaginationItem>
-            <PaginationEllipsis />
+            <PaginationPrevious
+              href={`#page-${Math.max(1, page - 1)}`}
+              aria-disabled={page === 1}
+            />
           </PaginationItem>
-        )}
-        {visiblePages.map((value) => {
-          return (
-            <PaginationItem key={value}>
-              <PaginationLink
-                href={`#page-${value}`}
-                isActive={value === page}
-                aria-label={`Page ${value}`}
-              >
-                {value}
-              </PaginationLink>
+          {page > 2 && (
+            <PaginationItem>
+              <PaginationEllipsis />
             </PaginationItem>
-          )
-        })}
-        {page < 11 && (
+          )}
+          {visiblePages.map((value) => {
+            return (
+              <PaginationItem key={value}>
+                <PaginationLink
+                  href={`#page-${value}`}
+                  isActive={value === page}
+                  aria-label={`Page ${value}`}
+                >
+                  {value}
+                </PaginationLink>
+              </PaginationItem>
+            )
+          })}
+          {page < 11 && (
+            <PaginationItem>
+              <PaginationEllipsis />
+            </PaginationItem>
+          )}
           <PaginationItem>
-            <PaginationEllipsis />
+            <PaginationNext
+              href={`#page-${Math.min(12, page + 1)}`}
+              aria-disabled={page === 12}
+            />
           </PaginationItem>
-        )}
-        <PaginationItem>
-          <PaginationNext
-            href={`#page-${Math.min(12, page + 1)}`}
-            aria-disabled={page === 12}
-          />
-        </PaginationItem>
-      </PaginationContent>
-    </Pagination>
+        </PaginationContent>
+      </Pagination>
+    </div>
   )
 }
 

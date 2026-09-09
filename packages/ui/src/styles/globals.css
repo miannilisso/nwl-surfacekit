@@ -49,6 +49,12 @@
   --sidebar-accent-foreground: oklch(0.218 0.008 223.9);
   --sidebar-border: oklch(0.925 0.005 214.3);
   --sidebar-ring: oklch(0.723 0.014 214.4);
+  --touch-target-size: 2.75rem;
+  --scrollbar-size: 0.625rem;
+  --scrollbar-track: oklch(0.963 0.002 197.1);
+  --scrollbar-thumb: oklch(0.65 0.014 214.4);
+  --scrollbar-thumb-hover: oklch(0.5 0.018 214.4);
+  --scrollbar-thumb-active: oklch(0.38 0.02 214.4);
 }
 
 .dark {
@@ -83,6 +89,10 @@
   --sidebar-accent-foreground: oklch(0.987 0.002 197.1);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.56 0.021 213.5);
+  --scrollbar-track: oklch(0.218 0.008 223.9);
+  --scrollbar-thumb: oklch(0.46 0.014 214.4);
+  --scrollbar-thumb-hover: oklch(0.61 0.018 214.4);
+  --scrollbar-thumb-active: oklch(0.72 0.014 214.4);
 }
 
 @layer base {
@@ -92,9 +102,94 @@
   body {
     @apply bg-background text-foreground;
   }
+  :where(html, .surface-scrollbar, [data-scrollbar="themed"]) {
+    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+    scrollbar-width: thin;
+  }
+  :where(
+    html,
+    .surface-scrollbar,
+    [data-scrollbar="themed"]
+  )::-webkit-scrollbar {
+    width: var(--scrollbar-size);
+    height: var(--scrollbar-size);
+  }
+  :where(
+    html,
+    .surface-scrollbar,
+    [data-scrollbar="themed"]
+  )::-webkit-scrollbar-track {
+    border-radius: 999px;
+    background: var(--scrollbar-track);
+  }
+  :where(
+    html,
+    .surface-scrollbar,
+    [data-scrollbar="themed"]
+  )::-webkit-scrollbar-thumb {
+    border: 2px solid var(--scrollbar-track);
+    border-radius: 999px;
+    background: var(--scrollbar-thumb);
+  }
+  :where(
+      html,
+      .surface-scrollbar,
+      [data-scrollbar="themed"]
+    )::-webkit-scrollbar-thumb:hover {
+    background: var(--scrollbar-thumb-hover);
+  }
+  :where(
+      html,
+      .surface-scrollbar,
+      [data-scrollbar="themed"]
+    )::-webkit-scrollbar-thumb:active {
+    background: var(--scrollbar-thumb-active);
+  }
   button:not(:disabled),
   [role="button"]:not(:disabled) {
     cursor: pointer;
+  }
+}
+
+@media (max-width: 47.999rem), (pointer: coarse) {
+  :where(
+    button:not(:disabled),
+    [role="button"]:not([aria-disabled="true"]),
+    [role="tab"]:not([aria-disabled="true"]),
+    [role="menuitem"]:not([aria-disabled="true"]),
+    [role="menuitemcheckbox"]:not([aria-disabled="true"]),
+    [role="menuitemradio"]:not([aria-disabled="true"]),
+    [role="option"]:not([aria-disabled="true"]),
+    [role="checkbox"]:not([aria-disabled="true"]),
+    [role="radio"]:not([aria-disabled="true"]),
+    [role="switch"]:not([aria-disabled="true"]),
+    a[data-slot="badge"],
+    input:not([type="hidden"]):not(:disabled),
+    select:not(:disabled),
+    textarea:not(:disabled)
+  ) {
+    min-width: var(--touch-target-size);
+    min-height: var(--touch-target-size);
+  }
+}
+
+@media (forced-colors: active) {
+  :where(html, .surface-scrollbar, [data-scrollbar="themed"]) {
+    scrollbar-color: auto;
+    forced-color-adjust: auto;
+  }
+
+  :where(
+    html,
+    .surface-scrollbar,
+    [data-scrollbar="themed"]
+  )::-webkit-scrollbar-thumb,
+  :where(
+    html,
+    .surface-scrollbar,
+    [data-scrollbar="themed"]
+  )::-webkit-scrollbar-track {
+    forced-color-adjust: auto;
   }
 }
 

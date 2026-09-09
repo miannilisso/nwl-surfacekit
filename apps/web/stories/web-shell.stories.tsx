@@ -20,6 +20,7 @@ const header = (
       { label: "Patterns", href: "#patterns" },
       { label: "Documentation", href: "#docs" },
     ]}
+    mobileNavigation={{ title: "SurfaceKit navigation" }}
   />
 )
 const footer = (

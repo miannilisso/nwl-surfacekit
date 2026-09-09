@@ -34,6 +34,7 @@ export default defineConfig({
         test: {
           ...storybookProjectConfig.test,
           name: "storybook",
+          sequence: { groupOrder: 0 },
           browser: {
             ...storybookProjectConfig.test.browser,
             instances: [
@@ -54,6 +55,7 @@ export default defineConfig({
         test: {
           ...storybookProjectConfig.test,
           name: "storybook-dark-introduction",
+          sequence: { groupOrder: 1 },
           browser: {
             ...storybookProjectConfig.test.browser,
             instances: [

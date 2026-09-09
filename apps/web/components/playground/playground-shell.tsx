@@ -39,6 +39,12 @@ export function PlaygroundShell({ children }: { children: React.ReactNode }) {
 
   return (
     <AppShell
+      mobileNavigation={{
+        routeKey: pathname,
+        title: "Playground navigation",
+        triggerLabel: "Open playground navigation",
+        closeLabel: "Close playground navigation",
+      }}
       topbar={
         <AppTopbar
           eyebrow="SurfaceKit"
@@ -47,7 +53,11 @@ export function PlaygroundShell({ children }: { children: React.ReactNode }) {
             <Link
               href="/playground"
               aria-label="Browse catalog"
-              className={buttonVariants({ variant: "outline", size: "sm" })}
+              className={buttonVariants({
+                variant: "outline",
+                size: "sm",
+                className: "min-h-11 md:min-h-0",
+              })}
             >
               Catalog
             </Link>

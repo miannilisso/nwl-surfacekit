@@ -17,12 +17,17 @@ import { useTheme } from "next-themes"
 import { Button } from "../../components/button"
 import { Badge } from "../../components/badge"
 import { cn } from "../../lib/utils"
+import {
+  MobileNavigation,
+  type MobileNavigationOptions,
+} from "../mobile-navigation"
 
 interface AppShellProps extends React.ComponentProps<"div"> {
   topbar?: React.ReactNode
   sidebar?: React.ReactNode
   footer?: React.ReactNode
   mainProps?: React.ComponentProps<"main">
+  mobileNavigation?: MobileNavigationOptions
 }
 
 function AppShell({
@@ -30,33 +35,69 @@ function AppShell({
   sidebar,
   footer,
   mainProps,
+  mobileNavigation,
   className,
   children,
   ...props
 }: AppShellProps) {
   const { className: mainClassName, ...mainRest } = mainProps ?? {}
 
-  return (
+  const shell = (
     <div
       data-slot="app-shell"
       className={cn(
-        "relative min-h-screen bg-background text-foreground",
+        "relative min-h-dvh bg-background text-foreground",
         className
       )}
       {...props}
     >
       {topbar ? (
-        <div className="fixed top-0 right-0 left-0 z-50 border-b border-border bg-card/80 backdrop-blur">
-          {topbar}
+        <div className="fixed top-0 right-0 left-0 z-50 border-b border-border bg-card/80 pt-[env(safe-area-inset-top)] backdrop-blur">
+          {mobileNavigation && sidebar ? (
+            <div className="absolute top-1/2 z-10 -translate-y-1/2 ps-[max(0.5rem,env(safe-area-inset-left))] md:hidden">
+              <MobileNavigation
+                navigation={sidebar}
+                options={mobileNavigation}
+                defaultTitle="Workspace navigation"
+                defaultTriggerLabel="Open workspace navigation"
+              />
+            </div>
+          ) : null}
+          <div
+            className={cn(
+              mobileNavigation &&
+                sidebar &&
+                "**:data-[slot=app-topbar]:ps-16 md:**:data-[slot=app-topbar]:ps-6"
+            )}
+          >
+            {topbar}
+          </div>
         </div>
       ) : null}
-      <div className={cn("flex min-h-[inherit]", topbar && "pt-16")}>
+      {!topbar && mobileNavigation && sidebar ? (
+        <div className="fixed top-[max(0.5rem,env(safe-area-inset-top))] left-[max(0.5rem,env(safe-area-inset-left))] z-50 md:hidden">
+          <MobileNavigation
+            navigation={sidebar}
+            options={mobileNavigation}
+            defaultTitle="Workspace navigation"
+            defaultTriggerLabel="Open workspace navigation"
+          />
+        </div>
+      ) : null}
+      <div
+        className={cn(
+          "flex min-h-[inherit]",
+          topbar && "pt-[calc(4rem+env(safe-area-inset-top))]"
+        )}
+      >
         {sidebar ? (
           <aside
-            className="fixed top-0 left-0 hidden h-screen w-72 shrink-0 overflow-y-auto border-r border-border bg-sidebar p-4 text-sidebar-foreground md:block"
+            className="fixed top-0 left-0 hidden h-dvh w-72 shrink-0 overflow-y-auto border-r border-border bg-sidebar p-4 text-sidebar-foreground md:block"
             style={{
-              top: topbar ? "4rem" : "0",
-              height: topbar ? "calc(100vh - 4rem)" : "100vh",
+              top: topbar ? "calc(4rem + env(safe-area-inset-top))" : "0",
+              height: topbar
+                ? "calc(100dvh - 4rem - env(safe-area-inset-top))"
+                : "100dvh",
             }}
           >
             {sidebar}
@@ -72,7 +113,7 @@ function AppShell({
             {children}
           </main>
           {footer ? (
-            <footer className="border-t border-border px-4 py-5 sm:px-6 lg:px-8">
+            <footer className="border-t border-border ps-[max(1rem,env(safe-area-inset-left))] pe-[max(1rem,env(safe-area-inset-right))] pt-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:px-6 lg:px-8">
               {footer}
             </footer>
           ) : null}
@@ -80,6 +121,8 @@ function AppShell({
       </div>
     </div>
   )
+
+  return shell
 }
 
 interface AppTopbarProps extends React.ComponentProps<"header"> {
@@ -116,7 +159,7 @@ function AppTopbar({
     <header
       data-slot="app-topbar"
       className={cn(
-        "flex min-h-16 items-center justify-between gap-4 px-4 py-3 sm:px-6",
+        "flex min-h-16 items-center justify-between gap-4 ps-[max(1rem,env(safe-area-inset-left))] pe-[max(1rem,env(safe-area-inset-right))] pt-3 pb-3 sm:px-6",
         className
       )}
       {...props}
@@ -209,7 +252,7 @@ function AppSidebar({
               href: item.href ?? "#",
               "aria-current": item.active ? "page" : undefined,
               className: cn(
-                "flex items-center justify-between gap-2 rounded-md px-3 py-2 text-sm text-sidebar-foreground/80 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                "flex min-h-11 items-center justify-between gap-2 rounded-md px-3 py-2 text-sm text-sidebar-foreground/80 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground md:min-h-0",
                 item.active &&
                   "bg-sidebar-accent font-medium text-sidebar-accent-foreground"
               ),
@@ -251,4 +294,11 @@ function AppSidebar({
   )
 }
 
-export { AppShell, AppSidebar, AppTopbar, ThemeSwitcher, type AppSidebarItem }
+export {
+  AppShell,
+  AppSidebar,
+  AppTopbar,
+  ThemeSwitcher,
+  type AppSidebarItem,
+  type MobileNavigationOptions,
+}
