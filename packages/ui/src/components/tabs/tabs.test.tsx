@@ -48,6 +48,10 @@ describe("Tabs", () => {
       "data-variant",
       "line"
     )
+    expect(container.querySelector('[data-slot="tabs-list"]')).toHaveAttribute(
+      "data-scrollbar",
+      "themed"
+    )
     expect(screen.getByRole("tab", { name: "Audit" })).toHaveAttribute(
       "aria-disabled",
       "true"

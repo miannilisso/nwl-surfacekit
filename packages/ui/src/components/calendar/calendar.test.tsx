@@ -24,6 +24,9 @@ describe("Calendar", () => {
       screen.getByRole("grid", { name: "August 2026" })
     ).toBeInTheDocument()
     expect(
+      document.querySelector('[data-scroll-boundary="calendar"]')
+    ).toHaveAttribute("data-scrollbar", "themed")
+    expect(
       screen.getByRole("button", { name: /Monday, August 3rd/ })
     ).toBeDisabled()
     await user.click(

@@ -3,8 +3,16 @@ import path from "node:path"
 
 import { expect, test, type Page } from "@playwright/test"
 
+import {
+  auditStoryDocument,
+  installStorybookLifecycleObserver,
+  loadStorybookStory,
+  waitForStoryLayoutStability,
+} from "./storybook-mobile-support"
+
 const storybookOrigin = "http://127.0.0.1:6006"
 const mobileWidths = [320, 375] as const
+const coarseTabletWidths = [768] as const
 
 interface StorybookIndex {
   entries: Record<
@@ -27,10 +35,12 @@ const storyChunks = Array.from(
 
 async function prepareStory(page: Page, storyId: string, width: number) {
   await page.setViewportSize({ width, height: 844 })
-  await page.goto(
-    `${storybookOrigin}/iframe.html?id=${encodeURIComponent(storyId)}&viewMode=story`,
-    { waitUntil: "domcontentloaded" }
-  )
+  const storyUrl = `${storybookOrigin}/iframe.html?id=${encodeURIComponent(storyId)}&viewMode=story`
+  const lifecycle = await loadStorybookStory(page, storyUrl, storyId)
+  expect(
+    lifecycle.status,
+    `Storybook did not finish ${storyId}: ${JSON.stringify(lifecycle.failedReports ?? [])}`
+  ).toBe("success")
   await page.locator("body.sb-show-main").waitFor({ state: "visible" })
   await page
     .locator("#storybook-root > *")
@@ -42,9 +52,66 @@ async function prepareStory(page: Page, storyId: string, width: number) {
       requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
     )
   })
-  // Several primitives enter with a 150–400ms scale transition. Measuring
-  // their boxes mid-transition reports a target below its settled 44px size.
-  await page.waitForTimeout(450)
+  await waitForStoryLayoutStability(page)
+}
+
+function registerStoryAudit(widths: readonly number[], coarsePointer = false) {
+  for (const width of widths) {
+    for (const [chunkIndex, chunk] of storyChunks.entries()) {
+      test(`stories ${chunkIndex + 1}/${storyChunks.length} fit and expose ${width}px hit targets`, async ({
+        page,
+      }) => {
+        expect(stories).toHaveLength(283)
+        await page.addInitScript(installStorybookLifecycleObserver)
+        if (coarsePointer) {
+          expect(
+            await page.evaluate(() => matchMedia("(pointer: coarse)").matches)
+          ).toBe(true)
+        }
+        const overflowFailures: string[] = []
+        const targetFailures: string[] = []
+        const invalidExemptionFailures: string[] = []
+        const usedExemptions: string[] = []
+
+        for (const story of chunk) {
+          await prepareStory(page, story.id, width)
+          const result = await page.evaluate(auditStoryDocument)
+
+          if (result.overflow > 0) {
+            overflowFailures.push(`${story.id} (+${result.overflow}px)`)
+          }
+          if (result.undersized.length > 0) {
+            targetFailures.push(`${story.id}: ${result.undersized.join(" | ")}`)
+          }
+          if (result.invalidExemptions.length > 0) {
+            invalidExemptionFailures.push(
+              `${story.id}: ${result.invalidExemptions.join(" | ")}`
+            )
+          }
+          usedExemptions.push(
+            ...result.exemptions.map((exemption) => `${story.id}: ${exemption}`)
+          )
+        }
+
+        expect(
+          overflowFailures,
+          `Document overflow at ${width}px:\n${overflowFailures.join("\n")}`
+        ).toEqual([])
+        expect(
+          targetFailures,
+          `Sub-44px hit targets at ${width}px:\n${targetFailures.join("\n")}`
+        ).toEqual([])
+        expect(
+          invalidExemptionFailures,
+          `Invalid mobile target exemptions at ${width}px:\n${invalidExemptionFailures.join("\n")}`
+        ).toEqual([])
+        expect(
+          usedExemptions,
+          `Every mobile target exemption must be explicitly approved at ${width}px`
+        ).toEqual([])
+      })
+    }
+  }
 }
 
 test.describe("mobile Storybook contract", () => {
@@ -56,88 +123,18 @@ test.describe("mobile Storybook contract", () => {
     )
   })
 
-  for (const width of mobileWidths) {
-    for (const [chunkIndex, chunk] of storyChunks.entries()) {
-      test(`stories ${chunkIndex + 1}/${storyChunks.length} fit and expose ${width}px hit targets`, async ({
-        page,
-      }) => {
-        expect(stories).toHaveLength(283)
-        const overflowFailures: string[] = []
-        const targetFailures: string[] = []
+  registerStoryAudit(mobileWidths)
+})
 
-        for (const story of chunk) {
-          await prepareStory(page, story.id, width)
-          const result = await page.evaluate(() => {
-            const root = document.documentElement
-            const overflow = Math.ceil(root.scrollWidth - root.clientWidth)
-            const selector = [
-              "a[href]",
-              "button",
-              "input:not([type='hidden'])",
-              "select",
-              "textarea",
-              "[role='button']",
-              "[role='tab']",
-              "[role='menuitem']",
-              "[role='menuitemcheckbox']",
-              "[role='menuitemradio']",
-              "[role='option']",
-              "[role='checkbox']",
-              "[role='radio']",
-              "[role='switch']",
-            ].join(",")
-            const targets = [
-              ...document.querySelectorAll<HTMLElement>(selector),
-            ]
-            const seen = new Set<HTMLElement>()
-            const undersized = targets.flatMap((element) => {
-              if (seen.has(element)) return []
-              seen.add(element)
-              const style = getComputedStyle(element)
-              const rect = element.getBoundingClientRect()
-              const disabled =
-                element.matches(":disabled, [aria-disabled='true']") ||
-                element.closest("[inert], [aria-hidden='true']") !== null
-              const hidden =
-                style.display === "none" ||
-                style.visibility === "hidden" ||
-                Number(style.opacity) === 0 ||
-                rect.width === 0 ||
-                rect.height === 0
-              const inlineProseLink =
-                element.matches("a[href]") &&
-                style.display === "inline" &&
-                element.closest(
-                  "nav, [role='navigation'], [role='menu'], form"
-                ) === null
-              if (disabled || hidden || inlineProseLink) return []
-              if (rect.width >= 43.5 && rect.height >= 43.5) return []
+test.describe("coarse-pointer tablet Storybook contract", () => {
+  test.describe.configure({ mode: "parallel", timeout: 5 * 60_000 })
+  test.use({ hasTouch: true })
+  test.beforeEach(({ browserName }) => {
+    test.skip(
+      browserName !== "chromium",
+      "The exhaustive audit is Chromium-only"
+    )
+  })
 
-              return [
-                `${element.tagName.toLowerCase()}${element.getAttribute("data-slot") ? `[data-slot=${element.getAttribute("data-slot")}]` : ""}${element.getAttribute("role") ? `[role=${element.getAttribute("role")}]` : ""} ${Math.round(rect.width)}x${Math.round(rect.height)} ${element.getAttribute("aria-label") ?? element.textContent?.trim().slice(0, 40) ?? ""}`,
-              ]
-            })
-
-            return { overflow, undersized }
-          })
-
-          if (result.overflow > 0) {
-            overflowFailures.push(`${story.id} (+${result.overflow}px)`)
-          }
-          if (result.undersized.length > 0) {
-            targetFailures.push(`${story.id}: ${result.undersized.join(" | ")}`)
-          }
-        }
-
-        expect(
-          overflowFailures,
-          `Document overflow at ${width}px:\n${overflowFailures.join("\n")}`
-        ).toEqual([])
-        expect(
-          targetFailures,
-          `Sub-44px hit targets at ${width}px:\n${targetFailures.join("\n")}`
-        ).toEqual([])
-      })
-    }
-  }
+  registerStoryAudit(coarseTabletWidths, true)
 })

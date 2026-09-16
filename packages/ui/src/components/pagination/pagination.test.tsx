@@ -33,6 +33,9 @@ describe("Pagination", () => {
     expect(
       screen.getByRole("navigation", { name: "pagination" })
     ).toBeInTheDocument()
+    expect(
+      screen.getByRole("navigation", { name: "pagination" })
+    ).toHaveAttribute("data-scrollbar", "themed")
     expect(screen.getByRole("link", { name: "2" })).toHaveAttribute(
       "aria-current",
       "page"

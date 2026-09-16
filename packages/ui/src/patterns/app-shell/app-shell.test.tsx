@@ -150,6 +150,29 @@ describe("AppShell", () => {
     expect(onOpenChange).toHaveBeenCalledWith(true)
   })
 
+  it("reserves a flow-positioned mobile header when no topbar is supplied", () => {
+    const { container } = render(
+      <AppShell
+        sidebar={
+          <AppSidebar items={[{ label: "Overview", href: "/overview" }]} />
+        }
+        mobileNavigation={{}}
+      >
+        Workspace
+      </AppShell>
+    )
+
+    const header = container.querySelector(
+      '[data-slot="app-shell-mobile-header"]'
+    )
+    const main = screen.getByRole("main")
+    expect(header).toBeInTheDocument()
+    expect(header).not.toHaveClass("fixed")
+    expect(
+      header!.compareDocumentPosition(main) & Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy()
+  })
+
   it("traps mobile navigation focus and restores it after Escape", async () => {
     const user = userEvent.setup()
 
@@ -185,7 +208,7 @@ describe("AppShell", () => {
     await waitFor(() =>
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
     )
-    expect(trigger).toHaveFocus()
+    await waitFor(() => expect(trigger).toHaveFocus())
     expect(document.body.style.overflow).toBe("")
   })
 
@@ -212,6 +235,40 @@ describe("AppShell", () => {
     await waitFor(() =>
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
     )
+  })
+
+  it("dismisses mobile navigation from the backdrop and restores focus and scrolling", async () => {
+    const user = userEvent.setup()
+
+    const { container } = render(
+      <AppShell
+        sidebar={
+          <AppSidebar items={[{ label: "Overview", href: "/overview" }]} />
+        }
+        mobileNavigation={{}}
+      >
+        Workspace
+      </AppShell>
+    )
+
+    const trigger = screen.getByRole("button", {
+      name: "Open workspace navigation",
+    })
+    await user.click(trigger)
+    const backdrop = await waitFor(() => {
+      const element = container.ownerDocument.querySelector(
+        '[data-slot="sheet-overlay"]'
+      )
+      expect(element).toBeInTheDocument()
+      return element as HTMLElement
+    })
+    await user.click(backdrop)
+
+    await waitFor(() =>
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
+    )
+    await waitFor(() => expect(trigger).toHaveFocus())
+    expect(document.body.style.overflow).toBe("")
   })
 
   it("closes uncontrolled mobile navigation when the route identity changes", async () => {

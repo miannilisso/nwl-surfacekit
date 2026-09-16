@@ -143,6 +143,7 @@ function Calendar({
             <div
               data-slot="calendar"
               data-scroll-boundary="calendar"
+              data-scrollbar="themed"
               ref={rootRef}
               className={cn(className)}
               {...props}

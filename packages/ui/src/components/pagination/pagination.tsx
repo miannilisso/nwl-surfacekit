@@ -15,6 +15,7 @@ function Pagination({ className, ...props }: React.ComponentProps<"nav">) {
       aria-label="pagination"
       data-slot="pagination"
       data-scroll-boundary="pagination"
+      data-scrollbar="themed"
       className={cn(
         "mx-auto flex w-full max-w-full justify-start overflow-x-auto overscroll-x-contain sm:justify-center",
         className
@@ -60,7 +61,7 @@ function PaginationLink({
       data-active={isActive}
       className={cn(
         buttonVariants({ variant: isActive ? "outline" : "ghost", size }),
-        "min-h-11 min-w-11 sm:min-h-0 sm:min-w-0",
+        "surface-touch-compact-sm min-h-11 min-w-11",
         className
       )}
       {...props}

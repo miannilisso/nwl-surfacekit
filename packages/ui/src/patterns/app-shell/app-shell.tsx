@@ -41,6 +41,8 @@ function AppShell({
   ...props
 }: AppShellProps) {
   const { className: mainClassName, ...mainRest } = mainProps ?? {}
+  const hasMobileNavigation = Boolean(mobileNavigation && sidebar)
+  const hasFlowMobileHeader = Boolean(!topbar && hasMobileNavigation)
 
   const shell = (
     <div
@@ -52,12 +54,12 @@ function AppShell({
       {...props}
     >
       {topbar ? (
-        <div className="fixed top-0 right-0 left-0 z-50 border-b border-border bg-card/80 pt-[env(safe-area-inset-top)] backdrop-blur">
-          {mobileNavigation && sidebar ? (
-            <div className="absolute top-1/2 z-10 -translate-y-1/2 ps-[max(0.5rem,env(safe-area-inset-left))] md:hidden">
+        <div className="fixed top-0 right-0 left-0 z-50 border-b border-border bg-card/80 pt-(--safe-area-top) backdrop-blur">
+          {hasMobileNavigation ? (
+            <div className="absolute inset-s-0 top-[calc(var(--safe-area-top)+2rem)] z-10 -translate-y-1/2 ps-[max(0.5rem,var(--safe-area-left))] md:hidden">
               <MobileNavigation
-                navigation={sidebar}
-                options={mobileNavigation}
+                navigation={sidebar!}
+                options={mobileNavigation!}
                 defaultTitle="Workspace navigation"
                 defaultTriggerLabel="Open workspace navigation"
               />
@@ -65,20 +67,22 @@ function AppShell({
           ) : null}
           <div
             className={cn(
-              mobileNavigation &&
-                sidebar &&
-                "**:data-[slot=app-topbar]:ps-16 md:**:data-[slot=app-topbar]:ps-6"
+              hasMobileNavigation &&
+                "**:data-[slot=app-topbar]:ps-[max(4rem,var(--safe-area-left))] md:**:data-[slot=app-topbar]:ps-[max(1.5rem,var(--safe-area-left))]"
             )}
           >
             {topbar}
           </div>
         </div>
       ) : null}
-      {!topbar && mobileNavigation && sidebar ? (
-        <div className="fixed top-[max(0.5rem,env(safe-area-inset-top))] left-[max(0.5rem,env(safe-area-inset-left))] z-50 md:hidden">
+      {hasFlowMobileHeader ? (
+        <div
+          data-slot="app-shell-mobile-header"
+          className="relative z-40 flex min-h-[calc(3.5rem+var(--safe-area-top))] items-end border-b border-border bg-card/80 ps-[max(0.5rem,var(--safe-area-left))] pe-[max(0.5rem,var(--safe-area-right))] pt-(--safe-area-top) pb-1.5 backdrop-blur md:hidden"
+        >
           <MobileNavigation
-            navigation={sidebar}
-            options={mobileNavigation}
+            navigation={sidebar!}
+            options={mobileNavigation!}
             defaultTitle="Workspace navigation"
             defaultTriggerLabel="Open workspace navigation"
           />
@@ -86,17 +90,20 @@ function AppShell({
       ) : null}
       <div
         className={cn(
-          "flex min-h-[inherit]",
-          topbar && "pt-[calc(4rem+env(safe-area-inset-top))]"
+          "flex",
+          hasFlowMobileHeader
+            ? "min-h-[calc(100dvh-3.5rem-var(--safe-area-top))] md:min-h-[inherit]"
+            : "min-h-[inherit]",
+          topbar && "pt-[calc(4rem+var(--safe-area-top))]"
         )}
       >
         {sidebar ? (
           <aside
             className="fixed top-0 left-0 hidden h-dvh w-72 shrink-0 overflow-y-auto border-r border-border bg-sidebar p-4 text-sidebar-foreground md:block"
             style={{
-              top: topbar ? "calc(4rem + env(safe-area-inset-top))" : "0",
+              top: topbar ? "calc(4rem + var(--safe-area-top))" : "0",
               height: topbar
-                ? "calc(100dvh - 4rem - env(safe-area-inset-top))"
+                ? "calc(100dvh - 4rem - var(--safe-area-top))"
                 : "100dvh",
             }}
           >
@@ -113,7 +120,7 @@ function AppShell({
             {children}
           </main>
           {footer ? (
-            <footer className="border-t border-border ps-[max(1rem,env(safe-area-inset-left))] pe-[max(1rem,env(safe-area-inset-right))] pt-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:px-6 lg:px-8">
+            <footer className="border-t border-border ps-[max(1rem,var(--safe-area-left))] pe-[max(1rem,var(--safe-area-right))] pt-5 pb-[max(1.25rem,var(--safe-area-bottom))] sm:ps-[max(1.5rem,var(--safe-area-left))] sm:pe-[max(1.5rem,var(--safe-area-right))] lg:ps-[max(2rem,var(--safe-area-left))] lg:pe-[max(2rem,var(--safe-area-right))]">
               {footer}
             </footer>
           ) : null}
@@ -159,7 +166,7 @@ function AppTopbar({
     <header
       data-slot="app-topbar"
       className={cn(
-        "flex min-h-16 items-center justify-between gap-4 ps-[max(1rem,env(safe-area-inset-left))] pe-[max(1rem,env(safe-area-inset-right))] pt-3 pb-3 sm:px-6",
+        "flex min-h-16 items-center justify-between gap-4 ps-[max(1rem,var(--safe-area-left))] pe-[max(1rem,var(--safe-area-right))] pt-3 pb-3 sm:ps-[max(1.5rem,var(--safe-area-left))] sm:pe-[max(1.5rem,var(--safe-area-right))]",
         className
       )}
       {...props}
@@ -252,7 +259,7 @@ function AppSidebar({
               href: item.href ?? "#",
               "aria-current": item.active ? "page" : undefined,
               className: cn(
-                "flex min-h-11 items-center justify-between gap-2 rounded-md px-3 py-2 text-sm text-sidebar-foreground/80 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground md:min-h-0",
+                "surface-touch-compact-md-y flex min-h-11 items-center justify-between gap-2 rounded-md px-3 py-2 text-sm text-sidebar-foreground/80 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                 item.active &&
                   "bg-sidebar-accent font-medium text-sidebar-accent-foreground"
               ),

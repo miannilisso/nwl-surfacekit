@@ -46,7 +46,12 @@ function ErrorSummary({
                 {items.map((error) => (
                   <li key={error.id}>
                     {error.href ? (
-                      <a href={error.href}>{error.message}</a>
+                      <a
+                        href={error.href}
+                        className="surface-touch-compact-sm inline-flex min-h-11 min-w-11 items-center"
+                      >
+                        {error.message}
+                      </a>
                     ) : (
                       error.message
                     )}

@@ -56,7 +56,7 @@ export function PlaygroundShell({ children }: { children: React.ReactNode }) {
               className={buttonVariants({
                 variant: "outline",
                 size: "sm",
-                className: "min-h-11 md:min-h-0",
+                className: "surface-touch-compact-md-y min-h-11",
               })}
             >
               Catalog

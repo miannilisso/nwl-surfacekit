@@ -10,13 +10,9 @@
 @source not "../**/*.test.{ts,tsx}";
 
 :root {
-  --font-sans:
-    ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
-  --font-heading:
-    ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
-  --font-mono:
-    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
-    "Courier New", monospace;
+  --font-sans: ui-sans-serif, system-ui, sans-serif;
+  --font-heading: ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, monospace;
   --background: oklch(1 0 0);
   --foreground: oklch(0.148 0.004 228.8);
   --card: oklch(1 0 0);
@@ -50,6 +46,10 @@
   --sidebar-border: oklch(0.925 0.005 214.3);
   --sidebar-ring: oklch(0.723 0.014 214.4);
   --touch-target-size: 2.75rem;
+  --safe-area-top: env(safe-area-inset-top, 0px);
+  --safe-area-right: env(safe-area-inset-right, 0px);
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-left: env(safe-area-inset-left, 0px);
   --scrollbar-size: 0.625rem;
   --scrollbar-track: oklch(0.963 0.002 197.1);
   --scrollbar-thumb: oklch(0.65 0.014 214.4);
@@ -173,22 +173,26 @@
   }
 }
 
+@media (min-width: 40rem) and (pointer: fine) {
+  .surface-touch-compact-sm {
+    min-width: 0;
+    min-height: 0;
+  }
+
+  .surface-touch-compact-sm-y {
+    min-height: 0;
+  }
+}
+
+@media (min-width: 48rem) and (pointer: fine) {
+  .surface-touch-compact-md-y {
+    min-height: 0;
+  }
+}
+
 @media (forced-colors: active) {
   :where(html, .surface-scrollbar, [data-scrollbar="themed"]) {
     scrollbar-color: auto;
-    forced-color-adjust: auto;
-  }
-
-  :where(
-    html,
-    .surface-scrollbar,
-    [data-scrollbar="themed"]
-  )::-webkit-scrollbar-thumb,
-  :where(
-    html,
-    .surface-scrollbar,
-    [data-scrollbar="themed"]
-  )::-webkit-scrollbar-track {
     forced-color-adjust: auto;
   }
 }

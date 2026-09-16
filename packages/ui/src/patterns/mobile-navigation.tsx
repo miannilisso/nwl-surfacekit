@@ -40,11 +40,13 @@ function MobileNavigation({
   triggerClassName,
   contentClassName,
 }: MobileNavigationProps) {
+  const triggerRef = React.useRef<HTMLButtonElement>(null)
   const isControlled = options.open !== undefined
   const [uncontrolledOpen, setUncontrolledOpen] = React.useState(
     options.defaultOpen ?? false
   )
   const open = isControlled ? options.open : uncontrolledOpen
+  const previousOpen = React.useRef(open)
   const onOpenChange = React.useCallback(
     (nextOpen: boolean) => {
       if (!isControlled) setUncontrolledOpen(nextOpen)
@@ -53,6 +55,15 @@ function MobileNavigation({
     [isControlled, options]
   )
   const previousRouteKey = React.useRef(options.routeKey)
+
+  React.useEffect(() => {
+    const shouldRestoreFocus = previousOpen.current && !open
+    previousOpen.current = open
+    if (!shouldRestoreFocus) return
+
+    const timeout = window.setTimeout(() => triggerRef.current?.focus(), 0)
+    return () => window.clearTimeout(timeout)
+  }, [open])
 
   React.useEffect(() => {
     if (Object.is(previousRouteKey.current, options.routeKey)) return
@@ -70,6 +81,7 @@ function MobileNavigation({
       <SheetTrigger
         render={
           <Button
+            ref={triggerRef}
             aria-label={options.triggerLabel ?? defaultTriggerLabel}
             className={cn("md:hidden", triggerClassName)}
             size="icon"
@@ -80,10 +92,11 @@ function MobileNavigation({
         <Menu />
       </SheetTrigger>
       <SheetContent
+        finalFocus={triggerRef}
         side="left"
         closeLabel={options.closeLabel ?? `Close ${title.toLowerCase()}`}
         className={cn(
-          "h-dvh w-[min(20rem,calc(100%-1rem))] max-w-full overflow-y-auto overscroll-contain p-4 ps-[max(1rem,env(safe-area-inset-left))] pt-[max(1rem,env(safe-area-inset-top))] pb-[max(1rem,env(safe-area-inset-bottom))]",
+          "h-dvh w-[min(20rem,calc(100%-1rem))] max-w-full overflow-y-auto overscroll-contain p-4 ps-[max(1rem,var(--safe-area-left))] pe-[max(1rem,var(--safe-area-right))] pt-[max(1rem,var(--safe-area-top))] pb-[max(1rem,var(--safe-area-bottom))]",
           contentClassName
         )}
         onClickCapture={(event) => {

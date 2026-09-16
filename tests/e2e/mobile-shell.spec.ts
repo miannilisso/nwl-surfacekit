@@ -126,6 +126,97 @@ test.describe("mobile layout and scrollbar evidence", () => {
     expect(values.thumbBackground).not.toBe("rgba(0, 0, 0, 0)")
   })
 
+  test("native horizontal scrollers opt into themed light and dark scrollbars", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 })
+    const stories = [
+      ["surfacekit-components-form-inputs-calendar--default", "calendar"],
+      [
+        "surfacekit-components-navigation-disclosure-pagination--default",
+        "pagination",
+      ],
+      ["surfacekit-components-navigation-disclosure-tabs--overflow", "tabs"],
+    ] as const
+
+    for (const [storyId, boundaryName] of stories) {
+      const colors: string[] = []
+      for (const theme of ["light", "dark"] as const) {
+        await page.goto(
+          `${storybookOrigin}/iframe.html?id=${storyId}&viewMode=story`
+        )
+        await page.locator("body.sb-show-main").waitFor({ state: "visible" })
+        const boundary = page.locator(
+          `[data-scroll-boundary="${boundaryName}"][data-scrollbar="themed"]`
+        )
+        await expect(boundary).toHaveAttribute("data-scrollbar", "themed")
+        colors.push(
+          await boundary.evaluate((element, nextTheme) => {
+            document.documentElement.classList.toggle(
+              "dark",
+              nextTheme === "dark"
+            )
+            return getComputedStyle(element).scrollbarColor
+          }, theme)
+        )
+      }
+      expect(colors[0], storyId).not.toBe("auto")
+      expect(colors[1], storyId).not.toBe("auto")
+      expect(colors[0], storyId).not.toBe(colors[1])
+    }
+  })
+
+  test("safe-area insets remain effective across mobile and tablet breakpoints", async ({
+    page,
+  }) => {
+    const applySafeAreaInsets = () =>
+      page.evaluate(() => {
+        document.documentElement.style.setProperty("--safe-area-top", "24px")
+        document.documentElement.style.setProperty("--safe-area-right", "48px")
+        document.documentElement.style.setProperty("--safe-area-bottom", "36px")
+        document.documentElement.style.setProperty("--safe-area-left", "40px")
+      })
+
+    await page.setViewportSize({ width: 768, height: 900 })
+    await ready(page, "/playground")
+    await applySafeAreaInsets()
+    const appTopbar = page.locator('[data-slot="app-topbar"]')
+    await expect(appTopbar).toHaveCSS("padding-left", "40px")
+    await expect(appTopbar).toHaveCSS("padding-right", "48px")
+    await expect(page.getByRole("contentinfo")).toHaveCSS(
+      "padding-bottom",
+      "36px"
+    )
+
+    await ready(page, "/")
+    await applySafeAreaInsets()
+    const webHeader = page.locator('[data-slot="web-shell-header"]')
+    await expect(webHeader).toHaveCSS("padding-left", "40px")
+    await expect(webHeader).toHaveCSS("padding-right", "48px")
+    await expect(page.getByRole("contentinfo")).toHaveCSS(
+      "padding-bottom",
+      "36px"
+    )
+
+    await page.setViewportSize({ width: 390, height: 844 })
+    await ready(page, "/playground")
+    await applySafeAreaInsets()
+    const trigger = page.getByRole("button", {
+      name: "Open playground navigation",
+    })
+    expect((await trigger.boundingBox())?.y).toBeGreaterThanOrEqual(24)
+    await trigger.click()
+    const sheet = page.locator('[data-slot="sheet-content"]')
+    await expect(sheet).toHaveCSS("padding-left", "40px")
+    expect(
+      (
+        await page
+          .getByRole("button", { name: "Close playground navigation" })
+          .boundingBox()
+      )?.y
+    ).toBeGreaterThanOrEqual(24)
+  })
+
   test("mobile shell visuals remain reviewable in light and dark themes", async ({
     page,
   }) => {

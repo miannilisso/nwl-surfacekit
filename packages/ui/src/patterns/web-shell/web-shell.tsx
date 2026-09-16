@@ -41,7 +41,7 @@ function WebShell({
         {children}
       </main>
       {footer ? (
-        <footer className="border-t border-border bg-background ps-[max(1.5rem,env(safe-area-inset-left))] pe-[max(1.5rem,env(safe-area-inset-right))] pt-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+        <footer className="border-t border-border bg-background ps-[max(1.5rem,var(--safe-area-left))] pe-[max(1.5rem,var(--safe-area-right))] pt-5 pb-[max(1.25rem,var(--safe-area-bottom))]">
           {footer}
         </footer>
       ) : null}
@@ -70,7 +70,7 @@ function WebShellHeader({
         <a
           key={`${index}-${link.href}`}
           href={link.href}
-          className="transition-colors hover:text-foreground"
+          className="surface-touch-compact-sm-y inline-flex min-h-11 items-center transition-colors hover:text-foreground"
         >
           {link.label}
         </a>
@@ -82,14 +82,14 @@ function WebShellHeader({
     <header
       data-slot="web-shell-header"
       className={cn(
-        "mx-auto flex min-h-16 w-full max-w-6xl items-center justify-between gap-4 ps-[max(1rem,env(safe-area-inset-left))] pe-[max(1rem,env(safe-area-inset-right))] pt-[max(0.75rem,env(safe-area-inset-top))] pb-3 sm:gap-6 sm:px-6",
+        "mx-auto flex min-h-16 w-full max-w-6xl items-center justify-between gap-4 ps-[max(1rem,var(--safe-area-left))] pe-[max(1rem,var(--safe-area-right))] pt-[max(0.75rem,var(--safe-area-top))] pb-3 sm:gap-6 sm:ps-[max(1.5rem,var(--safe-area-left))] sm:pe-[max(1.5rem,var(--safe-area-right))]",
         className
       )}
       {...props}
     >
       <a
         href="/"
-        className="inline-flex min-h-11 items-center text-base font-semibold sm:min-h-0"
+        className="surface-touch-compact-sm-y inline-flex min-h-11 items-center text-base font-semibold"
       >
         {title}
       </a>
@@ -163,7 +163,7 @@ function WebShellFooter({ links, className, ...props }: WebShellFooterProps) {
           <a
             key={`${index}-${link.href}`}
             href={link.href}
-            className="inline-flex min-h-11 min-w-11 items-center hover:text-foreground sm:min-h-0 sm:min-w-0"
+            className="surface-touch-compact-sm inline-flex min-h-11 min-w-11 items-center hover:text-foreground"
           >
             {link.label}
           </a>

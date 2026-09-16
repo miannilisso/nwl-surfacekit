@@ -58,5 +58,11 @@ describe("Table", () => {
     expect(
       container.querySelector('[data-slot="table-container"]')
     ).toHaveClass("overflow-x-auto")
+    expect(
+      container.querySelector('[data-slot="table-container"]')
+    ).toHaveAttribute("tabindex", "0")
+    expect(
+      container.querySelector('[data-slot="table-container"]')
+    ).toHaveAttribute("data-scrollbar", "themed")
   })
 })

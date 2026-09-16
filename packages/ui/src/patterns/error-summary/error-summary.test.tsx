@@ -20,9 +20,15 @@ describe("ErrorSummary", () => {
     )
     const alert = screen.getByRole("alert")
     expect(alert).toHaveTextContent("Email is required")
-    expect(
-      screen.getByRole("link", { name: "Password must be 12+ characters" })
-    ).toHaveAttribute("href", "#password")
+    const linkedError = screen.getByRole("link", {
+      name: "Password must be 12+ characters",
+    })
+    expect(linkedError).toHaveAttribute("href", "#password")
+    expect(linkedError).toHaveClass(
+      "surface-touch-compact-sm",
+      "min-h-11",
+      "min-w-11"
+    )
     expect(alert.querySelectorAll("li")).toHaveLength(2)
   })
 

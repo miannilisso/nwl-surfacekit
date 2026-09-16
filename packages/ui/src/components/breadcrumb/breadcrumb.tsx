@@ -49,7 +49,7 @@ function BreadcrumbLink({
     props: mergeProps<"a">(
       {
         className: cn(
-          "inline-flex min-h-11 min-w-11 items-center transition-colors hover:text-foreground sm:min-h-0 sm:min-w-0",
+          "surface-touch-compact-sm inline-flex min-h-11 min-w-11 items-center transition-colors hover:text-foreground",
           className
         ),
       },
