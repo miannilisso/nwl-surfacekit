@@ -5,17 +5,19 @@ import { Button } from "@nwl/surfacekit/components/button"
 import { StepUpDialog } from "@nwl/surfacekit/patterns/step-up-dialog"
 
 function StepUpHarness({
+  initialOpen = false,
   state = "idle",
   errorMessage,
   onCancel = fn(),
   onVerify = fn(),
 }: {
+  initialOpen?: boolean
   state?: "idle" | "pending" | "error"
   errorMessage?: string
   onCancel?: () => void
   onVerify?: () => void
 }) {
-  const [open, setOpen] = React.useState(false)
+  const [open, setOpen] = React.useState(initialOpen)
   const trigger = React.useRef<HTMLButtonElement>(null)
   const close = (callback: () => void) => {
     callback()
@@ -63,21 +65,38 @@ export const Verification: Story = {
   args: { onCancel: fn(), onVerify: fn() },
   play: async ({ args, canvasElement }) => {
     const canvas = within(canvasElement)
+    const body = within(canvasElement.ownerDocument.body)
     const trigger = canvas.getByRole("button", { name: "Edit security policy" })
     await userEvent.click(trigger)
-    await userEvent.click(canvas.getByRole("button", { name: "Cancel" }))
+    await userEvent.click(body.getByRole("button", { name: "Cancel" }))
     await expect(args.onCancel).toHaveBeenCalledOnce()
     await waitFor(() => expect(trigger).toHaveFocus())
     await userEvent.click(trigger)
-    await userEvent.click(canvas.getByRole("button", { name: "Verify now" }))
+    await userEvent.click(body.getByRole("button", { name: "Verify now" }))
     await expect(args.onVerify).toHaveBeenCalledOnce()
     await waitFor(() => expect(trigger).toHaveFocus())
   },
 }
 export const Error: Story = {
   args: {
+    initialOpen: true,
     state: "error",
     errorMessage: "Verification code expired. Request a new code.",
   },
+  play: async ({ canvasElement }) => {
+    const body = within(canvasElement.ownerDocument.body)
+    await expect(body.getByRole("alert")).toHaveTextContent(
+      "Verification code expired. Request a new code."
+    )
+  },
 }
-export const Processing: Story = { args: { state: "pending" } }
+export const Processing: Story = {
+  args: { initialOpen: true, state: "pending" },
+  play: async ({ canvasElement }) => {
+    const body = within(canvasElement.ownerDocument.body)
+    await expect(
+      body.getByRole("button", { name: "Verifying…" })
+    ).toBeDisabled()
+    await expect(body.getByRole("button", { name: "Cancel" })).toBeDisabled()
+  },
+}

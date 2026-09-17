@@ -3,6 +3,8 @@ import path from "node:path"
 
 import { expect, test, type Page } from "@playwright/test"
 
+import { surfaceCatalog } from "../../apps/web/lib/surfacekit/catalog"
+
 import {
   auditStoryDocument,
   installStorybookLifecycleObserver,
@@ -32,6 +34,10 @@ const storyChunks = Array.from(
   { length: Math.ceil(stories.length / chunkSize) },
   (_, index) => stories.slice(index * chunkSize, (index + 1) * chunkSize)
 )
+const catalogStoryTitles = new Set(
+  surfaceCatalog.map(({ storyTitle }) => storyTitle)
+)
+const indexedStoryTitles = new Set(stories.map(({ title }) => title))
 
 async function prepareStory(page: Page, storyId: string, width: number) {
   await page.setViewportSize({ width, height: 844 })
@@ -61,7 +67,11 @@ function registerStoryAudit(widths: readonly number[], coarsePointer = false) {
       test(`stories ${chunkIndex + 1}/${storyChunks.length} fit and expose ${width}px hit targets`, async ({
         page,
       }) => {
-        expect(stories).toHaveLength(283)
+        expect(
+          [...catalogStoryTitles].filter(
+            (title) => !indexedStoryTitles.has(title)
+          )
+        ).toEqual([])
         await page.addInitScript(installStorybookLifecycleObserver)
         if (coarsePointer) {
           expect(

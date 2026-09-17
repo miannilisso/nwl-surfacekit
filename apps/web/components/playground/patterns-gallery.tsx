@@ -13,6 +13,9 @@ const demos = {
   "auth-shell": dynamic(() => import("./demos/auth-shell-demo"), {
     loading: DemoLoading,
   }),
+  "auth-form": dynamic(() => import("./demos/auth-form-demo"), {
+    loading: DemoLoading,
+  }),
   "confirm-danger-action": dynamic(
     () => import("./demos/confirm-danger-action-demo"),
     {
@@ -37,6 +40,10 @@ const demos = {
   "resource-status": dynamic(() => import("./demos/resource-status-demo"), {
     loading: DemoLoading,
   }),
+  "security-challenge": dynamic(
+    () => import("./demos/security-challenge-demo"),
+    { loading: DemoLoading }
+  ),
   "step-up-dialog": dynamic(() => import("./demos/step-up-dialog-demo"), {
     loading: DemoLoading,
   }),

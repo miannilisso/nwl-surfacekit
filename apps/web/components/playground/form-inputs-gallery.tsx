@@ -34,6 +34,9 @@ const demos = {
   "input-otp": dynamic(() => import("./demos/input-otp-demo"), {
     loading: DemoLoading,
   }),
+  "password-input": dynamic(() => import("./demos/password-input-demo"), {
+    loading: DemoLoading,
+  }),
   label: dynamic(() => import("./demos/label-demo"), {
     loading: DemoLoading,
   }),

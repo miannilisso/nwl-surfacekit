@@ -20,8 +20,8 @@ test("landing page presents verified inventory and primary journeys", async ({
       .getByRole("main")
       .getByRole("heading", { level: 1, name: "SurfaceKit" })
   ).toBeVisible()
-  await expect(page.getByText("60", { exact: true })).toBeVisible()
-  await expect(page.getByText("10", { exact: true })).toBeVisible()
+  await expect(page.getByText("61", { exact: true })).toBeVisible()
+  await expect(page.getByText("12", { exact: true })).toBeVisible()
   await expect(
     page.getByRole("link", { name: "Explore the playground" })
   ).toHaveAttribute("href", "/playground")

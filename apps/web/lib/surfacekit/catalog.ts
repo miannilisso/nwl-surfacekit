@@ -132,6 +132,12 @@ export const surfaceCatalog: readonly SurfaceCatalogEntry[] = [
       "SurfaceKit/Components/Form Inputs/Input OTP",
     ],
     [
+      "password-input",
+      "Password Input",
+      "Collects a current or new password with controlled visibility.",
+      "SurfaceKit/Components/Form Inputs/Password Input",
+    ],
+    [
       "label",
       "Label",
       "Provides an accessible name for a form control.",
@@ -458,8 +464,14 @@ export const surfaceCatalog: readonly SurfaceCatalogEntry[] = [
     [
       "auth-shell",
       "Auth Shell",
-      "Frames secure authentication and verification workflows.",
+      "Frames provider-neutral sign-in and verification workflows.",
       "SurfaceKit/Patterns/Auth Shell",
+    ],
+    [
+      "auth-form",
+      "Auth Form",
+      "Composes controlled sign-in, signup, recovery, and request states.",
+      "SurfaceKit/Patterns/Auth Form",
     ],
     [
       "confirm-danger-action",
@@ -496,6 +508,12 @@ export const surfaceCatalog: readonly SurfaceCatalogEntry[] = [
       "Resource Status",
       "Summarizes resource health and progress states.",
       "SurfaceKit/Patterns/Resource Status",
+    ],
+    [
+      "security-challenge",
+      "Security Challenge",
+      "Collects controlled verification or recovery codes without proving identity.",
+      "SurfaceKit/Patterns/Security Challenge",
     ],
     [
       "step-up-dialog",

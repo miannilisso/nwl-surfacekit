@@ -20,13 +20,13 @@ describe("surface catalog", () => {
     ])
   })
 
-  it("contains 60 components and 10 patterns exactly once", () => {
+  it("contains 61 components and 12 patterns exactly once", () => {
     expect(getSurfaceCounts()).toEqual({
-      components: 60,
-      patterns: 10,
-      total: 70,
+      components: 61,
+      patterns: 12,
+      total: 73,
     })
-    expect(new Set(surfaceCatalog.map((entry) => entry.id)).size).toBe(70)
+    expect(new Set(surfaceCatalog.map((entry) => entry.id)).size).toBe(73)
   })
 
   it("assigns every entry to its declared route", () => {

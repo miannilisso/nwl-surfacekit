@@ -41,6 +41,7 @@ import {
   InputOTPSlot,
 } from "@nwl/surfacekit/components/input-otp"
 import { Label } from "@nwl/surfacekit/components/label"
+import { PasswordInput } from "@nwl/surfacekit/components/password-input"
 import {
   NativeSelect,
   NativeSelectOptGroup,
@@ -79,6 +80,25 @@ export function ButtonDemo() {
       <span aria-live="polite" className="text-sm text-muted-foreground">
         {saved ? "Changes saved" : "Ready"}
       </span>
+    </div>
+  )
+}
+
+export function PasswordInputDemo() {
+  const [value, setValue] = React.useState("")
+  const [visible, setVisible] = React.useState(false)
+  return (
+    <div className="w-full max-w-sm space-y-2">
+      <Label htmlFor="playground-password">Password</Label>
+      <PasswordInput
+        id="playground-password"
+        name="password"
+        value={value}
+        onChange={(event) => setValue(event.currentTarget.value)}
+        visible={visible}
+        onVisibleChange={setVisible}
+        autoComplete="current-password"
+      />
     </div>
   )
 }

@@ -69,7 +69,7 @@ function WebExample({
           <CardContent>
             {documentation
               ? "Typed imports and compositional examples."
-              : "60 components · 10 patterns · browser verified"}
+              : "61 components · 12 patterns · browser verified"}
           </CardContent>
         </Card>
       </WebHero>

@@ -27,7 +27,7 @@ import {
 export const metadata: Metadata = {
   title: "SurfaceKit — Production UI foundations",
   description:
-    "Explore 60 components and 10 enterprise patterns for accessible product interfaces.",
+    "Explore 61 components and 12 production patterns for accessible product interfaces.",
 }
 
 const links = [

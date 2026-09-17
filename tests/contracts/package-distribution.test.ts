@@ -690,6 +690,14 @@ describe("SurfaceKit compiled distribution", () => {
     const moduleExports = await sourceModuleSubpaths()
 
     expect(moduleExports.length).toBeGreaterThan(0)
+    expect(moduleExports).toEqual(
+      expect.arrayContaining([
+        "./components/password-input",
+        "./patterns/auth-form",
+        "./patterns/security-challenge",
+        "./patterns",
+      ])
+    )
 
     for (const subpath of moduleExports) {
       const target = resolveTarget(manifest.exports, subpath)

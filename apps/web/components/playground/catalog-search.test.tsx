@@ -26,7 +26,7 @@ describe("CatalogSearch", () => {
   it("shows counts, category filtering, no results, and query clearing", async () => {
     const user = userEvent.setup()
     render(<CatalogSearch entries={surfaceCatalog} />)
-    expect(screen.getByText("70 results")).toBeVisible()
+    expect(screen.getByText("73 results")).toBeVisible()
 
     await user.selectOptions(
       screen.getByRole("combobox", { name: "Filter by category" }),

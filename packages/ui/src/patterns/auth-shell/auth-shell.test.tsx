@@ -11,10 +11,10 @@ describe("AuthShell", () => {
         subtitle="Sign in to continue"
         aside={
           <AuthPanel
-            title="Enterprise access"
-            subtitle="Managed by your organization"
+            title="Application access"
+            subtitle="Configured by the consuming application"
           >
-            <p>SSO enforcement enabled</p>
+            <p>Available methods are selected by the application.</p>
             <footer>Security policy SK-12</footer>
           </AuthPanel>
         }
@@ -30,7 +30,7 @@ describe("AuthShell", () => {
     expect(screen.getByText("Sign in to continue")).toBeVisible()
     expect(screen.getByRole("form", { name: "Sign in" })).toBeVisible()
     expect(
-      screen.getByRole("heading", { name: "Enterprise access" })
+      screen.getByRole("heading", { name: "Application access" })
     ).toBeVisible()
     expect(screen.getByText("Security policy SK-12")).toBeVisible()
   })
@@ -46,7 +46,7 @@ describe("AuthShell", () => {
     expect(screen.getAllByText(message)).toHaveLength(2)
   })
 
-  it("provides the default enterprise access panel without optional subtitles", () => {
+  it("provides the default access panel without optional subtitles", () => {
     render(
       <AuthShell title="Continue">
         <AuthPanel title="Policy">
@@ -57,7 +57,31 @@ describe("AuthShell", () => {
 
     expect(screen.getByRole("heading", { name: "Continue" })).toBeVisible()
     expect(screen.getByRole("heading", { name: "Secure access" })).toBeVisible()
-    expect(screen.getByText("Enterprise-ready")).toBeVisible()
+    expect(
+      screen.getByText("Works with your chosen sign-in service")
+    ).toBeVisible()
     expect(screen.getByRole("heading", { name: "Policy" })).toBeVisible()
+  })
+
+  it("keeps brand, support, legal, and footer content available with or without the aside", () => {
+    render(
+      <AuthShell
+        title="Continue"
+        brand={<a href="/">Northwind</a>}
+        support={<a href="/support">Get help</a>}
+        legal={<a href="/privacy">Privacy</a>}
+        footer={<p>Use of this screen does not create a session.</p>}
+      >
+        <p>Sign-in form</p>
+      </AuthShell>
+    )
+
+    expect(screen.getByRole("link", { name: "Northwind" })).toBeVisible()
+    expect(screen.getByRole("link", { name: "Get help" })).toBeVisible()
+    expect(screen.getByRole("link", { name: "Privacy" })).toBeVisible()
+    expect(
+      screen.getByText("Use of this screen does not create a session.")
+    ).toBeVisible()
+    expect(screen.queryByText(/oauth|enterprise-ready|enforced/i)).toBeNull()
   })
 })

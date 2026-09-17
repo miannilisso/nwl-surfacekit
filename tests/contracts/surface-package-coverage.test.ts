@@ -45,8 +45,8 @@ describe("SurfaceKit package coverage", () => {
     const patterns = await directories(patternsRoot)
     const surface = [...components, ...patterns].sort()
 
-    expect(components).toHaveLength(60)
-    expect(patterns).toHaveLength(10)
+    expect(components).toHaveLength(61)
+    expect(patterns).toHaveLength(12)
     expect(await storyIds()).toEqual(surface)
     expect(
       surfaceCatalog

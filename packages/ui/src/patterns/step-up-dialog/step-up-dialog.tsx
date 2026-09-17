@@ -1,8 +1,23 @@
+"use client"
+
+import * as React from "react"
+
 import { Button } from "../../components/button"
-import { Card, CardContent, CardHeader, CardTitle } from "../../components/card"
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "../../components/dialog"
 import { cn } from "../../lib/utils"
 
-interface StepUpDialogProps extends React.ComponentProps<"div"> {
+interface StepUpDialogProps extends Omit<
+  React.ComponentProps<"div">,
+  "title" | "onChange"
+> {
   headline: string
   description: string
   primaryLabel?: string
@@ -11,6 +26,10 @@ interface StepUpDialogProps extends React.ComponentProps<"div"> {
   errorMessage?: string
   onCancel?: () => void
   onVerify?: () => void
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
+  initialFocus?: React.ComponentProps<typeof DialogContent>["initialFocus"]
+  finalFocus?: React.ComponentProps<typeof DialogContent>["finalFocus"]
 }
 
 function StepUpDialog({
@@ -22,46 +41,66 @@ function StepUpDialog({
   errorMessage,
   onCancel,
   onVerify,
+  open,
+  onOpenChange,
+  initialFocus,
+  finalFocus,
   className,
+  children,
   ...props
 }: StepUpDialogProps) {
+  const pending = state === "pending"
   return (
-    <div
-      data-slot="step-up-dialog"
-      data-state={state}
-      className={cn(
-        "rounded-3xl border border-border bg-card p-6 shadow-sm",
-        className
-      )}
-      {...props}
+    <Dialog
+      open={open}
+      defaultOpen={open === undefined ? true : undefined}
+      disablePointerDismissal={pending}
+      onOpenChange={(nextOpen, details) => {
+        if (pending && !nextOpen) {
+          details.cancel()
+          return
+        }
+        onOpenChange?.(nextOpen)
+      }}
     >
-      <Card>
-        <CardHeader>
-          <CardTitle>{headline}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">{description}</p>
-          {state === "error" && errorMessage && (
-            <p role="alert" className="mt-3 text-sm text-destructive">
-              {errorMessage}
-            </p>
-          )}
-          <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:justify-end">
-            <Button
-              variant="secondary"
-              size="sm"
-              disabled={state === "pending"}
-              onClick={onCancel}
-            >
-              {secondaryLabel}
-            </Button>
-            <Button size="sm" disabled={state === "pending"} onClick={onVerify}>
-              {state === "pending" ? "Verifying…" : primaryLabel}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+      <DialogContent
+        aria-modal="true"
+        data-slot="step-up-dialog"
+        data-state={state}
+        showCloseButton={!pending}
+        initialFocus={initialFocus}
+        finalFocus={finalFocus}
+        className={cn("max-h-[calc(100dvh-2rem)] overflow-y-auto", className)}
+        {...props}
+      >
+        <DialogHeader>
+          <DialogTitle>{headline}</DialogTitle>
+          <DialogDescription>{description}</DialogDescription>
+        </DialogHeader>
+        {children}
+        {state === "error" && errorMessage && (
+          <p role="alert" className="mt-3 text-sm text-destructive">
+            {errorMessage}
+          </p>
+        )}
+        <DialogFooter>
+          <DialogClose
+            render={
+              <Button
+                variant="secondary"
+                disabled={pending}
+                onClick={onCancel}
+              />
+            }
+          >
+            {secondaryLabel}
+          </DialogClose>
+          <Button type="button" disabled={pending} onClick={onVerify}>
+            {pending ? "Verifying…" : primaryLabel}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }
 

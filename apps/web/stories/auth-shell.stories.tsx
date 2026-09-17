@@ -21,6 +21,7 @@ function AuthExample({
   return (
     <AuthShell
       title={title}
+      brand="SurfaceKit access"
       subtitle={
         mode === "verification"
           ? "Enter the six-digit code from your authenticator."
@@ -29,11 +30,11 @@ function AuthExample({
       aside={
         split ? (
           <AuthPanel
-            title="Enterprise access"
-            subtitle="Managed by your organization"
+            title="Application guidance"
+            subtitle="Configured by the consuming application"
           >
             <p className="text-sm">
-              SSO, passkeys, and step-up verification are enforced.
+              Show only the sign-in and recovery methods your provider supports.
             </p>
             <footer className="pt-4 text-xs text-muted-foreground">
               Security policy SK-12
@@ -41,10 +42,31 @@ function AuthExample({
           </AuthPanel>
         ) : undefined
       }
+      support={
+        <Button
+          render={<a href="#support" />}
+          nativeButton={false}
+          variant="link"
+          size="sm"
+        >
+          Get support
+        </Button>
+      }
+      legal={
+        <Button
+          render={<a href="#privacy" />}
+          nativeButton={false}
+          variant="link"
+          size="sm"
+        >
+          Privacy
+        </Button>
+      }
+      footer="This screen requests authentication; the consuming application decides whether access is granted."
     >
       <AuthPanel
         title={mode === "verification" ? "Security code" : "Secure access"}
-        subtitle="Authentication is recorded in the organization audit log."
+        subtitle="The consuming application validates each submitted request."
       >
         {mode === "error" && (
           <ErrorSummary
@@ -84,7 +106,7 @@ const meta = {
     docs: {
       description: {
         component:
-          "Frames sign-in, identity verification, and recoverable authentication errors with optional enterprise supporting content.",
+          "Frames provider-neutral sign-in, verification, and recoverable request errors with optional supporting content.",
       },
     },
   },
