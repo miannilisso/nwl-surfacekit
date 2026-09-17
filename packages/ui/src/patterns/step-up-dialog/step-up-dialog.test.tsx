@@ -6,6 +6,29 @@ import { describe, expect, it, vi } from "vitest"
 import { StepUpDialog } from "./step-up-dialog"
 
 describe("StepUpDialog", () => {
+  it("preserves native div title and change props from the additive API", () => {
+    const legacyCompatibleProps: React.ComponentProps<typeof StepUpDialog> = {
+      headline: "Confirm authentication",
+      description: "A second factor is required.",
+      title: "Native verification details",
+      onChange: () => undefined,
+    }
+    const nativeProps: Pick<
+      React.ComponentProps<"div">,
+      "title" | "onChange"
+    > = {
+      title: "Native verification details",
+      onChange: () => undefined,
+    }
+
+    render(<StepUpDialog {...legacyCompatibleProps} {...nativeProps} />)
+
+    expect(screen.getByRole("dialog")).toHaveAttribute(
+      "title",
+      "Native verification details"
+    )
+  })
+
   it("invokes verify and cancel callbacks", async () => {
     const user = userEvent.setup()
     const onVerify = vi.fn()

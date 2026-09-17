@@ -132,7 +132,7 @@ function AuthFormExample({
           <Input
             id="auth-story-username"
             name="username"
-            type="email"
+            type="text"
             autoComplete={
               flow === "passkey-login" ? "username webauthn" : "username"
             }

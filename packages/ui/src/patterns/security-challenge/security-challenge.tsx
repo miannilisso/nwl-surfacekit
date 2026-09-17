@@ -19,7 +19,7 @@ type SecurityChallengeState =
 
 const defaultMessages: Partial<Record<SecurityChallengeState, string>> = {
   pending: "Checking the request…",
-  success: "The request may continue.",
+  success: "Challenge request completed.",
   error: "That code could not be accepted. Try again.",
   locked: "This challenge is temporarily unavailable.",
   expired: "This challenge expired. Start again.",
@@ -67,8 +67,10 @@ function SecurityChallenge({
   className,
   ...props
 }: SecurityChallengeProps) {
+  const controlId = React.useId()
   const controlRef = React.useRef<HTMLInputElement>(null)
   const isPending = state === "pending"
+  const isBlocked = isPending || state === "locked" || state === "expired"
   const isAlert = state === "error" || state === "locked" || state === "expired"
   const message = statusMessage ?? defaultMessages[state]
   const previousMethod = React.useRef(method)
@@ -89,16 +91,20 @@ function SecurityChallenge({
       className={cn("space-y-4", className)}
       onSubmit={(event) => {
         event.preventDefault()
-        if (!isPending) onSubmit?.()
+        if (!isBlocked) onSubmit?.()
       }}
       {...props}
     >
-      <fieldset disabled={isPending} className="space-y-4">
+      <fieldset disabled={isBlocked} className="space-y-4">
         <legend className="font-heading text-lg font-semibold">
           Security challenge
         </legend>
         {methods.length > 1 ? (
-          <div className="flex flex-wrap gap-3" aria-label="Challenge method">
+          <div
+            role="group"
+            className="flex flex-wrap gap-3"
+            aria-label="Challenge method"
+          >
             {methods.map((availableMethod) => (
               <Button
                 key={availableMethod}
@@ -117,10 +123,10 @@ function SecurityChallenge({
         <div className="space-y-2">
           {method === "otp" ? (
             <>
-              <Label htmlFor="security-challenge-otp">Verification code</Label>
+              <Label htmlFor={`${controlId}-otp`}>Verification code</Label>
               <InputOTP
                 ref={controlRef}
-                id="security-challenge-otp"
+                id={`${controlId}-otp`}
                 aria-label="Verification code"
                 name={name ?? "verificationCode"}
                 value={value}
@@ -148,10 +154,10 @@ function SecurityChallenge({
             </>
           ) : (
             <>
-              <Label htmlFor="security-challenge-recovery">Recovery code</Label>
+              <Label htmlFor={`${controlId}-recovery`}>Recovery code</Label>
               <Input
                 ref={controlRef}
-                id="security-challenge-recovery"
+                id={`${controlId}-recovery`}
                 aria-label="Recovery code"
                 name={name ?? "recoveryCode"}
                 value={value}
@@ -176,15 +182,17 @@ function SecurityChallenge({
           </p>
         ) : null}
         <div className="flex flex-wrap gap-3">
-          <Button type="submit" disabled={isPending}>
+          <Button type="submit" disabled={isBlocked}>
             {isPending ? "Continuing…" : "Continue"}
           </Button>
           {method === "otp" && onResend ? (
             <Button
               type="button"
               variant="outline"
-              disabled={isPending}
-              onClick={onResend}
+              disabled={isBlocked}
+              onClick={() => {
+                if (!isBlocked) onResend()
+              }}
             >
               Send another code
             </Button>

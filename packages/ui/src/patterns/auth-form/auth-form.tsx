@@ -52,6 +52,7 @@ function AuthForm({
   const titleId = React.useId()
   const descriptionId = React.useId()
   const isPending = state === "pending"
+  const isBlocked = isPending || state === "locked" || state === "expired"
   const isAlert = state === "error" || state === "locked" || state === "expired"
   const message = statusMessage ?? defaultMessages[state]
 
@@ -62,16 +63,14 @@ function AuthForm({
       aria-describedby={description ? descriptionId : undefined}
       className={cn("space-y-6", className)}
       onSubmit={(event) => {
-        if (isPending) {
-          event.preventDefault()
-          return
-        }
+        event.preventDefault()
+        if (isBlocked) return
         onSubmit?.(event)
       }}
       {...props}
     >
       <fieldset
-        disabled={isPending}
+        disabled={isBlocked}
         aria-labelledby={titleId}
         className="space-y-4"
       >
@@ -92,7 +91,7 @@ function AuthForm({
             {message}
           </p>
         ) : null}
-        <Button className="w-full" type="submit" disabled={isPending}>
+        <Button className="w-full" type="submit" disabled={isBlocked}>
           {isPending ? pendingLabel : submitLabel}
         </Button>
       </fieldset>

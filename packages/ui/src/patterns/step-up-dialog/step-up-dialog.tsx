@@ -14,10 +14,7 @@ import {
 } from "../../components/dialog"
 import { cn } from "../../lib/utils"
 
-interface StepUpDialogProps extends Omit<
-  React.ComponentProps<"div">,
-  "title" | "onChange"
-> {
+interface StepUpDialogProps extends React.ComponentProps<"div"> {
   headline: string
   description: string
   primaryLabel?: string

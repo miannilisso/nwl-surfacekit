@@ -34,7 +34,7 @@ export const Horizontal: Story = {
         </p>
       </div>
       <Separator aria-label="Package details" />
-      <p className="text-sm">70 components and patterns</p>
+      <p className="text-sm">61 components and 12 patterns</p>
     </div>
   ),
 }

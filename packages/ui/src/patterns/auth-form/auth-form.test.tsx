@@ -5,6 +5,41 @@ import { describe, expect, it, vi } from "vitest"
 import { AuthForm } from "./auth-form"
 
 describe("AuthForm", () => {
+  it("always prevents native navigation before exposing named form data", () => {
+    const onSubmit = vi.fn((event: React.FormEvent<HTMLFormElement>) => {
+      expect(event.defaultPrevented).toBe(true)
+      expect(Object.fromEntries(new FormData(event.currentTarget))).toEqual({
+        password: "browser-owned-secret",
+      })
+    })
+    render(
+      <AuthForm title="Sign in" onSubmit={onSubmit}>
+        <input
+          name="password"
+          type="password"
+          defaultValue="browser-owned-secret"
+        />
+      </AuthForm>
+    )
+
+    expect(
+      fireEvent.submit(screen.getByRole("form", { name: "Sign in" }))
+    ).toBe(false)
+    expect(onSubmit).toHaveBeenCalledOnce()
+  })
+
+  it("prevents native GET navigation when no submit callback is supplied", () => {
+    render(
+      <AuthForm title="Sign in">
+        <input name="username" defaultValue="alice" />
+      </AuthForm>
+    )
+
+    expect(
+      fireEvent.submit(screen.getByRole("form", { name: "Sign in" }))
+    ).toBe(false)
+  })
+
   it("submits named native fields through a labelled form", async () => {
     const user = userEvent.setup()
     const onSubmit = vi.fn((event: React.FormEvent<HTMLFormElement>) => {
@@ -75,4 +110,29 @@ describe("AuthForm", () => {
     fireEvent.submit(form)
     expect(onSubmit).not.toHaveBeenCalled()
   })
+
+  it.each(["locked", "expired"] as const)(
+    "blocks primary submission while %s and leaves recovery actions available",
+    (state) => {
+      const onSubmit = vi.fn()
+      render(
+        <AuthForm
+          title="Continue"
+          state={state}
+          onSubmit={onSubmit}
+          secondaryActions={<button type="button">Restart recovery</button>}
+        >
+          <input name="username" aria-label="Username" />
+        </AuthForm>
+      )
+
+      const form = screen.getByRole("form", { name: "Continue" })
+      expect(screen.getByRole("button", { name: "Continue" })).toBeDisabled()
+      expect(
+        screen.getByRole("button", { name: "Restart recovery" })
+      ).toBeEnabled()
+      fireEvent.submit(form)
+      expect(onSubmit).not.toHaveBeenCalled()
+    }
+  )
 })

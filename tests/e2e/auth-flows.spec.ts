@@ -66,6 +66,10 @@ test.describe("provider-neutral authentication examples", () => {
 
     await preview.getByRole("button", { name: "Password login" }).click()
     const form = preview.getByRole("form", { name: "Sign in with a password" })
+    const username = preview.locator('input[name="username"]')
+    await expect(username).toHaveAttribute("type", "text")
+    await expect(username).toHaveAttribute("autocomplete", "username")
+    await username.fill("alice")
     await preview.getByRole("button", { name: "pending" }).click()
     await expect(form).toHaveAttribute("aria-busy", "true")
     await expect(

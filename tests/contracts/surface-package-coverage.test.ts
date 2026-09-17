@@ -40,6 +40,25 @@ async function demoIds() {
 }
 
 describe("SurfaceKit package coverage", () => {
+  it("keeps visible inventory examples aligned with current counts", async () => {
+    const separatorStory = await readFile(
+      path.join(storiesRoot, "separator.stories.tsx"),
+      "utf8"
+    )
+    const cardStory = await readFile(
+      path.join(storiesRoot, "card.stories.tsx"),
+      "utf8"
+    )
+
+    expect(separatorStory).toContain("61 components and 12 patterns")
+    expect(cardStory).toContain(
+      "61 components · 12 patterns · 73 package suites"
+    )
+    expect(`${separatorStory}\n${cardStory}`).not.toMatch(
+      /70 components and patterns|53 of 70 browser stories/
+    )
+  })
+
   it("keeps source, colocated tests, and stories in exact sync", async () => {
     const components = await directories(componentsRoot)
     const patterns = await directories(patternsRoot)

@@ -40,7 +40,7 @@ function SecurityChallengeExample({
         statusMessage={statusMessage}
         onSubmit={onSubmit}
         onResend={onResend}
-        footer="The consuming application validates codes and decides whether the request may continue."
+        footer="The consuming application validates codes and handles the resulting request."
       />
     </div>
   )
@@ -81,7 +81,7 @@ export const Pending: Story = {
   args: { state: "pending", statusMessage: "Checking the request…" },
 }
 export const Success: Story = {
-  args: { state: "success", statusMessage: "The request may continue." },
+  args: { state: "success", statusMessage: "Challenge request completed." },
 }
 export const Error: Story = {
   args: {

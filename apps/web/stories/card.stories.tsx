@@ -63,7 +63,7 @@ export const WithAction: Story = {
           <Button size="sm">Review</Button>
         </CardAction>
       </CardHeader>
-      <CardContent>53 of 70 browser stories currently pass.</CardContent>
+      <CardContent>61 components · 12 patterns · 73 package suites</CardContent>
     </Card>
   ),
 }

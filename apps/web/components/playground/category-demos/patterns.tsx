@@ -217,7 +217,7 @@ export function AuthFormDemo() {
             <Input
               id="auth-demo-username"
               name="username"
-              type="email"
+              type="text"
               autoComplete={
                 flow === "passkey" ? "username webauthn" : "username"
               }
