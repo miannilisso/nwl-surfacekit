@@ -137,6 +137,7 @@ test.describe("mobile layout and scrollbar evidence", () => {
         "pagination",
       ],
       ["surfacekit-components-navigation-disclosure-tabs--overflow", "tabs"],
+      ["surfacekit-components-content-status-table--long-content", "table"],
     ] as const
 
     for (const [storyId, boundaryName] of stories) {

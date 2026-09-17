@@ -192,6 +192,27 @@ test.describe("Storybook mobile audit harness", () => {
     expect(requests).toBe(2)
   })
 
+  test("stops after one retry when the same dynamic-import failure persists", async ({
+    page,
+  }) => {
+    const storyId = "surfacekit-fixture--persistent-chunk-failure"
+    let requests = 0
+    await page.route("http://surfacekit.test/story", async (route) => {
+      requests += 1
+      await route.fulfill({
+        contentType: "text/html",
+        body: `<h1>Failed to fetch dynamically imported module: http://surfacekit.test/assets/example.js</h1>`,
+      })
+    })
+
+    await expect(
+      loadStorybookStory(page, "http://surfacekit.test/story", storyId, 1_000)
+    ).rejects.toThrow(
+      `Storybook could not render ${storyId}: Failed to fetch dynamically imported module: http://surfacekit.test/assets/example.js`
+    )
+    expect(requests).toBe(2)
+  })
+
   test("settles layout without waiting forever on continuous transforms", async ({
     page,
   }) => {
