@@ -101,8 +101,8 @@ async function writeConsumerFixture(root: string) {
       type: "module",
       dependencies: {
         "@nwl/surfacekit": `file:../${path.basename(tarballPath)}`,
-        react: "19.2.8",
-        "react-dom": "19.2.8",
+        react: "19.3.0",
+        "react-dom": "19.3.0",
       },
     })
   )
@@ -123,7 +123,10 @@ export default {
     emptyOutDir: true,
     lib: { entry, formats: ["es"], fileName: "surfacekit-consumer" },
     minify: true,
-    rolldownOptions: { external: [/^react(?:-dom)?(?:\\/.*)?$/] },
+    rolldownOptions: {
+      external: [/^react(?:-dom)?(?:\\/.*)?$/],
+      output: { minify: true },
+    },
   },
 }
 `

@@ -41,6 +41,7 @@ test("playground demos support representative keyboard and pointer workflows", a
   await page.goto("/playground/form-inputs#checkbox")
   await page.waitForLoadState("networkidle")
   const checkbox = page.getByRole("checkbox", { name: "Include release notes" })
+  await expectHydrated(checkbox)
   await checkbox.click()
   await expect(checkbox).not.toBeChecked()
 

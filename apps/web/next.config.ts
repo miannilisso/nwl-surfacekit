@@ -11,6 +11,7 @@ const legacyPlaygroundRedirects = [
 ] as const
 
 const nextConfig: NextConfig = {
+  devIndicators: false,
   async headers() {
     return [
       {

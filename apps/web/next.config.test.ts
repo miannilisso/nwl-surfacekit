@@ -3,6 +3,10 @@ import { describe, expect, it } from "vitest"
 import nextConfig from "./next.config"
 
 describe("next config redirects", () => {
+  it("keeps development-only indicators out of product visual baselines", () => {
+    expect(nextConfig.devIndicators).toBe(false)
+  })
+
   it("permanently redirects legacy playground category routes", async () => {
     const redirects = await nextConfig.redirects?.()
     const expectedRedirects = [
