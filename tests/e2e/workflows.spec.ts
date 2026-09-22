@@ -124,6 +124,7 @@ test("form controls preserve entered and selected values", async ({ page }) => {
   const releaseNotes = page.getByRole("checkbox", {
     name: "Include release notes",
   })
+  await expectHydrated(releaseNotes)
   await releaseNotes.click()
   await expect(releaseNotes).not.toBeChecked()
 
@@ -205,6 +206,7 @@ test("sidebar trigger collapses and expands the navigation", async ({
     name: "Toggle Sidebar",
   })
   await expect(sidebar).toHaveAttribute("data-state", "expanded")
+  await expectHydrated(trigger)
   await trigger.click()
   await expect(sidebar).toHaveAttribute("data-state", "collapsed")
   await trigger.click()
@@ -217,12 +219,16 @@ test("permission and danger patterns expose outcome feedback", async ({
   await openReadyPage(page, "/playground/patterns")
 
   await expect(page.getByText("Billing access required")).toBeVisible()
-  await page.getByRole("button", { name: "Request access" }).click()
+  const requestAccess = page.getByRole("button", { name: "Request access" })
+  await expectHydrated(requestAccess)
+  await requestAccess.click()
   await expect(
     page.getByRole("heading", { name: "Billing controls" })
   ).toBeVisible()
 
-  await page.getByRole("button", { name: "Delete project" }).click()
+  const deleteProject = page.getByRole("button", { name: "Delete project" })
+  await expectHydrated(deleteProject)
+  await deleteProject.click()
   await expect(page.getByText("Delete production project?")).toBeVisible()
   await page.getByRole("button", { name: "Delete project" }).last().click()
   await expect(page.getByText("Project deletion confirmed")).toBeVisible()
