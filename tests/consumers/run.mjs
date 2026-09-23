@@ -1,0 +1,450 @@
+import assert from "node:assert/strict"
+import { execFile, spawn } from "node:child_process"
+import { createHash } from "node:crypto"
+import {
+  cp,
+  mkdtemp,
+  readFile,
+  realpath,
+  readdir,
+  rm,
+  writeFile,
+} from "node:fs/promises"
+import { createRequire } from "node:module"
+import { createServer } from "node:net"
+import { tmpdir } from "node:os"
+import path from "node:path"
+import { fileURLToPath } from "node:url"
+import { promisify } from "node:util"
+import { gzipSync } from "node:zlib"
+
+import { chromium } from "@playwright/test"
+
+const execFileAsync = promisify(execFile)
+const repositoryRoot = process.cwd()
+const fixtureSource = path.join(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "fixtures"
+)
+const packageRoot = path.join(repositoryRoot, "packages/ui")
+const version = {
+  react: "19.3.0",
+  "react-dom": "19.3.0",
+  "@types/react": "19.3.0",
+  "@types/react-dom": "19.3.0",
+  typescript: "6.0.3",
+  next: "16.3.6",
+  vite: "8.3.0",
+}
+const commands = []
+
+async function command(program, args, cwd, timeout = 180_000) {
+  const label = `${program} ${args.join(" ")}`
+  process.stderr.write(`${path.basename(cwd)}: ${label}\n`)
+  try {
+    const result = await execFileAsync(program, args, {
+      cwd,
+      timeout,
+      maxBuffer: 20 * 1024 * 1024,
+      env: {
+        ...process.env,
+        CI: "1",
+        TERM: "dumb",
+        NEXT_TELEMETRY_DISABLED: "1",
+      },
+    })
+    commands.push({
+      cwd: path.basename(cwd),
+      command: label,
+      stdout: result.stdout.trim(),
+    })
+    return result.stdout
+  } catch (error) {
+    process.stderr.write(
+      `${label} failed:\n${error.stdout ?? ""}\n${error.stderr ?? ""}\n`
+    )
+    throw error
+  }
+}
+
+function sha256(bytes) {
+  return createHash("sha256").update(bytes).digest("hex")
+}
+
+function publicSpecifiers(files) {
+  const subpaths = files.flatMap((file) => {
+    let match = /^dist\/components\/([^/]+)\/index\.js$/.exec(file)
+    if (match) return [`components/${match[1]}`]
+    match = /^dist\/patterns\/([^/]+)\/index\.js$/.exec(file)
+    if (match) return [`patterns/${match[1]}`]
+    if (file === "dist/patterns/index.js") return ["patterns"]
+    match = /^dist\/(hooks|lib)\/([^/]+)\.js$/.exec(file)
+    return match ? [`${match[1]}/${match[2]}`] : []
+  })
+  assert(subpaths.length > 0, "Tarball has no public JavaScript modules")
+  return [...new Set(subpaths)].sort().map((name) => `@nwl/surfacekit/${name}`)
+}
+
+async function freePort() {
+  const server = createServer()
+  await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve))
+  const address = server.address()
+  assert(address && typeof address !== "string")
+  await new Promise((resolve) => server.close(resolve))
+  return address.port
+}
+
+async function startServer(program, args, cwd, port) {
+  const child = spawn(program, args, {
+    cwd,
+    detached: process.platform !== "win32",
+    env: {
+      ...process.env,
+      PORT: String(port),
+      CI: "1",
+      TERM: "dumb",
+      NEXT_TELEMETRY_DISABLED: "1",
+    },
+    stdio: ["ignore", "pipe", "pipe"],
+  })
+  let output = ""
+  child.stdout.on("data", (chunk) => {
+    output += chunk.toString()
+  })
+  child.stderr.on("data", (chunk) => {
+    output += chunk.toString()
+  })
+  const url = `http://127.0.0.1:${port}/`
+  try {
+    for (let attempt = 0; attempt < 120; attempt += 1) {
+      if (child.exitCode !== null)
+        throw new Error(`Server exited early: ${output}`)
+      try {
+        const response = await fetch(url)
+        if (response.ok) return { child, url, response: await response.text() }
+      } catch {
+        /* Server has not opened its port yet. */
+      }
+      await new Promise((resolve) => setTimeout(resolve, 500))
+    }
+    throw new Error(`Server did not start: ${output}`)
+  } catch (error) {
+    signalServer(child, "SIGTERM")
+    throw error
+  }
+}
+
+function signalServer(child, signal) {
+  try {
+    if (process.platform === "win32") child.kill(signal)
+    else process.kill(-child.pid, signal)
+  } catch (error) {
+    if (error.code !== "ESRCH") throw error
+  }
+}
+
+async function stopServer(child) {
+  const stopped =
+    child.exitCode === null && child.signalCode === null
+      ? new Promise((resolve) => child.once("exit", resolve))
+      : Promise.resolve()
+  signalServer(child, "SIGTERM")
+  await Promise.race([
+    stopped,
+    new Promise((resolve) => setTimeout(resolve, 5_000)),
+  ])
+  if (child.exitCode === null && child.signalCode === null)
+    signalServer(child, "SIGKILL")
+  child.stdout.destroy()
+  child.stderr.destroy()
+}
+
+async function browserSmoke(url, expectedTitle) {
+  const browser = await chromium.launch({ headless: true })
+  const warnings = []
+  try {
+    const page = await browser.newPage()
+    page.on("console", (message) => {
+      if (["warning", "error"].includes(message.type()))
+        warnings.push(message.text())
+    })
+    page.on("pageerror", (error) => warnings.push(error.message))
+    await page.goto(url, { waitUntil: "networkidle" })
+    await page.getByRole("heading", { name: expectedTitle }).waitFor()
+    const button = page.getByRole("button", { name: "Clicks 0" })
+    await button.waitFor()
+    const light = await page.evaluate(() =>
+      getComputedStyle(document.documentElement)
+        .getPropertyValue("--background")
+        .trim()
+    )
+    await button.click()
+    await page.getByRole("button", { name: "Clicks 1" }).waitFor()
+    await page.getByRole("button", { name: "Toggle theme" }).click()
+    const dark = await page.evaluate(() => ({
+      className: document.documentElement.className,
+      background: getComputedStyle(document.documentElement)
+        .getPropertyValue("--background")
+        .trim(),
+    }))
+    assert(light, "Light theme CSS custom property is absent")
+    assert(dark.className.includes("dark"), "Dark theme class is absent")
+    assert(
+      dark.background && dark.background !== light,
+      "Dark theme CSS did not change"
+    )
+    assert.deepEqual(warnings, [], `Browser warnings: ${warnings.join("; ")}`)
+    return {
+      hydrated: true,
+      lightTheme: true,
+      darkTheme: true,
+      browserWarnings: warnings,
+      lightBackground: light,
+      darkBackground: dark.background,
+    }
+  } finally {
+    await browser.close()
+  }
+}
+
+async function checkConsumer(root, specifiers) {
+  const installedPackage = await realpath(
+    path.join(root, "node_modules/@nwl/surfacekit")
+  )
+  assert(
+    installedPackage.startsWith(`${root}${path.sep}`),
+    "Package linked outside fixture"
+  )
+  const lockfile = await readFile(path.join(root, "pnpm-lock.yaml"), "utf8")
+  assert(
+    !/(?:workspace:|link:)/.test(lockfile),
+    "Fixture contains a workspace or link dependency"
+  )
+  await command(
+    process.execPath,
+    [
+      "--input-type=module",
+      "--eval",
+      `for (const name of ${JSON.stringify(specifiers)}) await import(name)`,
+    ],
+    root
+  )
+  const typeProbe = specifiers
+    .map(
+      (specifier, index) =>
+        `import * as Export${index} from ${JSON.stringify(specifier)}; void Export${index};`
+    )
+    .join("\n")
+  await writeFile(path.join(root, "exports-check.ts"), typeProbe)
+  await command(
+    "pnpm",
+    ["exec", "tsc", "--noEmit", "--project", "tsconfig.json"],
+    root
+  )
+  const consumerRequire = createRequire(path.join(root, "package.json"))
+  const packageRequire = createRequire(
+    path.join(installedPackage, "package.json")
+  )
+  assert.strictEqual(consumerRequire("react"), packageRequire("react"))
+  assert.strictEqual(consumerRequire("react-dom"), packageRequire("react-dom"))
+  return {
+    esm: specifiers,
+    types: specifiers,
+    reactSingleton: true,
+    installedPackage,
+  }
+}
+
+async function installFixture(kind, tempRoot, tarball) {
+  const root = path.join(tempRoot, kind)
+  await cp(path.join(fixtureSource, kind), root, { recursive: true })
+  const dependencies = {
+    "@nwl/surfacekit": `file:${tarball}`,
+    react: version.react,
+    "react-dom": version["react-dom"],
+    [kind]: version[kind],
+  }
+  const devDependencies = {
+    typescript: version.typescript,
+    "@types/react": version["@types/react"],
+    "@types/react-dom": version["@types/react-dom"],
+  }
+  await writeFile(
+    path.join(root, "package.json"),
+    JSON.stringify(
+      {
+        name: `surfacekit-${kind}-clean-consumer`,
+        private: true,
+        type: "module",
+        dependencies,
+        devDependencies,
+      },
+      null,
+      2
+    )
+  )
+  await command(
+    "pnpm",
+    ["install", "--ignore-workspace", "--config.minimum-release-age=0"],
+    root,
+    180_000
+  )
+  return root
+}
+
+async function runNext(root) {
+  await command("pnpm", ["exec", "next", "build"], root, 180_000)
+  const port = await freePort()
+  const server = await startServer(
+    process.execPath,
+    ["node_modules/next/dist/bin/next", "start", "--port", String(port)],
+    root,
+    port
+  )
+  try {
+    assert(
+      server.response.includes("SurfaceKit Next consumer"),
+      "Next SSR title absent"
+    )
+    assert(
+      /Clicks\s*(?:<!--.*?-->\s*)?0/.test(server.response),
+      "Next SSR Button absent"
+    )
+    return {
+      productionBuild: true,
+      ssr: true,
+      ...(await browserSmoke(server.url, "SurfaceKit Next consumer")),
+    }
+  } finally {
+    await stopServer(server.child)
+  }
+}
+
+async function runVite(root) {
+  await command("pnpm", ["exec", "vite", "build"], root)
+  await command(
+    "pnpm",
+    [
+      "exec",
+      "vite",
+      "build",
+      "--ssr",
+      "src/app.tsx",
+      "--outDir",
+      "dist-server",
+    ],
+    root
+  )
+  const cssFiles = (await readdir(path.join(root, "dist/assets"))).filter(
+    (file) => file.endsWith(".css")
+  )
+  assert(cssFiles.length > 0, "Vite emitted no CSS")
+  const builtCss = await readFile(
+    path.join(root, "dist/assets", cssFiles[0]),
+    "utf8"
+  )
+  assert(builtCss.includes("--background:"), "Vite omitted package CSS")
+  const port = await freePort()
+  const server = await startServer(process.execPath, ["server.mjs"], root, port)
+  try {
+    assert(
+      server.response.includes("SurfaceKit Vite consumer"),
+      "Vite SSR title absent"
+    )
+    assert(
+      /Clicks\s*(?:<!--.*?-->\s*)?0/.test(server.response),
+      "Vite SSR Button absent"
+    )
+    return {
+      productionBuild: true,
+      ssr: true,
+      builtCssGzipBytes: gzipSync(builtCss, { level: 9 }).byteLength,
+      ...(await browserSmoke(server.url, "SurfaceKit Vite consumer")),
+    }
+  } finally {
+    await stopServer(server.child)
+  }
+}
+
+async function main() {
+  const tempRoot = await mkdtemp(
+    path.join(tmpdir(), "surfacekit-clean-consumers-")
+  )
+  try {
+    await command(
+      "pnpm",
+      ["--filter", "@nwl/surfacekit", "build"],
+      repositoryRoot
+    )
+    const packed = JSON.parse(
+      await command(
+        "pnpm",
+        ["pack", "--pack-destination", tempRoot, "--json"],
+        packageRoot
+      )
+    )
+    const tarball = packed.filename
+    assert(
+      path.resolve(tarball).startsWith(`${tempRoot}${path.sep}`),
+      "Tarball escaped fixture directory"
+    )
+    const files = packed.files.map(({ path: name }) => name).sort()
+    const beforeSha256 = sha256(await readFile(tarball))
+    const specifiers = publicSpecifiers(files)
+    const nextRoot = await installFixture("next", tempRoot, tarball)
+    const viteRoot = await installFixture("vite", tempRoot, tarball)
+    const nextExports = await checkConsumer(nextRoot, specifiers)
+    const viteExports = await checkConsumer(viteRoot, specifiers)
+    assert.deepEqual(nextExports.esm, viteExports.esm)
+    const css = await readFile(
+      path.join(viteExports.installedPackage, "dist/globals.css")
+    )
+    const cssGzipBytes = gzipSync(css, { level: 9 }).byteLength
+    assert(
+      cssGzipBytes <= 30 * 1024,
+      `Package CSS exceeds 30 KB gzip: ${cssGzipBytes}`
+    )
+    const next = {
+      ...(await runNext(nextRoot)),
+      reactSingleton: nextExports.reactSingleton,
+    }
+    const vite = {
+      ...(await runVite(viteRoot)),
+      reactSingleton: viteExports.reactSingleton,
+    }
+    await command(
+      "pnpm",
+      ["exec", "vite", "build", "--config", "vite.button.config.mjs"],
+      viteRoot
+    )
+    const button = await readFile(path.join(viteRoot, "dist-button/button.js"))
+    const buttonGzipBytes = gzipSync(button, { level: 9 }).byteLength
+    assert(
+      buttonGzipBytes <= 15 * 1024,
+      `Button exceeds 15 KB gzip: ${buttonGzipBytes}`
+    )
+    const afterSha256 = sha256(await readFile(tarball))
+    assert.equal(
+      afterSha256,
+      beforeSha256,
+      "Tarball changed during consumer checks"
+    )
+    process.stdout.write(
+      `${JSON.stringify({
+        tarball: { beforeSha256, afterSha256, files },
+        exports: { esm: nextExports.esm, types: nextExports.types },
+        cssGzipBytes,
+        buttonGzipBytes,
+        consumers: { next, vite },
+        commands,
+      })}\n`
+    )
+  } finally {
+    assert(
+      tempRoot.startsWith(`${tmpdir()}${path.sep}surfacekit-clean-consumers-`)
+    )
+    await rm(tempRoot, { recursive: true, force: true })
+  }
+}
+
+await main()
