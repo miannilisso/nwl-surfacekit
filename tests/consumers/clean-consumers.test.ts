@@ -27,6 +27,20 @@ it("builds and hydrates isolated Next and Vite consumers from one verified tarba
         darkTheme: boolean
         reactSingleton: boolean
         browserWarnings: string[]
+        buttonStyles: {
+          light: {
+            display: string
+            height: string
+            paddingInlineStart: string
+            backgroundColor: string
+          }
+          dark: {
+            display: string
+            height: string
+            paddingInlineStart: string
+            backgroundColor: string
+          }
+        }
       }
     >
   }
@@ -49,6 +63,23 @@ it("builds and hydrates isolated Next and Vite consumers from one verified tarba
       reactSingleton: true,
       browserWarnings: [],
     })
+    expect(consumer.buttonStyles).toBeDefined()
+    expect(consumer.buttonStyles.light).toMatchObject({
+      display: "inline-flex",
+      height: "32px",
+      paddingInlineStart: "12px",
+    })
+    expect(consumer.buttonStyles.dark).toMatchObject({
+      display: "inline-flex",
+      height: "32px",
+      paddingInlineStart: "12px",
+    })
+    expect(consumer.buttonStyles.light.backgroundColor).not.toBe(
+      "rgba(0, 0, 0, 0)"
+    )
+    expect(consumer.buttonStyles.dark.backgroundColor).not.toBe(
+      consumer.buttonStyles.light.backgroundColor
+    )
   }
   if (process.env.SURFACEKIT_SIZE_REPORT === "1") {
     const inventory = {

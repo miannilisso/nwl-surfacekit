@@ -1,5 +1,5 @@
 import assert from "node:assert/strict"
-import { execFile, spawn } from "node:child_process"
+import { spawn } from "node:child_process"
 import { createHash } from "node:crypto"
 import {
   cp,
@@ -15,12 +15,10 @@ import { createServer } from "node:net"
 import { tmpdir } from "node:os"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
-import { promisify } from "node:util"
 import { gzipSync } from "node:zlib"
 
 import { chromium } from "@playwright/test"
 
-const execFileAsync = promisify(execFile)
 const repositoryRoot = process.cwd()
 const fixtureSource = path.join(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -37,34 +35,81 @@ const version = {
   vite: "8.3.0",
 }
 const commands = []
+const activeChildren = new Set()
+let temporaryRootPromise
+let cleanupPromise
+let terminating = false
 
 async function command(program, args, cwd, timeout = 180_000) {
+  if (terminating) throw new Error("Consumer run is terminating")
   const label = `${program} ${args.join(" ")}`
   process.stderr.write(`${path.basename(cwd)}: ${label}\n`)
-  try {
-    const result = await execFileAsync(program, args, {
+  return new Promise((resolve, reject) => {
+    const child = spawn(program, args, {
       cwd,
-      timeout,
-      maxBuffer: 20 * 1024 * 1024,
+      detached: process.platform !== "win32",
       env: {
         ...process.env,
         CI: "1",
         TERM: "dumb",
         NEXT_TELEMETRY_DISABLED: "1",
       },
+      stdio: ["ignore", "pipe", "pipe"],
     })
-    commands.push({
-      cwd: path.basename(cwd),
-      command: label,
-      stdout: result.stdout.trim(),
+    activeChildren.add(child)
+    let stdout = ""
+    let stderr = ""
+    let failure
+    let killTimer
+    const timeoutTimer = setTimeout(() => {
+      failure = new Error(`${label} timed out after ${timeout} ms`)
+      signalServer(child, "SIGTERM")
+      killTimer = setTimeout(() => signalServer(child, "SIGKILL"), 5_000)
+    }, timeout)
+    for (const [stream, append] of [
+      [
+        child.stdout,
+        (text) => {
+          stdout += text
+        },
+      ],
+      [
+        child.stderr,
+        (text) => {
+          stderr += text
+        },
+      ],
+    ]) {
+      stream.on("data", (chunk) => {
+        append(chunk.toString())
+        if (stdout.length + stderr.length > 20 * 1024 * 1024) {
+          failure = new Error(`${label} exceeded its output limit`)
+          signalServer(child, "SIGKILL")
+        }
+      })
+    }
+    child.once("error", (error) => {
+      failure = error
     })
-    return result.stdout
-  } catch (error) {
-    process.stderr.write(
-      `${label} failed:\n${error.stdout ?? ""}\n${error.stderr ?? ""}\n`
-    )
-    throw error
-  }
+    child.once("close", (code, signal) => {
+      clearTimeout(timeoutTimer)
+      clearTimeout(killTimer)
+      activeChildren.delete(child)
+      if (failure || code !== 0) {
+        const error =
+          failure ?? new Error(`${label} exited with ${code ?? signal}`)
+        process.stderr.write(`${label} failed:\n${stdout}\n${stderr}\n`)
+        reject(error)
+        return
+      }
+      commands.push({
+        cwd: path.basename(cwd),
+        command: label,
+        stdout: stdout.trim(),
+      })
+      resolve(stdout)
+    })
+  })
 }
 
 function sha256(bytes) {
@@ -95,6 +140,7 @@ async function freePort() {
 }
 
 async function startServer(program, args, cwd, port) {
+  if (terminating) throw new Error("Consumer run is terminating")
   const child = spawn(program, args, {
     cwd,
     detached: process.platform !== "win32",
@@ -107,6 +153,7 @@ async function startServer(program, args, cwd, port) {
     },
     stdio: ["ignore", "pipe", "pipe"],
   })
+  activeChildren.add(child)
   let output = ""
   child.stdout.on("data", (chunk) => {
     output += chunk.toString()
@@ -157,6 +204,59 @@ async function stopServer(child) {
     signalServer(child, "SIGKILL")
   child.stdout.destroy()
   child.stderr.destroy()
+  activeChildren.delete(child)
+}
+
+async function cleanup() {
+  if (cleanupPromise) return cleanupPromise
+  cleanupPromise = (async () => {
+    const children = [...activeChildren]
+    for (const child of children) signalServer(child, "SIGTERM")
+    let timer
+    await Promise.race([
+      Promise.all(
+        children.map((child) =>
+          child.exitCode !== null || child.signalCode !== null
+            ? Promise.resolve()
+            : new Promise((resolve) => child.once("exit", resolve))
+        )
+      ),
+      new Promise((resolve) => {
+        timer = setTimeout(resolve, 5_000)
+      }),
+    ])
+    clearTimeout(timer)
+    for (const child of children) {
+      signalServer(child, "SIGKILL")
+      child.stdout?.destroy()
+      child.stderr?.destroy()
+    }
+    activeChildren.clear()
+
+    const tempRoot = await temporaryRootPromise
+    if (tempRoot) {
+      assert.equal(path.dirname(tempRoot), tmpdir())
+      assert(path.basename(tempRoot).startsWith("surfacekit-clean-consumers-"))
+      await rm(tempRoot, { recursive: true, force: true })
+    }
+  })()
+  return cleanupPromise
+}
+
+for (const [signal, exitCode] of [
+  ["SIGINT", 130],
+  ["SIGTERM", 143],
+]) {
+  process.once(signal, () => {
+    terminating = true
+    void cleanup().then(
+      () => process.exit(exitCode),
+      (error) => {
+        process.stderr.write(`Consumer cleanup failed: ${error}\n`)
+        process.exit(1)
+      }
+    )
+  })
 }
 
 async function browserSmoke(url, expectedTitle) {
@@ -173,6 +273,15 @@ async function browserSmoke(url, expectedTitle) {
     await page.getByRole("heading", { name: expectedTitle }).waitFor()
     const button = page.getByRole("button", { name: "Clicks 0" })
     await button.waitFor()
+    const lightButton = await button.evaluate((element) => {
+      const style = getComputedStyle(element)
+      return {
+        display: style.display,
+        height: style.height,
+        paddingInlineStart: style.paddingInlineStart,
+        backgroundColor: style.backgroundColor,
+      }
+    })
     const light = await page.evaluate(() =>
       getComputedStyle(document.documentElement)
         .getPropertyValue("--background")
@@ -181,6 +290,17 @@ async function browserSmoke(url, expectedTitle) {
     await button.click()
     await page.getByRole("button", { name: "Clicks 1" }).waitFor()
     await page.getByRole("button", { name: "Toggle theme" }).click()
+    const darkButton = await page
+      .getByRole("button", { name: "Clicks 1" })
+      .evaluate((element) => {
+        const style = getComputedStyle(element)
+        return {
+          display: style.display,
+          height: style.height,
+          paddingInlineStart: style.paddingInlineStart,
+          backgroundColor: style.backgroundColor,
+        }
+      })
     const dark = await page.evaluate(() => ({
       className: document.documentElement.className,
       background: getComputedStyle(document.documentElement)
@@ -201,6 +321,7 @@ async function browserSmoke(url, expectedTitle) {
       browserWarnings: warnings,
       lightBackground: light,
       darkBackground: dark.background,
+      buttonStyles: { light: lightButton, dark: darkButton },
     }
   } finally {
     await browser.close()
@@ -367,9 +488,10 @@ async function runVite(root) {
 }
 
 async function main() {
-  const tempRoot = await mkdtemp(
+  temporaryRootPromise = mkdtemp(
     path.join(tmpdir(), "surfacekit-clean-consumers-")
   )
+  const tempRoot = await temporaryRootPromise
   try {
     await command(
       "pnpm",
@@ -440,10 +562,7 @@ async function main() {
       })}\n`
     )
   } finally {
-    assert(
-      tempRoot.startsWith(`${tmpdir()}${path.sep}surfacekit-clean-consumers-`)
-    )
-    await rm(tempRoot, { recursive: true, force: true })
+    await cleanup()
   }
 }
 

@@ -59,6 +59,7 @@ export default defineConfig({
       "**/.next/**",
       "**/.worktrees/**",
       "tests/e2e/**",
+      "tests/consumers/**",
     ],
   },
 })

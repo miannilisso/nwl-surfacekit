@@ -22,7 +22,7 @@
     "test:components": "vitest --run packages/ui/src",
     "test:components:coverage": "vitest --run packages/ui/src --coverage",
     "test:contracts": "vitest --run tests/contracts",
-    "test:consumers": "vitest --run tests/consumers/clean-consumers.test.ts",
+    "test:consumers": "vitest --config vitest.consumers.config.ts --run",
     "test:env": "node tests/env/no-server-env-in-client.mjs",
     "test:e2e": "playwright test",
     "test:e2e:production": "pnpm build:packages && pnpm --filter web build && pnpm build-storybook && playwright test --config playwright.production.config.ts",
