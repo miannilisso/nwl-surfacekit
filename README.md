@@ -9,8 +9,8 @@ metadata, and live demos as one checked contract.
 
 | Surface             | Inventory | Repository evidence                                                              |
 | ------------------- | --------: | -------------------------------------------------------------------------------- |
-| Components          |        60 | Colocated Vitest test, Storybook story, catalog record, and live demo per module |
-| Enterprise patterns |        10 | Colocated Vitest test, Storybook story, catalog record, and live demo per module |
+| Components          |        61 | Colocated Vitest test, Storybook story, catalog record, and live demo per module |
+| Enterprise patterns |        12 | Colocated Vitest test, Storybook story, catalog record, and live demo per module |
 | Application routes  |        10 | Production smoke and automated accessibility checks                              |
 | Visual baselines    |        30 | All routes at desktop light, desktop dark, and mobile light                      |
 
@@ -22,7 +22,7 @@ manual keyboard, screen-reader, and assistive-technology review.
 ## Requirements
 
 - Node.js `^20.19.0 || ^22.13.0 || >=24.0.0`
-- pnpm `11.23.0`
+- pnpm `12.5.1`
 
 ```bash
 pnpm install --frozen-lockfile
@@ -43,10 +43,10 @@ apps/web/
   app/(marketing)/       public landing and capabilities pages
   app/(playground)/      catalog overview and category playgrounds
   components/playground/ route-local live demos
-  stories/               stories for all 70 public modules
+  stories/               stories for all 73 public modules
 packages/ui/
-  src/components/        60 component modules
-  src/patterns/          10 enterprise-pattern modules
+  src/components/        61 component modules
+  src/patterns/          12 enterprise-pattern modules
 tests/
   contracts/             exact inventory and artifact-set checks
   e2e/                   smoke, accessibility, workflow, and visual suites
@@ -56,7 +56,7 @@ Public imports use stable module paths:
 
 ```tsx
 import { Button } from "@nwl/surfacekit/components/button"
-import { AppShell } from "@nwl/surfacekit/patterns/app-shell"
+import { AuthForm } from "@nwl/surfacekit/patterns/auth-form"
 import "@nwl/surfacekit/globals.css"
 ```
 
@@ -69,14 +69,14 @@ consumer guidance.
 | ---------------------------- | -------------------------------------------------------------- |
 | /                            | Product landing page and representative operations composition |
 | /marketing                   | Searchable capability inventory and evidence language          |
-| /playground                  | Searchable overview of all 70 modules                          |
-| /playground/form-inputs      | 18 form and selection components                               |
+| /playground                  | Searchable overview of all 73 modules                          |
+| /playground/form-inputs      | 19 form and selection components                               |
 | /playground/navigation       | 5 navigation components                                        |
 | /playground/dialogs-overlays | 11 dialog and overlay components                               |
 | /playground/data-display     | 13 data-display components                                     |
 | /playground/feedback         | 4 feedback components                                          |
 | /playground/layout-utilities | 9 layout and utility components                                |
-| /playground/patterns         | 10 enterprise patterns                                         |
+| /playground/patterns         | 12 enterprise patterns                                         |
 
 The catalog in `apps/web/lib/surfacekit/catalog.ts` owns names, descriptions,
 counts, categories, routes, and stable anchors. Do not duplicate those values in
@@ -96,16 +96,17 @@ documentation.
 
 ## Supported repository toolchain
 
-The current verified cohorts are React `19.2.8`, Next.js `16.3.2`, Storybook
-`10.5.10`, Vite `8.2.2`, Vitest `4.1.11`, ESLint `10.9.0`, Turbo `2.10.11`,
-and TypeScript `5.9.3`. Shared exact versions live in the root
+The current pinned cohorts are React `19.3.0`, Next.js `16.3.6`, Storybook
+`10.6.0`, Vite `8.3.0`, Vitest `4.1.11`, ESLint `10.11.0`, Turbo `2.11.2`,
+and TypeScript `6.0.3`. Shared exact versions live in the root
 `pnpm-workspace.yaml` catalog.
 
-TypeScript intentionally remains at `5.9.3`: typescript-eslint `8.67.0`
-supports TypeScript below `6.1.0`, so the registry's newer TypeScript major is
-not currently actionable. The shared ESLint configuration uses
-`@eslint/compat` for `eslint-plugin-react@7.37.5`, whose published peer range
-has not yet added ESLint 10. Both exceptions are recorded in the current
+TypeScript remains below the
+[typescript-eslint `6.1.0` support ceiling](https://typescript-eslint.io/users/dependency-versions/)
+for the pinned `8.70.1` cohort;
+Vitest remains on 4 while Storybook 10.6 and the Node 20 support policy are in
+force. The shared ESLint config adapts `eslint-plugin-react@7.37.5` with
+`@eslint/compat` under a narrowly scoped peer exception. These holds are in the
 [enterprise-readiness audit](docs/audits/2026-08-24-surfacekit-enterprise-readiness.md).
 
 ## Verification
@@ -116,7 +117,12 @@ Use focused checks during development:
 pnpm format:check
 pnpm lint
 pnpm typecheck
+pnpm check:reference-assets
+pnpm check:attributions
+pnpm check:production-licenses
 pnpm test:contracts
+pnpm test:next-config
+pnpm test:consumers
 pnpm test:components:coverage
 pnpm --filter web build
 pnpm build-storybook
@@ -132,10 +138,16 @@ Install the browser binaries once:
 pnpm exec playwright install chromium firefox webkit
 ```
 
-`pnpm verify` and `pnpm verify:ci` are intentionally equivalent. They run
-formatting, lint, types, exact inventory contracts, package coverage, Next.js
-and Storybook production builds, Storybook browser tests, client-environment
-checks, and the complete production-server Playwright suite.
+`pnpm verify` and `pnpm verify:ci` are equivalent. They run formatting, lint,
+types, reference-asset and attribution checks, the production-license policy,
+contracts, Next config tests, clean installed-tarball Next/Vite consumers,
+component coverage, package/Next/Storybook builds, Storybook interactions,
+client-environment checks, and the production-server Playwright matrix.
+`pnpm audit --prod` is a separate dependency check. The latest full-gate
+attempt after Task 6C did not pass: WebKit page creation timed out on this host,
+which reports missing WebKit system packages. The last complete gate before
+Task 6C passed; focused release contracts passed afterward. See the
+[readiness audit](docs/audits/2026-08-24-surfacekit-enterprise-readiness.md).
 
 Vitest ignores `.worktrees/**`, and Playwright resolves tests only from
 `tests/e2e`. These boundaries keep verification hermetic when another linked
@@ -177,15 +189,18 @@ manifests use catalog: for shared versions and workspace:* for local packages.
 
 ## Distribution status
 
-`@nwl/surfacekit` remains a private, workspace-consumed source package. React
-and React DOM `^19.0.0` are required peers, but the package does not yet emit
-JavaScript, declarations, or compiled CSS and does not have a release-grade
-files allowlist or immutable GitHub release workflow. Its current tarball is an
-audit artifact, not a supported external distribution.
+`@nwl/surfacekit` is currently version `0.1.0`. Its build emits ESM,
+declarations, maps, and compiled CSS behind public subpath exports. Local
+tarball tests exercise all 76 JavaScript specifiers and clean Next.js and Vite
+consumers without consumer Tailwind; the reference app owns its local brand
+fonts and PWA, while the package defaults to system fonts and has no service
+worker or auth provider. Auth modules render controlled UI and request
+callbacks; applications own identity, sessions, and authorization.
 
-The reference Next.js app, Storybook, and manual disposable-consumer probes
-show that the source can compile in the repository's tested configurations.
-They do not establish general external-app compatibility, complete WCAG
-conformance, security compliance, or a stable release contract. See the
-[2026-08-24 enterprise-readiness audit](docs/audits/2026-08-24-surfacekit-enterprise-readiness.md)
-for the blockers and dependency-ordered roadmap.
+The intended supported external distribution is the future immutable GitHub
+Release tarball, installed after checking its published digest. The repository
+is still private and has no 1.0 tag or release. Required remote CI, protection,
+and immutable-release settings are not accepted yet. Local tarballs are test
+artifacts, not released packages. See [RELEASE.md](RELEASE.md) for the release
+gate and [the current audit](docs/audits/2026-08-24-surfacekit-enterprise-readiness.md)
+for remaining findings.

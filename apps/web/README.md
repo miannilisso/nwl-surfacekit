@@ -1,13 +1,13 @@
 # SurfaceKit web reference
 
-This Next.js `16.3.2` App Router application is the reference consumer for
+This Next.js `16.3.6` App Router application is the reference consumer for
 @nwl/surfacekit. It renders two public marketing routes and eight playground
 routes from the same typed catalog used by repository contracts.
 
 ## Requirements and commands
 
-Use Node.js `^20.19.0 || ^22.13.0 || >=24.0.0` and pnpm `11.23.0` from the
-monorepo root. The app currently runs React `19.2.8`; Next uses Turbopack for
+Use Node.js `^20.19.0 || ^22.13.0 || >=24.0.0` and pnpm `12.5.1` from the
+monorepo root. The app currently runs React `19.3.0`; Next uses Turbopack for
 development and production builds.
 
 ```bash
@@ -25,14 +25,14 @@ The local URL is <http://localhost:3000>.
 | ---------------------------- | ------------------------------------------------------- |
 | /                            | SurfaceKit landing page and live operations composition |
 | /marketing                   | Capability explorer for all components and patterns     |
-| /playground                  | Searchable catalog overview                             |
-| /playground/form-inputs      | 18 live component examples                              |
+| /playground                  | Searchable catalog overview of 73 modules               |
+| /playground/form-inputs      | 19 live component examples                              |
 | /playground/navigation       | 5 live component examples                               |
 | /playground/dialogs-overlays | 11 live component examples                              |
 | /playground/data-display     | 13 live component examples                              |
 | /playground/feedback         | 4 live component examples                               |
 | /playground/layout-utilities | 9 live component examples                               |
-| /playground/patterns         | 10 live enterprise-pattern examples                     |
+| /playground/patterns         | 12 live enterprise-pattern examples                     |
 
 Every catalog entry has a stable direct-link anchor, for example
 `/playground/form-inputs#input-otp`. The former root-level category URLs remain
@@ -52,11 +52,22 @@ permanent redirects to the corresponding nested routes.
   package source.
 - AppSidebar.renderItem supplies Next.js Link semantics without coupling the
   package to Next.js.
+- The app owns the supplied Outfit, Geist, and Geist Mono variable font files
+  under `public/fonts` and overrides the package's system-font tokens in
+  `app/reference-fonts.css`. Storybook uses that same local stylesheet. The
+  package tarball contains no app brand fonts.
+- `app/manifest.ts` supplies a root-scoped standalone manifest starting at
+  `/playground`. `PwaRegistrar` registers `/sw.js` only in production. Its
+  network-first navigation fallback is a static offline shell; live data,
+  authentication responses, API responses, and sensitive routes are outside
+  the cache boundary. Storybook does not register the app service worker.
+- Auth pages are demonstrations of controlled package UI; this app does not
+  authenticate users or issue sessions.
 
 ## Storybook
 
-Storybook `10.5.10` with Vite `8.2.2` is configured in
-`apps/web/.storybook`; all 70 public-module stories live in `apps/web/stories`,
+Storybook `10.6.0` with Vite `8.3.0` is configured in
+`apps/web/.storybook`; all 73 public-module stories live in `apps/web/stories`,
 with one additional Introduction story supplied by the Storybook configuration.
 
 ```bash
@@ -69,7 +80,8 @@ Storybook opens `SurfaceKit/Introduction` by default. Its global toolbar applies
 light or dark mode to every story, and the Introduction overview directs
 reviewers to the public-module stories, playground, and repository docs. The
 Storybook browser suite runs interaction and automated accessibility checks in
-Chromium.
+Chromium. The Vite build uses a split Storybook runtime chunk and a targeted
+upstream eval-warning exception; current builds have no chunk-size warning.
 
 ## Browser verification
 
@@ -88,13 +100,16 @@ pnpm test:e2e:production
 
 The suite covers all 10 routes, automated A/AA axe rules, representative
 keyboard and pointer workflows in Chromium, Firefox, and WebKit, and 30
-Chromium-specific visual baselines. Automated accessibility results identify
-common detectable violations and do not replace manual assistive-technology
-testing.
+Chromium-specific visual baselines. Separate mobile checks render every
+Storybook story at 320px, 375px, and 768px and exercise safe-area navigation,
+scrollbars, and touch targets. Automated accessibility results identify common
+detectable violations and do not replace manual assistive-technology testing.
 
 Playwright's root is `tests/e2e`, so specs in linked worktrees are never loaded.
-The production command builds the app before starting `next start`; running a
-development server is not equivalent production verification.
+The production command builds the package, app, and Storybook before starting
+production servers. The latest full-gate attempt after Task 6C is blocked by
+WebKit page creation on this host; see the
+[readiness audit](../../docs/audits/2026-08-24-surfacekit-enterprise-readiness.md).
 
 For a focused run:
 
@@ -129,6 +144,7 @@ Keep the five-set contract synchronized:
 pnpm test:contracts reports duplicates, missing artifacts, stale registrations,
 and placeholder tests.
 
-This app proves the in-repository source integration. It does not prove that
-the current private raw-source tarball is a stable external package; see the
-[enterprise-readiness audit](../../docs/audits/2026-08-24-surfacekit-enterprise-readiness.md).
+The reference app uses compiled package exports. Separate clean Next/Vite
+fixtures install the local tarball and verify builds, SSR, hydration, themes,
+and React identity. This evidence does not constitute a published release;
+see the [enterprise-readiness audit](../../docs/audits/2026-08-24-surfacekit-enterprise-readiness.md).

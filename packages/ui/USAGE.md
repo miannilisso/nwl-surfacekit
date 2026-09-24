@@ -37,8 +37,23 @@ SurfaceKit stylesheet.
 
 The distributable CSS uses generic system font fallbacks. Applications own any
 brand-font files and override SurfaceKit's font tokens at their root. The
-official external package will be the immutable 1.0 GitHub Release tarball;
-local development tarballs are verification artifacts, not releases.
+reference Next app owns its supplied Outfit, Geist, and Geist Mono files; they
+are not in the package tarball. The supported external package is planned as an
+immutable 1.0 GitHub Release tarball; none is available yet.
+
+For local verification, run `pnpm --filter @nwl/surfacekit build`, then
+`pnpm --dir packages/ui pack`, and `pnpm test:consumers` from the repository
+root. The consumer gate packs once, installs the same tarball without workspace
+links in Next.js and Vite fixtures, and checks exports/types, production builds,
+SSR, hydration, themes, and React identity. A future release consumer should
+download the GitHub Release asset, verify its SHA-256 against `SHA256SUMS`, then
+install that exact `.tgz` with its React 19 peers. See [RELEASE.md](../../RELEASE.md).
+
+The package does not import browser globals during server render. Current
+reference and clean-consumer SSR/hydration checks cover representative flows;
+they do not guarantee every host integration. The app/Storybook mobile matrix
+checks 320px, 375px, and 768px; components with intentional horizontal content
+retain touch scrolling rather than widening the document.
 
 ## Application-shell example
 
@@ -96,6 +111,22 @@ surface shares one persisted preference. `AppShell.footer` renders after the
 main content in a `contentinfo` landmark. `AppSidebar.footer` stays after the
 navigation list and is useful for secondary actions such as Home or account
 navigation.
+
+## Auth UI boundary
+
+`@nwl/surfacekit/components/password-input`,
+`@nwl/surfacekit/patterns/auth-shell`, `.../auth-form`,
+`.../security-challenge`, and `.../step-up-dialog` provide controlled input,
+request, challenge, and dialog states. The host app supplies values, callbacks,
+transport, and identity-provider integration. A callback means a request was
+raised, not that authentication or step-up verification succeeded. The host owns
+credential protection, sessions, throttling, account enumeration policy, and
+server-side authorization. `PermissionGate` is a UI display boundary only.
+
+The other public categories are individual `components/<name>` and
+`patterns/<name>` modules, the aggregate `patterns` export,
+`hooks/use-mobile`, `lib/utils`, and `globals.css`. There is no JavaScript
+package-root export or consumer `postcss.config` entry.
 
 ## Router-aware links
 
@@ -161,6 +192,7 @@ pnpm test:components:coverage
 pnpm --filter @nwl/surfacekit typecheck
 pnpm --filter @nwl/surfacekit build
 pnpm --dir packages/ui pack
+pnpm test:consumers
 pnpm test:storybook
 ```
 
@@ -168,8 +200,6 @@ For a new public module, add the source and export, behavioral test, Storybook
 story, typed catalog record, and route-local demo before considering it
 complete.
 
-See the
-[2026-08-24 enterprise-readiness audit](../../docs/audits/2026-08-24-surfacekit-enterprise-readiness.md)
-before evaluating the package for an external application. A green workspace
-suite is not evidence of a stable release tarball or general framework
-compatibility.
+See the [current enterprise-readiness audit](../../docs/audits/2026-08-24-surfacekit-enterprise-readiness.md)
+before external adoption. Local consumer success and a published immutable
+release are separate gates.
