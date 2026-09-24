@@ -30,6 +30,7 @@ const version = {
   "react-dom": "19.3.0",
   "@types/react": "19.3.0",
   "@types/react-dom": "19.3.0",
+  "@types/node": "20.19.43",
   typescript: "6.0.3",
   next: "16.3.6",
   vite: "8.3.0",
@@ -42,10 +43,14 @@ let terminating = false
 
 async function command(program, args, cwd, timeout = 180_000) {
   if (terminating) throw new Error("Consumer run is terminating")
-  const label = `${program} ${args.join(" ")}`
+  const commandArgs =
+    program === "pnpm" && cwd !== repositoryRoot && cwd !== packageRoot
+      ? ["--config.minimum-release-age=0", ...args]
+      : args
+  const label = `${program} ${commandArgs.join(" ")}`
   process.stderr.write(`${path.basename(cwd)}: ${label}\n`)
   return new Promise((resolve, reject) => {
-    const child = spawn(program, args, {
+    const child = spawn(program, commandArgs, {
       cwd,
       detached: process.platform !== "win32",
       env: {
@@ -387,6 +392,7 @@ async function installFixture(kind, tempRoot, tarball) {
   }
   const devDependencies = {
     typescript: version.typescript,
+    "@types/node": version["@types/node"],
     "@types/react": version["@types/react"],
     "@types/react-dom": version["@types/react-dom"],
   }
@@ -404,12 +410,7 @@ async function installFixture(kind, tempRoot, tarball) {
       2
     )
   )
-  await command(
-    "pnpm",
-    ["install", "--ignore-workspace", "--config.minimum-release-age=0"],
-    root,
-    180_000
-  )
+  await command("pnpm", ["install", "--ignore-workspace"], root, 180_000)
   return root
 }
 
@@ -493,25 +494,46 @@ async function main() {
   )
   const tempRoot = await temporaryRootPromise
   try {
-    await command(
-      "pnpm",
-      ["--filter", "@nwl/surfacekit", "build"],
-      repositoryRoot
-    )
-    const packed = JSON.parse(
+    const externalTarball = process.env.SURFACEKIT_RELEASE_TARBALL
+    let tarball
+    let files
+    let beforeSha256
+    if (externalTarball) {
+      tarball = path.resolve(externalTarball)
+      const expected = process.env.SURFACEKIT_RELEASE_SHA256
+      assert.match(expected ?? "", /^[a-f0-9]{64}$/, "Missing release SHA-256")
+      beforeSha256 = sha256(await readFile(tarball))
+      assert.equal(
+        beforeSha256,
+        expected,
+        "Transferred tarball SHA-256 mismatch"
+      )
+      files = (await command("tar", ["-tzf", tarball], repositoryRoot))
+        .trim()
+        .split("\n")
+        .map((name) => name.replace(/^package\//, ""))
+        .sort()
+    } else {
       await command(
         "pnpm",
-        ["pack", "--pack-destination", tempRoot, "--json"],
-        packageRoot
+        ["--filter", "@nwl/surfacekit", "build"],
+        repositoryRoot
       )
-    )
-    const tarball = packed.filename
-    assert(
-      path.resolve(tarball).startsWith(`${tempRoot}${path.sep}`),
-      "Tarball escaped fixture directory"
-    )
-    const files = packed.files.map(({ path: name }) => name).sort()
-    const beforeSha256 = sha256(await readFile(tarball))
+      const packed = JSON.parse(
+        await command(
+          "pnpm",
+          ["pack", "--pack-destination", tempRoot, "--json"],
+          packageRoot
+        )
+      )
+      tarball = packed.filename
+      assert(
+        path.resolve(tarball).startsWith(`${tempRoot}${path.sep}`),
+        "Tarball escaped fixture directory"
+      )
+      files = packed.files.map(({ path: name }) => name).sort()
+      beforeSha256 = sha256(await readFile(tarball))
+    }
     const specifiers = publicSpecifiers(files)
     const nextRoot = await installFixture("next", tempRoot, tarball)
     const viteRoot = await installFixture("vite", tempRoot, tarball)

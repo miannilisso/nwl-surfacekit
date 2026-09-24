@@ -15,10 +15,9 @@ async function readWorkspaceFile(path: string) {
 describe("repository controls", () => {
   it("uses immutable, least-privilege GitHub Actions and tracks updates", async () => {
     const workflows = await Promise.all(
-      [
-        ".github/workflows/verify.yml",
-        ".github/workflows/release-canary.yml",
-      ].map(readWorkspaceFile)
+      [".github/workflows/verify.yml", ".github/workflows/release.yml"].map(
+        readWorkspaceFile
+      )
     )
     const actions = workflows.flatMap((workflow) => [
       ...workflow.matchAll(actionReference),
@@ -32,7 +31,7 @@ describe("repository controls", () => {
     ).toBe(true)
     expect(
       workflows.every((workflow) =>
-        /actions\/checkout@[0-9a-f]{40}\s+#\s+v[\d.]+\n\s+with:\n\s+persist-credentials: false/.test(
+        /actions\/checkout@[0-9a-f]{40}\s+#\s+v[\d.]+\n\s+with:\n(?:\s+[^\n]+\n)*?\s+persist-credentials: false/.test(
           workflow
         )
       )
