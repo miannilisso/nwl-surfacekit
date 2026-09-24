@@ -33,6 +33,7 @@ type MockConfig = {
   rulesetDetails?: Record<string, Record<string, unknown>>
   rulesets?: Array<{ id: number }>
   runs?: { workflow_runs: Array<Record<string, unknown>> }
+  sameNamedBranchCommit?: string
 }
 
 const protectedTagRuleset = {
@@ -198,8 +199,10 @@ else if (/\\/rulesets\\/\\d+$/.test(endpoint)) console.log(JSON.stringify(data.r
 else if (endpoint.includes("actions/workflows/verify.yml/runs")) console.log(JSON.stringify(data.runs))
 else if (/actions\\/runs\\/\\d+\\/jobs/.test(endpoint)) console.log(JSON.stringify(data.jobs))
 else if (endpoint.includes("/commits/")) {
-  const count = log.split("\\n").filter((line) => line.startsWith("gh api ") && line.includes("/commits/")).length
-  const commits = data.liveTagCommits
+  const explicitTag = endpoint.endsWith(\`/commits/tags%2F\${process.env.TAG}\`)
+  const request = explicitTag ? \`/commits/tags%2F\${process.env.TAG}\` : \`/commits/\${process.env.TAG}\`
+  const count = log.split("\\n").filter((line) => line.startsWith("gh api ") && line.includes(request)).length
+  const commits = explicitTag || !data.sameNamedBranchCommit ? data.liveTagCommits : [data.sameNamedBranchCommit]
   const sha = commits[Math.min(count - 1, commits.length - 1)]
   console.log(jq === ".sha" ? sha : JSON.stringify({ sha }))
 }
@@ -332,6 +335,101 @@ it("rejects tag protection that allows update or deletion", async () => {
   )
 })
 
+it("rejects an exact exclusion from an otherwise qualifying tag ruleset", async () => {
+  await withMockCommands(
+    {
+      rulesetDetails: {
+        "7": {
+          ...protectedTagRuleset,
+          conditions: {
+            ref_name: {
+              include: ["~ALL"],
+              exclude: [`refs/tags/${tag}`],
+            },
+          },
+        },
+      },
+    },
+    async ({ env, root }) => {
+      const result = await execute("node", [releaseGate, "policy"], {
+        cwd: root,
+        env,
+      })
+      expect(result).toMatchObject({ ok: false })
+      expect(result.stderr).toContain(
+        "active tag update and deletion protection is required"
+      )
+    }
+  )
+})
+
+it("rejects wildcard exclusions without approximating GitHub fnmatch", async () => {
+  await withMockCommands(
+    {
+      rulesetDetails: {
+        "7": {
+          ...protectedTagRuleset,
+          conditions: {
+            ref_name: {
+              include: ["~ALL"],
+              exclude: ["refs/tags/surfacekit-v*"],
+            },
+          },
+        },
+      },
+    },
+    async ({ env, root }) => {
+      const result = await execute("node", [releaseGate, "policy"], {
+        cwd: root,
+        env,
+      })
+      expect(result).toMatchObject({ ok: false })
+      expect(result.stderr).toContain(
+        "active tag update and deletion protection is required"
+      )
+    }
+  )
+})
+
+it("rejects a failed latest main-push verification run", async () => {
+  await withMockCommands(
+    {
+      runs: {
+        workflow_runs: [
+          {
+            id: 41,
+            head_sha: commit,
+            head_branch: "main",
+            event: "push",
+            created_at: "2026-09-24T10:00:00Z",
+            status: "completed",
+            conclusion: "success",
+          },
+          {
+            id: 42,
+            head_sha: commit,
+            head_branch: "main",
+            event: "push",
+            created_at: "2026-09-24T11:00:00Z",
+            status: "completed",
+            conclusion: "failure",
+          },
+        ],
+      },
+    },
+    async ({ env, root }) => {
+      const result = await execute("node", [releaseGate, "verification"], {
+        cwd: root,
+        env,
+      })
+      expect(result).toMatchObject({ ok: false })
+      expect(result.stderr).toContain(
+        "latest main push verification workflow did not succeed"
+      )
+    }
+  )
+})
+
 it("rejects a missing required verification job", async () => {
   await withMockCommands({ jobs: { jobs: [] } }, async ({ env, root }) => {
     const result = await execute("node", [releaseGate, "verification"], {
@@ -395,7 +493,7 @@ it("rechecks immutable policy after the protected environment wait", async () =>
   )
 })
 
-it("rechecks update and deletion protection after the environment wait", async () => {
+it("rechecks wildcard exclusions after the environment wait", async () => {
   const script = await workflowRun(
     ".github/workflows/release.yml",
     "Recheck immutable release and tag protection"
@@ -405,13 +503,35 @@ it("rechecks update and deletion protection after the environment wait", async (
       rulesetDetails: {
         "7": {
           ...protectedTagRuleset,
-          rules: [{ type: "deletion" }],
+          conditions: {
+            ref_name: {
+              include: ["~ALL"],
+              exclude: ["refs/tags/surfacekit-v*"],
+            },
+          },
         },
       },
     },
     async ({ env, root }) => {
       const result = await execute("bash", ["-c", script], { cwd: root, env })
       expect(result).toMatchObject({ ok: false })
+    }
+  )
+})
+
+it("resolves an explicit tag ref when a branch has the same name", async () => {
+  const script = await workflowRun(
+    ".github/workflows/release.yml",
+    "Create a draft with every verified asset"
+  )
+  await withMockCommands(
+    { liveTagCommits: [commit], sameNamedBranchCommit: movedCommit },
+    async ({ env, readLog, root }) => {
+      const result = await execute("bash", ["-c", script], { cwd: root, env })
+      expect(result, result.stderr).toMatchObject({ ok: true })
+      expect(await readLog()).toContain(
+        `gh api repos/${repository}/commits/tags%2F${tag} --jq .sha`
+      )
     }
   )
 })
@@ -490,7 +610,7 @@ it("checks the live tag immediately around ordered draft and publication actions
       const commands = (await readLog()).trim().split("\n")
       const tagChecks = commands
         .map((command, index) => ({ command, index }))
-        .filter(({ command }) => command.includes(`/commits/${tag}`))
+        .filter(({ command }) => command.includes(`/commits/tags%2F${tag}`))
         .map(({ index }) => index)
       const create = commands.findIndex((command) =>
         command.startsWith(`gh release create ${tag}`)

@@ -188,7 +188,7 @@ jobs:
               .target == "tag" and
               .enforcement == "active" and
               ((.conditions.ref_name.include // []) | any(. == "~ALL" or . == $ref)) and
-              ((.conditions.ref_name.exclude // []) | all(. != "~ALL" and . != $ref)) and
+              ((.conditions.ref_name.exclude // []) | length == 0) and
               (([.rules[]?.type] | index("update")) != null) and
               (([.rules[]?.type] | index("deletion")) != null)
             ' <<< "$ruleset"; then
@@ -205,7 +205,8 @@ jobs:
             echo "Release already exists: $TAG" >&2
             exit 1
           fi
-          remote_tag_commit="$(gh api "repos/$GITHUB_REPOSITORY/commits/$TAG" --jq '.sha')"
+          tag_ref="$(jq -rn --arg ref "tags/$TAG" '$ref | @uri')"
+          remote_tag_commit="$(gh api "repos/$GITHUB_REPOSITORY/commits/$tag_ref" --jq '.sha')"
           if [ "$remote_tag_commit" != "$TAG_COMMIT" ]; then
             echo "remote tag moved before draft creation" >&2
             exit 1
@@ -229,13 +230,14 @@ jobs:
           set -- release/*.tgz
           tarball="$(basename "$1")"
           digest="$(sha256sum "$1" | cut -d ' ' -f1)"
-          remote_tag_commit="$(gh api "repos/$GITHUB_REPOSITORY/commits/$TAG" --jq '.sha')"
+          tag_ref="$(jq -rn --arg ref "tags/$TAG" '$ref | @uri')"
+          remote_tag_commit="$(gh api "repos/$GITHUB_REPOSITORY/commits/$tag_ref" --jq '.sha')"
           if [ "$remote_tag_commit" != "$TAG_COMMIT" ]; then
             echo "remote tag moved before publication" >&2
             exit 1
           fi
           gh release edit "$TAG" --draft=false
-          released_tag_commit="$(gh api "repos/$GITHUB_REPOSITORY/commits/$TAG" --jq '.sha')"
+          released_tag_commit="$(gh api "repos/$GITHUB_REPOSITORY/commits/$tag_ref" --jq '.sha')"
           if [ "$released_tag_commit" != "$TAG_COMMIT" ]; then
             echo "released tag identity changed" >&2
             exit 1

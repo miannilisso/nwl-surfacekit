@@ -70,15 +70,12 @@ function rulesetProtectsTag(ruleset, tagRef) {
   const targetsTag = includes.some(
     (pattern) => pattern === "~ALL" || pattern === tagRef
   )
-  const excludesTag = excludes.some(
-    (pattern) => pattern === "~ALL" || pattern === tagRef
-  )
   const ruleTypes = new Set((ruleset.rules ?? []).map((rule) => rule.type))
   return (
     ruleset.target === "tag" &&
     ruleset.enforcement === "active" &&
     targetsTag &&
-    !excludesTag &&
+    excludes.length === 0 &&
     ruleTypes.has("update") &&
     ruleTypes.has("deletion")
   )
