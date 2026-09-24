@@ -15,12 +15,14 @@ it("runs full verification on Node 20 and focused checks on Node 22 and 24", asy
   expect(workflow).toContain("needs.verify-supported.result")
 })
 
-it("gates a single immutable release on main, version, required verification, and transferred bytes", async () => {
+it("wires executable release gates and preserves transferred artifact verification", async () => {
   const workflow = await read(".github/workflows/release.yml")
   expect(workflow).toContain("surfacekit-v1.0.0")
-  expect(workflow).toContain("immutable-releases")
-  expect(workflow).toContain("branches/main/protection")
-  expect(workflow).toContain("verification-required")
+  expect(workflow).toContain("node scripts/check-release-gates.mjs identity")
+  expect(workflow).toContain("node scripts/check-release-gates.mjs policy")
+  expect(workflow).toContain(
+    "node scripts/check-release-gates.mjs verification"
+  )
   expect(workflow).toContain("verify-release-artifact.mjs")
   expect(workflow).toContain("SURFACEKIT_RELEASE_TARBALL")
   expect(workflow).toContain("sha256sum -c")
