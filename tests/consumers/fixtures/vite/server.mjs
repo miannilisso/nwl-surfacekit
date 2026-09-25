@@ -27,21 +27,26 @@ createServer(async (request, response) => {
     response.writeHead(200, { "content-type": "text/html" })
     response.end(body)
     const diagnostic = process.env.SURFACEKIT_TEST_SERVER_WARNING
-    if (
-      ["stderr", "stdout", "stderr-error"].includes(diagnostic) &&
-      !emittedFixtureWarning
-    ) {
+    if (diagnostic && !emittedFixtureWarning) {
       emittedFixtureWarning = true
-      const output = diagnostic === "stdout" ? process.stdout : process.stderr
-      const isError = diagnostic === "stderr-error"
-      output.write(isError ? "Err" : "Warn")
+      const output = diagnostic.startsWith("stdout")
+        ? process.stdout
+        : process.stderr
+      const message =
+        diagnostic === "stderr-error"
+          ? "Error: fixture SSR error"
+          : diagnostic === "stdout-deprecation"
+            ? "DeprecationWarning: fixture SSR diagnostic"
+            : diagnostic === "stdout-type-error"
+              ? "TypeError: fixture SSR diagnostic"
+              : diagnostic === "stdout-unhandled-rejection"
+                ? "UnhandledPromiseRejectionWarning: fixture SSR diagnostic"
+                : "Warning: fixture SSR warning"
+      const midpoint = Math.max(1, Math.floor(message.length / 2))
+      output.write(message.slice(0, midpoint))
       setTimeout(
         () =>
-          output.write(
-            isError
-              ? "or: fixture SSR error\n  post-request detail\n"
-              : "ing: fixture SSR warning\n  post-request detail\n"
-          ),
+          output.write(`${message.slice(midpoint)}\n  post-request detail\n`),
         10
       )
     }

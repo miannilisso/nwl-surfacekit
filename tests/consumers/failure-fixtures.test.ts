@@ -25,6 +25,7 @@ async function runFailureFixture(env: Record<string, string>) {
 it.each([
   ["tokens-only", "Button component CSS is missing"],
   ["light-only", "Button dark component CSS did not change"],
+  ["transparent-theme", "Button component CSS is missing"],
 ] as const)(
   "fails the direct packed-consumer runner when the %s browser fixture lacks component styling",
   async (fixture, message) => {
@@ -43,6 +44,12 @@ it.each([
   ["stderr", "Warning: fixture SSR warning"],
   ["stdout", "Warning: fixture SSR warning"],
   ["stderr-error", "Error: fixture SSR error"],
+  ["stdout-deprecation", "DeprecationWarning: fixture SSR diagnostic"],
+  ["stdout-type-error", "TypeError: fixture SSR diagnostic"],
+  [
+    "stdout-unhandled-rejection",
+    "UnhandledPromiseRejectionWarning: fixture SSR diagnostic",
+  ],
 ] as const)(
   "fails after a successful SSR response emits a chunked multiline diagnostic on %s",
   async (stream, diagnostic) => {

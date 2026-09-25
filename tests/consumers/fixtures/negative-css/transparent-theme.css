@@ -1,0 +1,18 @@
+:root {
+  --background: #ffffff;
+}
+
+.dark {
+  --background: #111827;
+}
+
+[data-slot="button"] {
+  display: inline-flex;
+  height: 32px;
+  padding-inline: 12px;
+  background-color: rgb(255 0 0 / 0%);
+}
+
+.dark [data-slot="button"] {
+  background-color: rgb(0 0 255 / 0%);
+}

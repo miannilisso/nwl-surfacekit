@@ -37,6 +37,8 @@ const version = {
 }
 const commands = []
 const activeChildren = new Set()
+const SSR_STDOUT_DIAGNOSTIC_PATTERN =
+  /\b(?:warn|(?:[a-z][a-z0-9]*)?warning|(?:aggregate|assertion|eval|internal|range|reference|syntax|system|type|uri)?error|fatal|(?:dom)?exception)\b|⚠/i
 let temporaryRootPromise
 let cleanupPromise
 let terminating = false
@@ -236,10 +238,7 @@ async function stopServer({ child, closed, output }) {
   assert(didClose, "SSR server did not close after SIGKILL")
   const stdout = output.stdout.replace(/\x1b\[[0-9;]*m/g, "")
   // Startup banners use stdout; any stderr or diagnostic stdout is unexpected.
-  if (
-    output.stderr.trim() ||
-    /\b(?:warn(?:ing)?|error|fatal|exception)\b|⚠/i.test(stdout)
-  ) {
+  if (output.stderr.trim() || SSR_STDOUT_DIAGNOSTIC_PATTERN.test(stdout)) {
     throw new Error(
       `Unexpected SSR server output:\nstdout:\n${output.stdout}\nstderr:\n${output.stderr}`
     )
@@ -314,15 +313,7 @@ async function browserSmoke(url, expectedTitle) {
     await page.getByRole("heading", { name: expectedTitle }).waitFor()
     const button = page.getByRole("button", { name: "Clicks 0" })
     await button.waitFor()
-    const lightButton = await button.evaluate((element) => {
-      const style = getComputedStyle(element)
-      return {
-        display: style.display,
-        height: style.height,
-        paddingInlineStart: style.paddingInlineStart,
-        backgroundColor: style.backgroundColor,
-      }
-    })
+    const lightButton = await readButtonStyle(button)
     const light = await page.evaluate(() =>
       getComputedStyle(document.documentElement)
         .getPropertyValue("--background")
@@ -345,17 +336,9 @@ async function browserSmoke(url, expectedTitle) {
           setTimeout(resolve, Math.max(0, ...durations) + 50)
         })
     )
-    const darkButton = await page
-      .getByRole("button", { name: "Clicks 1" })
-      .evaluate((element) => {
-        const style = getComputedStyle(element)
-        return {
-          display: style.display,
-          height: style.height,
-          paddingInlineStart: style.paddingInlineStart,
-          backgroundColor: style.backgroundColor,
-        }
-      })
+    const darkButton = await readButtonStyle(
+      page.getByRole("button", { name: "Clicks 1" })
+    )
     const dark = await page.evaluate(() => ({
       className: document.documentElement.className,
       background: getComputedStyle(document.documentElement)
@@ -389,8 +372,7 @@ async function browserSmoke(url, expectedTitle) {
         `Button component CSS is missing in ${theme} theme: padding`
       )
       assert(
-        style.backgroundColor !== "transparent" &&
-          style.backgroundColor !== "rgba(0, 0, 0, 0)",
+        style.backgroundAlpha > 0,
         `Button component CSS is missing in ${theme} theme: background`
       )
     }
@@ -411,6 +393,27 @@ async function browserSmoke(url, expectedTitle) {
   } finally {
     await browser.close()
   }
+}
+
+async function readButtonStyle(button) {
+  return button.evaluate((element) => {
+    const style = getComputedStyle(element)
+    const canvas = document.createElement("canvas")
+    canvas.width = 1
+    canvas.height = 1
+    const context = canvas.getContext("2d", { willReadFrequently: true })
+    if (!context) throw new Error("Canvas color probe is unavailable")
+    context.clearRect(0, 0, 1, 1)
+    context.fillStyle = style.backgroundColor
+    context.fillRect(0, 0, 1, 1)
+    return {
+      display: style.display,
+      height: style.height,
+      paddingInlineStart: style.paddingInlineStart,
+      backgroundColor: style.backgroundColor,
+      backgroundAlpha: context.getImageData(0, 0, 1, 1).data[3],
+    }
+  })
 }
 
 async function checkConsumer(root, specifiers) {
@@ -467,7 +470,7 @@ async function installFixture(kind, tempRoot, tarball) {
   const cssFixture = process.env.SURFACEKIT_TEST_CSS_FIXTURE
   if (cssFixture) {
     assert(
-      ["tokens-only", "light-only"].includes(cssFixture),
+      ["tokens-only", "light-only", "transparent-theme"].includes(cssFixture),
       "Unknown consumer CSS fixture"
     )
     const sourceFile = path.join(
