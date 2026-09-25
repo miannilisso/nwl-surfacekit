@@ -1,5 +1,6 @@
 import * as React from "react"
 import { renderToString } from "react-dom/server"
+import { hydrateRoot } from "react-dom/client"
 import { fireEvent, render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { describe, expect, it, vi } from "vitest"
@@ -28,6 +29,91 @@ function Harness({ onSubmit = vi.fn(), onResend = vi.fn() }) {
 }
 
 describe("SecurityChallenge", () => {
+  it("serializes an inert POST recovery form before hydration despite caller props", () => {
+    const markup = renderToString(
+      <SecurityChallenge
+        method="recovery-code"
+        methods={["recovery-code"]}
+        onMethodChange={() => undefined}
+        value="KEEP7"
+        onValueChange={() => undefined}
+        name="recovery"
+        inert={false}
+        footer={<button type="button">Restart challenge</button>}
+      />
+    )
+    const document = new DOMParser().parseFromString(markup, "text/html")
+    const form = document.querySelector("form")
+    expect(form?.getAttribute("method")).toBe("post")
+    expect(form?.hasAttribute("inert")).toBe(true)
+    expect(form?.querySelector("fieldset")?.hasAttribute("disabled")).toBe(true)
+    expect(
+      form?.querySelector('input[name="recovery"]')?.getAttribute("value")
+    ).toBe("KEEP7")
+    expect(form?.querySelectorAll("button")).toHaveLength(2)
+  })
+
+  it("hydrates recovery input in place and resumes one prevented submit", async () => {
+    const onSubmit = vi.fn()
+    const element = (
+      <SecurityChallenge
+        method="recovery-code"
+        methods={["recovery-code"]}
+        onMethodChange={() => undefined}
+        value="KEEP7"
+        onValueChange={() => undefined}
+        onSubmit={onSubmit}
+        footer={<button type="button">Restart challenge</button>}
+      />
+    )
+    const host = document.createElement("div")
+    document.body.append(host)
+    host.innerHTML = renderToString(element)
+    const input = host.querySelector("input")
+    const form = host.querySelector("form")
+    const error = vi.spyOn(console, "error").mockImplementation(() => undefined)
+    let root: ReturnType<typeof hydrateRoot> | undefined
+    try {
+      await React.act(async () => {
+        root = hydrateRoot(host, element)
+      })
+      expect(error).not.toHaveBeenCalled()
+      expect(host.querySelector("input")).toBe(input)
+      expect(input?.getAttribute("name")).toBe("recoveryCode")
+      expect(input?.getAttribute("value")).toBe("KEEP7")
+      expect(new FormData(form!).get("recoveryCode")).toBe("KEEP7")
+      expect(form?.hasAttribute("inert")).toBe(false)
+      expect(
+        form?.dispatchEvent(
+          new Event("submit", { bubbles: true, cancelable: true })
+        )
+      ).toBe(false)
+      expect(onSubmit).toHaveBeenCalledOnce()
+      expect(
+        host.querySelector("footer button")?.hasAttribute("disabled")
+      ).toBe(false)
+    } finally {
+      await React.act(async () => root?.unmount())
+      host.remove()
+    }
+  })
+
+  it("preserves caller-requested inert after hydration", () => {
+    render(
+      <SecurityChallenge
+        method="otp"
+        methods={["otp"]}
+        onMethodChange={() => undefined}
+        value=""
+        onValueChange={() => undefined}
+        inert
+      />
+    )
+    expect(
+      screen.getByRole("form", { name: "Security challenge" })
+    ).toHaveAttribute("inert")
+  })
+
   it("uses unique labelled control ids for multiple DOM and SSR instances", () => {
     const pair = (
       <>

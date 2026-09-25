@@ -688,6 +688,27 @@ afterAll(async () => {
 })
 
 describe("SurfaceKit compiled distribution", () => {
+  it("packs documentation links that stay usable outside the repository", async () => {
+    for (const name of ["README.md", "USAGE.md"]) {
+      const { stdout } = await execFileAsync("tar", [
+        "-xOf",
+        tarballPath,
+        `package/${name}`,
+      ])
+      expect(stdout).not.toMatch(/\]\(\.\.\//)
+      expect(stdout).toContain(
+        "https://github.com/nanewarelabs/nwl-surfacekit/blob/main/docs/audits/2026-08-24-surfacekit-enterprise-readiness.md"
+      )
+      if (name === "USAGE.md") {
+        expect(stdout).toContain(
+          "https://github.com/nanewarelabs/nwl-surfacekit/blob/main/RELEASE.md"
+        )
+      } else {
+        expect(stdout).toContain("[USAGE.md](USAGE.md)")
+      }
+    }
+  })
+
   it("builds every public JavaScript export as Node-compatible ESM with declarations and maps", async () => {
     const manifest = await readManifest()
     const moduleExports = await sourceModuleSubpaths()

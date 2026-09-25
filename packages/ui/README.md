@@ -144,4 +144,4 @@ Clean Next.js 16.3.6 and Vite 8.3.0 fixtures install the same local tarball,
 resolve all 76 JavaScript specifiers, and check builds, SSR, hydration, themes,
 and React identity. The future supported external installation is the immutable
 GitHub Release tarball after its SHA-256 is verified; no such release exists yet.
-See the [enterprise-readiness audit](../../docs/audits/2026-08-24-surfacekit-enterprise-readiness.md).
+See the [enterprise-readiness audit](https://github.com/nanewarelabs/nwl-surfacekit/blob/main/docs/audits/2026-08-24-surfacekit-enterprise-readiness.md).

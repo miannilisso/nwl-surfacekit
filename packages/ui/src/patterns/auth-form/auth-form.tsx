@@ -34,6 +34,10 @@ const defaultMessages: Partial<Record<AuthFormState, string>> = {
   expired: "This request expired. Start again.",
 }
 
+const subscribeToHydration = () => () => undefined
+const hydratedSnapshot = () => true
+const serverSnapshot = () => false
+
 function AuthForm({
   title,
   description,
@@ -47,8 +51,14 @@ function AuthForm({
   footer,
   className,
   children,
+  inert,
   ...props
 }: AuthFormProps) {
+  const hydrated = React.useSyncExternalStore(
+    subscribeToHydration,
+    hydratedSnapshot,
+    serverSnapshot
+  )
   const titleId = React.useId()
   const descriptionId = React.useId()
   const isPending = state === "pending"
@@ -62,15 +72,17 @@ function AuthForm({
       aria-labelledby={titleId}
       aria-describedby={description ? descriptionId : undefined}
       className={cn("space-y-6", className)}
+      {...props}
+      method="post"
+      inert={!hydrated || inert}
       onSubmit={(event) => {
         event.preventDefault()
         if (isBlocked) return
         onSubmit?.(event)
       }}
-      {...props}
     >
       <fieldset
-        disabled={isBlocked}
+        disabled={!hydrated || isBlocked}
         aria-labelledby={titleId}
         className="space-y-4"
       >

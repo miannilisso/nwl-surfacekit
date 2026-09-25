@@ -195,6 +195,50 @@ describe("Chart", () => {
     expect(css).toContain("--color-themed: var(--chart-dark)")
   })
 
+  it("accepts only 3, 4, 6, or 8 hex digits in direct and container styles on server and client", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined)
+    const hexConfig = {
+      three: { color: " #AbC " },
+      four: { color: "#aBcD" },
+      six: { color: "#12aBcD" },
+      eight: { theme: { light: "#12aBcDeF", dark: "#Ff00aA80" } },
+      zero: { color: "#" },
+      one: { color: "#a" },
+      two: { color: "#ab" },
+      five: { color: "#abcde" },
+      seven: { color: "#abcdef0" },
+      nine: { color: "#abcdef012" },
+      nonhex: { color: "#ggg" },
+    }
+    const expected = [
+      "--color-three: #AbC;",
+      "--color-four: #aBcD;",
+      "--color-six: #12aBcD;",
+      "--color-eight: #12aBcDeF;",
+      "--color-eight: #Ff00aA80;",
+    ]
+    const rejected = ["zero", "one", "two", "five", "seven", "nine", "nonhex"]
+    const direct = <ChartStyle id="release" config={hexConfig} />
+    const contained = (
+      <ChartContainer config={hexConfig}>
+        <div />
+      </ChartContainer>
+    )
+
+    for (const element of [direct, contained]) {
+      const server = renderToStaticMarkup(element)
+      const { container } = render(element)
+      for (const css of [
+        server,
+        container.querySelector("style")?.textContent ?? "",
+      ]) {
+        for (const declaration of expected) expect(css).toContain(declaration)
+        for (const key of rejected) expect(css).not.toContain(`--color-${key}:`)
+      }
+    }
+    expect(warn).toHaveBeenCalled()
+  })
+
   it("renders fixed container, tooltip, legend, and empty payload states", () => {
     const payload = [
       {

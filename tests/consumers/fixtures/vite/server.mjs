@@ -15,6 +15,7 @@ const contentTypes = {
   ".js": "text/javascript",
   ".html": "text/html",
 }
+let emittedFixtureWarning = false
 
 createServer(async (request, response) => {
   const pathname = new URL(request.url, "http://localhost").pathname
@@ -25,6 +26,25 @@ createServer(async (request, response) => {
     )
     response.writeHead(200, { "content-type": "text/html" })
     response.end(body)
+    const diagnostic = process.env.SURFACEKIT_TEST_SERVER_WARNING
+    if (
+      ["stderr", "stdout", "stderr-error"].includes(diagnostic) &&
+      !emittedFixtureWarning
+    ) {
+      emittedFixtureWarning = true
+      const output = diagnostic === "stdout" ? process.stdout : process.stderr
+      const isError = diagnostic === "stderr-error"
+      output.write(isError ? "Err" : "Warn")
+      setTimeout(
+        () =>
+          output.write(
+            isError
+              ? "or: fixture SSR error\n  post-request detail\n"
+              : "ing: fixture SSR warning\n  post-request detail\n"
+          ),
+        10
+      )
+    }
     return
   }
 

@@ -60,3 +60,20 @@ it("pins every action and checks the license policy and Next config on every can
   expect(manifest).toContain("check:production-licenses")
   expect(manifest).toContain("apps/web/next.config.test.ts")
 })
+
+it("uses the peeled pnpm action commit in every workflow occurrence", async () => {
+  const workflows = await Promise.all([
+    read(".github/workflows/verify.yml"),
+    read(".github/workflows/release.yml"),
+  ])
+  const lines = workflows.flatMap((workflow) => workflow.split("\n"))
+  const actionLines = lines.filter((line) =>
+    line.includes("pnpm/action-setup@")
+  )
+  expect(actionLines).toHaveLength(4)
+  for (const line of actionLines) {
+    expect(line.trim()).toBe(
+      "- uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0"
+    )
+  }
+})

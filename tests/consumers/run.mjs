@@ -41,6 +41,19 @@ let temporaryRootPromise
 let cleanupPromise
 let terminating = false
 
+function consumerEnvironment(extra = {}) {
+  const environment = {
+    ...process.env,
+    ...extra,
+    CI: "1",
+    TERM: "dumb",
+    NEXT_TELEMETRY_DISABLED: "1",
+  }
+  // NO_COLOR and FORCE_COLOR together produce a Node warning in clean fixtures.
+  delete environment.FORCE_COLOR
+  return environment
+}
+
 async function command(program, args, cwd, timeout = 180_000) {
   if (terminating) throw new Error("Consumer run is terminating")
   const commandArgs =
@@ -53,12 +66,7 @@ async function command(program, args, cwd, timeout = 180_000) {
     const child = spawn(program, commandArgs, {
       cwd,
       detached: process.platform !== "win32",
-      env: {
-        ...process.env,
-        CI: "1",
-        TERM: "dumb",
-        NEXT_TELEMETRY_DISABLED: "1",
-      },
+      env: consumerEnvironment(),
       stdio: ["ignore", "pipe", "pipe"],
     })
     activeChildren.add(child)
@@ -149,37 +157,41 @@ async function startServer(program, args, cwd, port) {
   const child = spawn(program, args, {
     cwd,
     detached: process.platform !== "win32",
-    env: {
-      ...process.env,
-      PORT: String(port),
-      CI: "1",
-      TERM: "dumb",
-      NEXT_TELEMETRY_DISABLED: "1",
-    },
+    env: consumerEnvironment({ PORT: String(port) }),
     stdio: ["ignore", "pipe", "pipe"],
   })
   activeChildren.add(child)
-  let output = ""
+  const output = { stdout: "", stderr: "" }
+  const closed = new Promise((resolve) => child.once("close", resolve))
   child.stdout.on("data", (chunk) => {
-    output += chunk.toString()
+    output.stdout += chunk.toString()
   })
   child.stderr.on("data", (chunk) => {
-    output += chunk.toString()
+    output.stderr += chunk.toString()
   })
   const url = `http://127.0.0.1:${port}/`
   try {
     for (let attempt = 0; attempt < 120; attempt += 1) {
       if (child.exitCode !== null)
-        throw new Error(`Server exited early: ${output}`)
+        throw new Error(
+          `Server exited early: ${output.stdout}\n${output.stderr}`
+        )
       try {
         const response = await fetch(url)
-        if (response.ok) return { child, url, response: await response.text() }
+        if (response.ok)
+          return {
+            child,
+            closed,
+            output,
+            url,
+            response: await response.text(),
+          }
       } catch {
         /* Server has not opened its port yet. */
       }
       await new Promise((resolve) => setTimeout(resolve, 500))
     }
-    throw new Error(`Server did not start: ${output}`)
+    throw new Error(`Server did not start: ${output.stdout}\n${output.stderr}`)
   } catch (error) {
     signalServer(child, "SIGTERM")
     throw error
@@ -195,21 +207,43 @@ function signalServer(child, signal) {
   }
 }
 
-async function stopServer(child) {
-  const stopped =
-    child.exitCode === null && child.signalCode === null
-      ? new Promise((resolve) => child.once("exit", resolve))
-      : Promise.resolve()
-  signalServer(child, "SIGTERM")
-  await Promise.race([
-    stopped,
-    new Promise((resolve) => setTimeout(resolve, 5_000)),
-  ])
+async function stopServer({ child, closed, output }) {
   if (child.exitCode === null && child.signalCode === null)
+    signalServer(child, "SIGTERM")
+  let timer
+  let didClose = await Promise.race([
+    closed.then(() => true),
+    new Promise((resolve) => {
+      timer = setTimeout(() => resolve(false), 5_000)
+    }),
+  ])
+  clearTimeout(timer)
+  if (!didClose) {
     signalServer(child, "SIGKILL")
-  child.stdout.destroy()
-  child.stderr.destroy()
+    didClose = await Promise.race([
+      closed.then(() => true),
+      new Promise((resolve) => {
+        timer = setTimeout(() => resolve(false), 5_000)
+      }),
+    ])
+    clearTimeout(timer)
+  }
+  if (!didClose) {
+    child.stdout.destroy()
+    child.stderr.destroy()
+  }
   activeChildren.delete(child)
+  assert(didClose, "SSR server did not close after SIGKILL")
+  const stdout = output.stdout.replace(/\x1b\[[0-9;]*m/g, "")
+  // Startup banners use stdout; any stderr or diagnostic stdout is unexpected.
+  if (
+    output.stderr.trim() ||
+    /\b(?:warn(?:ing)?|error|fatal|exception)\b|⚠/i.test(stdout)
+  ) {
+    throw new Error(
+      `Unexpected SSR server output:\nstdout:\n${output.stdout}\nstderr:\n${output.stderr}`
+    )
+  }
 }
 
 async function cleanup() {
@@ -268,7 +302,9 @@ async function browserSmoke(url, expectedTitle) {
   const browser = await chromium.launch({ headless: true })
   const warnings = []
   try {
-    const page = await browser.newPage()
+    const page = await browser.newPage({
+      viewport: { width: 1280, height: 800 },
+    })
     page.on("console", (message) => {
       if (["warning", "error"].includes(message.type()))
         warnings.push(message.text())
@@ -295,6 +331,20 @@ async function browserSmoke(url, expectedTitle) {
     await button.click()
     await page.getByRole("button", { name: "Clicks 1" }).waitFor()
     await page.getByRole("button", { name: "Toggle theme" }).click()
+    await page.getByRole("button", { name: "Clicks 1" }).evaluate(
+      (element) =>
+        new Promise((resolve) => {
+          const durations = getComputedStyle(element)
+            .transitionDuration.split(",")
+            .map((value) => {
+              const duration = value.trim()
+              return duration.endsWith("ms")
+                ? Number.parseFloat(duration)
+                : Number.parseFloat(duration) * 1000
+            })
+          setTimeout(resolve, Math.max(0, ...durations) + 50)
+        })
+    )
     const darkButton = await page
       .getByRole("button", { name: "Clicks 1" })
       .evaluate((element) => {
@@ -319,6 +369,36 @@ async function browserSmoke(url, expectedTitle) {
       "Dark theme CSS did not change"
     )
     assert.deepEqual(warnings, [], `Browser warnings: ${warnings.join("; ")}`)
+    for (const [theme, style] of [
+      ["light", lightButton],
+      ["dark", darkButton],
+    ]) {
+      assert.equal(
+        style.display,
+        "inline-flex",
+        `Button component CSS is missing in ${theme} theme: display`
+      )
+      assert.equal(
+        style.height,
+        "32px",
+        `Button component CSS is missing in ${theme} theme: height`
+      )
+      assert.equal(
+        style.paddingInlineStart,
+        "12px",
+        `Button component CSS is missing in ${theme} theme: padding`
+      )
+      assert(
+        style.backgroundColor !== "transparent" &&
+          style.backgroundColor !== "rgba(0, 0, 0, 0)",
+        `Button component CSS is missing in ${theme} theme: background`
+      )
+    }
+    assert.notEqual(
+      darkButton.backgroundColor,
+      lightButton.backgroundColor,
+      "Button dark component CSS did not change"
+    )
     return {
       hydrated: true,
       lightTheme: true,
@@ -384,6 +464,32 @@ async function checkConsumer(root, specifiers) {
 async function installFixture(kind, tempRoot, tarball) {
   const root = path.join(tempRoot, kind)
   await cp(path.join(fixtureSource, kind), root, { recursive: true })
+  const cssFixture = process.env.SURFACEKIT_TEST_CSS_FIXTURE
+  if (cssFixture) {
+    assert(
+      ["tokens-only", "light-only"].includes(cssFixture),
+      "Unknown consumer CSS fixture"
+    )
+    const sourceFile = path.join(
+      root,
+      kind === "next" ? "app/layout.tsx" : "src/main.tsx"
+    )
+    const cssFile = path.join(
+      root,
+      kind === "next" ? "app/negative.css" : "src/negative.css"
+    )
+    await cp(
+      path.join(fixtureSource, "negative-css", `${cssFixture}.css`),
+      cssFile
+    )
+    const source = await readFile(sourceFile, "utf8")
+    const packageImport = 'import "@nwl/surfacekit/globals.css"'
+    assert(source.includes(packageImport), "Consumer CSS import is missing")
+    await writeFile(
+      sourceFile,
+      source.replace(packageImport, 'import "./negative.css"')
+    )
+  }
   const dependencies = {
     "@nwl/surfacekit": `file:${tarball}`,
     react: version.react,
@@ -438,7 +544,7 @@ async function runNext(root) {
       ...(await browserSmoke(server.url, "SurfaceKit Next consumer")),
     }
   } finally {
-    await stopServer(server.child)
+    await stopServer(server)
   }
 }
 
@@ -484,7 +590,7 @@ async function runVite(root) {
       ...(await browserSmoke(server.url, "SurfaceKit Vite consumer")),
     }
   } finally {
-    await stopServer(server.child)
+    await stopServer(server)
   }
 }
 

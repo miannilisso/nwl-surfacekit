@@ -127,7 +127,8 @@ it.skipIf(process.platform === "win32")(
         const server = processes.split("\n").find((line) => {
           const [, parent] = line.trim().split(/\s+/)
           return (
-            parent === String(child.pid) && line.includes("next start --port")
+            parent === String(child.pid) &&
+            (line.includes("next start --port") || line.includes("next-server"))
           )
         })
         if (server) {

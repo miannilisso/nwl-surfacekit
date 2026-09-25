@@ -14,7 +14,7 @@ const THEMES = { light: "", dark: ".dark" } as const
 const INITIAL_DIMENSION = { width: 320, height: 200 } as const
 const CHART_SCOPE_PATTERN = /^[A-Za-z_][A-Za-z0-9_-]*$/
 const CHART_KEY_PATTERN = /^[A-Za-z_][A-Za-z0-9_-]*$/
-const HEX_COLOR_PATTERN = /^#[0-9a-f]{3,4}(?:[0-9a-f]{2})?$/i
+const HEX_COLOR_PATTERN = /^#(?:[0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/i
 const NAMED_COLOR_PATTERN = /^[a-z]+$/i
 const COLOR_FUNCTION_PATTERN =
   /^(?:var|rgb|rgba|hsl|hsla|hwb|lab|lch|oklab|oklch|color|color-mix|light-dark)\(/i

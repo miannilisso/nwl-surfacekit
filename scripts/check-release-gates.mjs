@@ -76,6 +76,8 @@ function rulesetProtectsTag(ruleset, tagRef) {
     ruleset.enforcement === "active" &&
     targetsTag &&
     excludes.length === 0 &&
+    Array.isArray(ruleset.bypass_actors) &&
+    ruleset.bypass_actors.length === 0 &&
     ruleTypes.has("update") &&
     ruleTypes.has("deletion")
   )

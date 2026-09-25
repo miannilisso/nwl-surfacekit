@@ -47,7 +47,7 @@ root. The consumer gate packs once, installs the same tarball without workspace
 links in Next.js and Vite fixtures, and checks exports/types, production builds,
 SSR, hydration, themes, and React identity. A future release consumer should
 download the GitHub Release asset, verify its SHA-256 against `SHA256SUMS`, then
-install that exact `.tgz` with its React 19 peers. See [RELEASE.md](../../RELEASE.md).
+install that exact `.tgz` with its React 19 peers. See [RELEASE.md](https://github.com/nanewarelabs/nwl-surfacekit/blob/main/RELEASE.md).
 
 The package does not import browser globals during server render. Current
 reference and clean-consumer SSR/hydration checks cover representative flows;
@@ -200,6 +200,6 @@ For a new public module, add the source and export, behavioral test, Storybook
 story, typed catalog record, and route-local demo before considering it
 complete.
 
-See the [current enterprise-readiness audit](../../docs/audits/2026-08-24-surfacekit-enterprise-readiness.md)
+See the [current enterprise-readiness audit](https://github.com/nanewarelabs/nwl-surfacekit/blob/main/docs/audits/2026-08-24-surfacekit-enterprise-readiness.md)
 before external adoption. Local consumer success and a published immutable
 release are separate gates.

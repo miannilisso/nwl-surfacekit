@@ -391,6 +391,80 @@ it("rejects wildcard exclusions without approximating GitHub fnmatch", async () 
   )
 })
 
+it.each([
+  ["missing", undefined],
+  ["null", null],
+  ["object", { actor_type: "Team" }],
+  ["string", "none"],
+  ["number", 0],
+  ["boolean", false],
+  ["team", [{ actor_type: "Team", bypass_mode: "always" }]],
+  ["app", [{ actor_type: "Integration", bypass_mode: "pull_request" }]],
+  ["role", [{ actor_type: "RepositoryRole", bypass_mode: "always" }]],
+  ["admin", [{ actor_type: "OrganizationAdmin", bypass_mode: "pull_request" }]],
+  ["unknown mode", [{ actor_type: "Team", bypass_mode: "future" }]],
+  ["unknown actor", [{ actor_type: "FutureActor", bypass_mode: "always" }]],
+  [
+    "unknown actor and mode",
+    [{ actor_type: "FutureActor", bypass_mode: "future" }],
+  ],
+] as const)(
+  "rejects %s immutable-tag bypass actors at both release gates",
+  async (_, bypassActors) => {
+    const recheck = await workflowRun(
+      ".github/workflows/release.yml",
+      "Recheck immutable release and tag protection"
+    )
+    await withMockCommands(
+      {
+        rulesetDetails: {
+          "7": { ...protectedTagRuleset, bypass_actors: bypassActors },
+        },
+      },
+      async ({ env, root }) => {
+        for (const [program, args] of [
+          ["node", [releaseGate, "policy"]],
+          ["bash", ["-c", recheck]],
+        ] as const) {
+          const result = await execute(program, [...args], { cwd: root, env })
+          expect(result, `${program}: ${result.stderr}`).toMatchObject({
+            ok: false,
+          })
+        }
+      }
+    )
+  }
+)
+
+it("accepts a separate creation ruleset with bypass and an immutable update/delete ruleset without bypass", async () => {
+  const recheck = await workflowRun(
+    ".github/workflows/release.yml",
+    "Recheck immutable release and tag protection"
+  )
+  await withMockCommands(
+    {
+      rulesets: [{ id: 7 }, { id: 8 }],
+      rulesetDetails: {
+        "7": {
+          ...protectedTagRuleset,
+          bypass_actors: [{ actor_type: "Team", bypass_mode: "always" }],
+          rules: [{ type: "creation" }],
+        },
+        "8": { ...protectedTagRuleset, id: 8 },
+      },
+    },
+    async ({ env, root }) => {
+      const policy = await execute("node", [releaseGate, "policy"], {
+        cwd: root,
+        env,
+      })
+      expect(policy, policy.stderr).toMatchObject({ ok: true })
+      const publish = await execute("bash", ["-c", recheck], { cwd: root, env })
+      expect(publish, publish.stderr).toMatchObject({ ok: true })
+    }
+  )
+})
+
 it("rejects a failed latest main-push verification run", async () => {
   await withMockCommands(
     {

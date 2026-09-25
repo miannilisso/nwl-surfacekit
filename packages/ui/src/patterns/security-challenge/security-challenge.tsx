@@ -25,6 +25,10 @@ const defaultMessages: Partial<Record<SecurityChallengeState, string>> = {
   expired: "This challenge expired. Start again.",
 }
 
+const subscribeToHydration = () => () => undefined
+const hydratedSnapshot = () => true
+const serverSnapshot = () => false
+
 interface SecurityChallengeProps extends Omit<
   React.ComponentProps<"form">,
   "onSubmit"
@@ -65,8 +69,14 @@ function SecurityChallenge({
   onResend,
   footer,
   className,
+  inert,
   ...props
 }: SecurityChallengeProps) {
+  const hydrated = React.useSyncExternalStore(
+    subscribeToHydration,
+    hydratedSnapshot,
+    serverSnapshot
+  )
   const controlId = React.useId()
   const controlRef = React.useRef<HTMLInputElement>(null)
   const isPending = state === "pending"
@@ -89,13 +99,15 @@ function SecurityChallenge({
       aria-label="Security challenge"
       aria-busy={isPending || undefined}
       className={cn("space-y-4", className)}
+      {...props}
+      method="post"
+      inert={!hydrated || inert}
       onSubmit={(event) => {
         event.preventDefault()
         if (!isBlocked) onSubmit?.()
       }}
-      {...props}
     >
-      <fieldset disabled={isBlocked} className="space-y-4">
+      <fieldset disabled={!hydrated || isBlocked} className="space-y-4">
         <legend className="font-heading text-lg font-semibold">
           Security challenge
         </legend>
