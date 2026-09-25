@@ -12,7 +12,14 @@ development and production builds.
 
 ```bash
 pnpm install --frozen-lockfile
-pnpm --filter web dev
+pnpm dev
+```
+
+`pnpm dev` builds the package before starting the web app and package watcher.
+For a production build and server from a fresh install, run:
+
+```bash
+pnpm build:packages
 pnpm --filter web build
 pnpm --filter web start
 ```
@@ -85,14 +92,8 @@ upstream eval-warning exception; current builds have no chunk-size warning.
 
 ## Browser verification
 
-Build once, then exercise the production server:
-
-```bash
-pnpm --filter web build
-pnpm playwright test --config playwright.production.config.ts
-```
-
-Or use the repository script that performs both steps:
+Build the package, web app, and static Storybook before Playwright starts both
+production servers:
 
 ```bash
 pnpm test:e2e:production
@@ -111,7 +112,7 @@ production servers. The latest full-gate attempt after Task 6C is blocked by
 WebKit page creation on this host; see the
 [readiness audit](../../docs/audits/2026-08-24-surfacekit-enterprise-readiness.md).
 
-For a focused run:
+After that build, a focused run can reuse the production outputs:
 
 ```bash
 pnpm playwright test tests/e2e/workflows.spec.ts \
