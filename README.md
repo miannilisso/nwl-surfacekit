@@ -22,7 +22,7 @@ manual keyboard, screen-reader, and assistive-technology review.
 ## Requirements
 
 - Node.js `^20.19.0 || ^22.13.0 || >=24.0.0`
-- pnpm `12.5.1`
+- pnpm `12.9.1`
 
 ```bash
 pnpm install --frozen-lockfile

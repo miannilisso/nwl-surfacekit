@@ -142,7 +142,7 @@ exception. The current 307 Storybook interaction tests pass.
 | SK-H03 build-time CLI in runtime graph    | High     | Code resolved locally in Task 2: Tailwind/shadcn/animation build tools are development dependencies; `pnpm audit --prod` recorded zero advisories after overrides.                           |
 | SK-H04 installed-tarball CI compatibility | High     | Local clean Next/Vite consumers added in `43df980..9ccb862`, using one tarball and digest checks; `verify.yml` includes the gate, but remote CI has not run successfully.                    |
 
-Current executable evidence for these code dispositions is the 99/99
+Current executable evidence for these code dispositions is the 100/100
 `pnpm test:contracts` result, including
 [`package-distribution.test.ts`](../../tests/contracts/package-distribution.test.ts),
 [`repository-controls.test.ts`](../../tests/contracts/repository-controls.test.ts),
@@ -175,7 +175,7 @@ upgrades. Shared versions and overrides are in
 
 - On 2026-10-05 the refreshed candidate passed frozen installation, formatting,
   strict lint, workspace types, 13 reference assets, attributions and the
-  88-package production-license policy, 99 contracts, 2 Next-config tests, 12
+  88-package production-license policy, 100 contracts, 2 Next-config tests, 12
   clean-consumer tests, and 212 component tests. Coverage was 96.01% statements,
   89.42% branches, 98.00% functions, and 96.11% lines.
 - Package, Next.js 16.3.8, and Storybook 10.6.1/Vite 8.3.2 production builds

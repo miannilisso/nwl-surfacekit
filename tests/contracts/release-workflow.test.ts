@@ -77,3 +77,23 @@ it("uses the peeled pnpm action commit in every workflow occurrence", async () =
     )
   }
 })
+
+it("uses the root package-manager version in every workflow", async () => {
+  const [verify, release, manifestText] = await Promise.all([
+    read(".github/workflows/verify.yml"),
+    read(".github/workflows/release.yml"),
+    read("package.json"),
+  ])
+  const manifest = JSON.parse(manifestText) as { packageManager: string }
+  const pnpmVersion = manifest.packageManager.replace(/^pnpm@/, "")
+  const configuredVersions = [verify, release].flatMap((workflow) =>
+    [
+      ...workflow.matchAll(
+        /pnpm\/action-setup@[^\n]+\n\s+with:\n\s+version:\s+([^\s]+)/g
+      ),
+    ].map(([, version]) => version)
+  )
+
+  expect(configuredVersions).toHaveLength(4)
+  expect(configuredVersions).toEqual(Array(4).fill(pnpmVersion))
+})
