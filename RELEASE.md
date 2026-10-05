@@ -4,7 +4,7 @@ SurfaceKit follows Semantic Versioning. Breaking public API, peer dependency,
 or behavior changes require a major version; backwards-compatible features use
 a minor version; compatible fixes use a patch version.
 
-The current package is `0.1.0` in a private repository. No stable release,
+The current package is `0.1.0` in a public repository. No stable release,
 1.0 tag, or downloadable release tarball exists. The intended first external
 distribution is the `surfacekit-v1.0.0` GitHub Release tarball; npm publication
 is outside this workflow. `CHANGELOG.md` records work as Unreleased until a
@@ -12,8 +12,8 @@ release has actually been accepted.
 
 ## Release acceptance
 
-The checked-in workflows are a proposed gate, not evidence that GitHub has run
-it. Before creating the version tag, set the package to `1.0.0` in a separate
+The checked-in workflows are a proposed gate until GitHub completes them with
+real jobs. Before creating the version tag, set the package to `1.0.0` in a separate
 release-preparation change, review the changelog, and obtain a real successful
 main-push `verification-required` job from `verify.yml`. Configure classic
 `main` branch protection to require pull requests, at least one approval with

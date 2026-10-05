@@ -201,8 +201,8 @@ callbacks; applications own identity, sessions, and authorization.
 
 The intended supported external distribution is the future immutable GitHub
 Release tarball, installed after checking its published digest. The repository
-is still private and has no 1.0 tag or release. Required remote CI, protection,
-and immutable-release settings are not accepted yet. Local tarballs are test
+is public but has no 1.0 tag or release. Required remote CI, protection, and
+immutable-release settings are not accepted yet. Local tarballs are test
 artifacts, not released packages. See [RELEASE.md](RELEASE.md) for the release
 gate and [the current audit](docs/audits/2026-08-24-surfacekit-enterprise-readiness.md)
 for remaining findings.

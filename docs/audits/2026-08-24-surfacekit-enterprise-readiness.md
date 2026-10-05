@@ -18,7 +18,9 @@ repository still lacks successful jobs, required protection, immutable-release
 settings, a 1.0 tag, and a published asset with a verified digest. This is a
 release stop, not a code-only closure.
 
-The root and package versions remain `0.1.0`; the remote repository is private.
+The root and package versions remain `0.1.0`. The repository became public on
+2026-10-05 only after the complete-history scan was triaged and Gitleaks found
+zero findings in the exact archived candidate.
 On 2026-10-05 every non-browser stage in the canonical gate passed on the
 refreshed dependency graph. A production Chromium/Firefox run then passed 184
 tests with 77 intentional project-scoped skips. One Chromium visual assertion
@@ -152,15 +154,15 @@ The same candidate passed all 12 clean-consumer cases, 212 component tests,
 the chart and release-policy regressions, and the supported production browser
 matrix described above.
 
-| ID                             | Severity    | Remaining concern                                                                                                                                                                       |
-| ------------------------------ | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| SK-M01 ESLint compatibility    | Medium      | `eslint-plugin-react@7.37.5` still needs `@eslint/compat@2.1.1` and a narrowly scoped ESLint 10 peer allowance.                                                                         |
-| SK-M02 Node matrix             | Medium      | `verify.yml` now defines Node 20.19, 22.13, and 24.0 jobs, but no successful remote jobs prove that declared range.                                                                     |
-| SK-M03 accessibility assurance | Medium      | Axe, keyboard, responsive, and focus tests exist; a dated manual screen-reader, zoom/reflow, forced-colors, voice-control, reduced-motion, and RTL matrix is still absent.              |
-| SK-M04 performance             | Medium      | CSS and Button gzip limits are enforced; broader per-module/per-consumer budgets are not. CSS has only 94 bytes of margin.                                                              |
-| SK-M05 governance              | Medium      | Policy docs, owner, workflow, and dependency updates exist locally. Remote required checks, protection, release environment, visibility decision, and release operation are unaccepted. |
-| SK-L01 visual coverage         | Low         | Thirty image baselines are Chromium-only; Firefox/WebKit behavior checks do not cover every visual state or consumer environment.                                                       |
-| Local WebKit host              | Operational | Chromium/Firefox pass locally, but WebKit page setup hangs on this unsupported host; remote Ubuntu CI must prove the complete browser matrix.                                           |
+| ID                             | Severity    | Remaining concern                                                                                                                                                                |
+| ------------------------------ | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| SK-M01 ESLint compatibility    | Medium      | `eslint-plugin-react@7.37.5` still needs `@eslint/compat@2.1.1` and a narrowly scoped ESLint 10 peer allowance.                                                                  |
+| SK-M02 Node matrix             | Medium      | `verify.yml` now defines Node 20.19, 22.13, and 24.0 jobs, but no successful remote jobs prove that declared range.                                                              |
+| SK-M03 accessibility assurance | Medium      | Axe, keyboard, responsive, and focus tests exist; a dated manual screen-reader, zoom/reflow, forced-colors, voice-control, reduced-motion, and RTL matrix is still absent.       |
+| SK-M04 performance             | Medium      | CSS and Button gzip limits are enforced; broader per-module/per-consumer budgets are not. CSS has only 94 bytes of margin.                                                       |
+| SK-M05 governance              | Medium      | Policy docs, owner, workflow, and dependency updates exist; visibility is public. Remote required checks, protection, release environment, and release operation are unaccepted. |
+| SK-L01 visual coverage         | Low         | Thirty image baselines are Chromium-only; Firefox/WebKit behavior checks do not cover every visual state or consumer environment.                                                |
+| Local WebKit host              | Operational | Chromium/Firefox pass locally, but WebKit page setup hangs on this unsupported host; remote Ubuntu CI must prove the complete browser matrix.                                    |
 
 TypeScript `6.0.3` remains below the
 [typescript-eslint published `<6.1.0` support bound](https://typescript-eslint.io/users/dependency-versions/).
@@ -186,13 +188,15 @@ upgrades. Shared versions and overrides are in
   intentional skips. Its single visual retry was followed by three concurrent,
   retry-disabled passes of that exact unchanged snapshot. Local WebKit remains
   an environment limitation rather than accepted three-engine evidence.
-- Read-only remote checks on 2026-09-24 showed repository visibility `PRIVATE`,
-  historical Actions runs with `startup_failure` and zero jobs (for example
-  run `32794135736`), immutable releases disabled, and no GitHub release. The
-  classic branch-protection API returned HTTP 403 with an upgrade-or-public
-  message. The local `surfacekit-v1.0.0` tag is absent. No real remote matrix,
-  protection, protected-environment approval, artifact digest, or release
-  immutability is accepted.
+- The first private `main` push of this candidate created synthetic
+  `BuildFailed` run `37329573777` with zero jobs or logs; two Dependabot runs
+  failed the same way. Before changing visibility, all four workflow pnpm pins
+  were aligned to root `packageManager` 12.9.1 and a contract was added to
+  prevent recurrence. The repository then became `PUBLIC` on 2026-10-05 after
+  an exact-commit Gitleaks scan. This documentation push is the first public
+  verification trigger. The `surfacekit-v1.0.0` tag remains absent. No real
+  remote matrix, protection, protected-environment approval, artifact digest,
+  or release immutability is accepted yet.
 
 The checked-in release workflow is designed to fail closed on tag/version/
 ancestry mismatch, missing successful main jobs, missing classic branch
