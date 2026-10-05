@@ -1,6 +1,6 @@
 # SurfaceKit web reference
 
-This Next.js `16.3.6` App Router application is the reference consumer for
+This Next.js `16.3.8` App Router application is the reference consumer for
 @nwl/surfacekit. It renders two public marketing routes and eight playground
 routes from the same typed catalog used by repository contracts.
 
@@ -73,7 +73,7 @@ permanent redirects to the corresponding nested routes.
 
 ## Storybook
 
-Storybook `10.6.0` with Vite `8.3.0` is configured in
+Storybook `10.6.1` with Vite `8.3.2` is configured in
 `apps/web/.storybook`; all 73 public-module stories live in `apps/web/stories`,
 with one additional Introduction story supplied by the Storybook configuration.
 

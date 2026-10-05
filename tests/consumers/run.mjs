@@ -32,8 +32,8 @@ const version = {
   "@types/react-dom": "19.3.0",
   "@types/node": "20.19.43",
   typescript: "6.0.3",
-  next: "16.3.6",
-  vite: "8.3.0",
+  next: "16.3.8",
+  vite: "8.3.2",
 }
 const commands = []
 const activeChildren = new Set()

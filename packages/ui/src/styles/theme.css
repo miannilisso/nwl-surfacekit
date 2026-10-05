@@ -1,4 +1,5 @@
 @custom-variant dark (&:is(.dark *));
+@custom-variant attachment-pending (&:is(:where(.group\/attachment):is([data-state=processing],[data-state=uploading]) *));
 
 @theme inline {
   --color-background: var(--background);

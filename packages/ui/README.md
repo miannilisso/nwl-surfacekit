@@ -138,9 +138,9 @@ distributable default; the reference application owns its brand-font override.
 
 The package gate verifies a 30 KiB gzip ceiling for compiled CSS and a 15 KiB
 gzip ceiling for a production, peer-externalized Button bundle built from the
-exact tarball. The current local measurements are 30,697/30,720 bytes for CSS
-and 13,516/15,360 bytes for Button. The CSS budget has only 23 bytes of headroom.
-Clean Next.js 16.3.6 and Vite 8.3.0 fixtures install the same local tarball,
+exact tarball. The current local measurements are 30,626/30,720 bytes for CSS
+and 13,516/15,360 bytes for Button. The CSS budget has only 94 bytes of headroom.
+Clean Next.js 16.3.8 and Vite 8.3.2 fixtures install the same local tarball,
 resolve all 76 JavaScript specifiers, and check builds, SSR, hydration, themes,
 and React identity. The future supported external installation is the immutable
 GitHub Release tarball after its SHA-256 is verified; no such release exists yet.

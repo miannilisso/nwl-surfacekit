@@ -16,7 +16,11 @@ The checked-in workflows are a proposed gate, not evidence that GitHub has run
 it. Before creating the version tag, set the package to `1.0.0` in a separate
 release-preparation change, review the changelog, and obtain a real successful
 main-push `verification-required` job from `verify.yml`. Configure classic
-`main` branch protection to require that job, a protected
+`main` branch protection to require pull requests, at least one approval with
+no review bypass allowances, stale-approval dismissal, resolved conversations,
+administrator enforcement, linear history, and that job, with force pushes
+and deletion disabled. Also
+configure a protected
 `surfacekit-v1-release` environment, an active tag ruleset that prevents
 updates and deletion without exclusions, and immutable releases. The preflight
 also needs an administrator-read-capable `RELEASE_POLICY_TOKEN`. Verify these
@@ -32,8 +36,9 @@ SHA-256, generates SPDX/CycloneDX SBOMs and attestations, transfers and checks
 the same bytes in clean Next/Vite consumers, and drafts a release with the
 tarball (containing `NOTICE`), checksum, changelog, SBOMs, and attestation
 bundles. After
-the protected environment, it rechecks tag and immutable-release policy,
-publishes the draft, and checks the published asset digest. GitHub documents
+the protected environment, it rechecks main protection plus tag and
+immutable-release policy, publishes the draft, and checks the published asset
+digest. GitHub documents
 the [draft-first publication sequence](https://docs.github.com/en/code-security/concepts/supply-chain-security/immutable-releases).
 
 Consumers should download the release tarball and `SHA256SUMS`, run

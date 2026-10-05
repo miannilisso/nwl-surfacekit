@@ -33,7 +33,7 @@ describe("Storybook dependency policy", () => {
       "@storybook/react-vite",
     ]) {
       expect(packageJson.devDependencies[dependency]).toBe("catalog:")
-      expect(workspace).toContain(`"${dependency}": "10.6.0"`)
+      expect(workspace).toContain(`"${dependency}": "10.6.1"`)
     }
 
     for (const removedDependency of [

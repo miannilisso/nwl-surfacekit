@@ -96,16 +96,17 @@ documentation.
 
 ## Supported repository toolchain
 
-The current pinned cohorts are React `19.3.0`, Next.js `16.3.6`, Storybook
-`10.6.0`, Vite `8.3.0`, Vitest `4.1.11`, ESLint `10.11.0`, Turbo `2.11.2`,
+The current pinned cohorts are React `19.3.0`, Next.js `16.3.8`, Storybook
+`10.6.1`, Vite `8.3.2`, Vitest `4.1.11`, ESLint `10.12.0`, Turbo `2.11.7`,
 and TypeScript `6.0.3`. Shared exact versions live in the root
 `pnpm-workspace.yaml` catalog.
 
 TypeScript remains below the
 [typescript-eslint `6.1.0` support ceiling](https://typescript-eslint.io/users/dependency-versions/)
-for the pinned `8.70.1` cohort;
-Vitest remains on 4 while Storybook 10.6 and the Node 20 support policy are in
-force. The shared ESLint config adapts `eslint-plugin-react@7.37.5` with
+for the pinned `8.71.0` cohort. The Node 20 support policy also holds Vitest at
+4, `@testing-library/jest-dom` at 6, `concurrently` at 9, and jsdom at 29;
+their next majors require Node 22. The shared ESLint config adapts
+`eslint-plugin-react@7.37.5` with
 `@eslint/compat` under a narrowly scoped peer exception. These holds are in the
 [enterprise-readiness audit](docs/audits/2026-08-24-surfacekit-enterprise-readiness.md).
 
@@ -143,10 +144,11 @@ types, reference-asset and attribution checks, the production-license policy,
 contracts, Next config tests, clean installed-tarball Next/Vite consumers,
 component coverage, package/Next/Storybook builds, Storybook interactions,
 client-environment checks, and the production-server Playwright matrix.
-`pnpm audit --prod` is a separate dependency check. The latest full-gate
-attempt after Task 6C did not pass: WebKit page creation timed out on this host,
-which reports missing WebKit system packages. The last complete gate before
-Task 6C passed; focused release contracts passed afterward. See the
+`pnpm audit --prod` is a separate dependency check. On 2026-10-05 every
+non-browser stage and the supported local Chromium/Firefox production suite
+passed on the refreshed dependency graph. WebKit page creation still times out
+on this unsupported Zorin host, which reports missing WebKit system packages;
+the complete three-engine result remains a remote Ubuntu CI gate. See the
 [readiness audit](docs/audits/2026-08-24-surfacekit-enterprise-readiness.md).
 
 Vitest ignores `.worktrees/**`, and Playwright resolves tests only from

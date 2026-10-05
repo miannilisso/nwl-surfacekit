@@ -17,8 +17,8 @@ named `nextJsConfig` array. The root, package, and web ESLint configs import
 these workspace presets. `base` also excludes generated `dist`, `.next`,
 `.turbo`, and coverage output.
 
-The current lint cohort is ESLint `10.11.0`, `@eslint/js` `10.0.1`,
-typescript-eslint `8.70.1`, and `@next/eslint-plugin-next` `16.3.6` on Node
+The current lint cohort is ESLint `10.12.0`, `@eslint/js` `10.0.1`,
+typescript-eslint `8.71.0`, and `@next/eslint-plugin-next` `16.3.8` on Node
 `^20.19.0 || ^22.13.0 || >=24.0.0`.
 
 `eslint-plugin-react@7.37.5` does not yet publish an ESLint 10 peer range. The

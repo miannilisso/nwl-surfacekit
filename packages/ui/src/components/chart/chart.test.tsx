@@ -141,6 +141,42 @@ describe("Chart", () => {
     expect(warn).toHaveBeenCalled()
   })
 
+  it("rejects nested URL paint sources in direct and themed SSR and client styles", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined)
+    const networkConfig = {
+      fallback: {
+        color: "var(--missing, url(https://attacker.example/fallback.svg#x))",
+      },
+      mixedCase: {
+        color:
+          'color-mix(in srgb, red, UrL("https://attacker.example/mixed.svg#x"))',
+      },
+      themed: {
+        theme: {
+          light: "var(--safe, rgb(0 0 0 / 20%))",
+          dark: "var(--missing, URL(https://attacker.example/dark.svg#x))",
+        },
+      },
+    }
+
+    for (const element of [
+      <ChartStyle key="direct" id="release" config={networkConfig} />,
+      <ChartContainer key="container" config={networkConfig}>
+        <div />
+      </ChartContainer>,
+    ]) {
+      const ssr = renderToStaticMarkup(element)
+      const { container, unmount } = render(element)
+      const css = container.querySelector("style")?.textContent ?? ""
+
+      expect(ssr).not.toContain("attacker.example")
+      expect(css).not.toContain("attacker.example")
+      expect(css).toContain("--color-themed: var(--safe, rgb(0 0 0 / 20%))")
+      unmount()
+    }
+    expect(warn).toHaveBeenCalled()
+  })
+
   it("omits a direct stylesheet with an invalid scope id", () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined)
     const { container } = render(

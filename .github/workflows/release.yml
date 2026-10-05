@@ -178,6 +178,35 @@ jobs:
         run: |
           set -euo pipefail
           test -n "$GH_TOKEN"
+          protection="$(gh api "repos/$GITHUB_REPOSITORY/branches/main/protection")"
+          jq -e '
+            (
+              [
+                (.required_status_checks.contexts // [])[],
+                (.required_status_checks.checks // [])[]?.context
+              ] | index("verification-required")
+            ) != null and
+            (.required_pull_request_reviews | type == "object") and
+            (.required_pull_request_reviews.dismiss_stale_reviews == true) and
+            (
+              .required_pull_request_reviews.required_approving_review_count |
+              type == "number" and . >= 1 and floor == .
+            ) and
+            (
+              (.required_pull_request_reviews.bypass_pull_request_allowances // {
+                users: [], teams: [], apps: []
+              }) |
+              type == "object" and
+              (.users | type == "array" and length == 0) and
+              (.teams | type == "array" and length == 0) and
+              (.apps | type == "array" and length == 0)
+            ) and
+            (.required_conversation_resolution.enabled == true) and
+            (.enforce_admins.enabled == true) and
+            (.required_linear_history.enabled == true) and
+            (.allow_force_pushes.enabled == false) and
+            (.allow_deletions.enabled == false)
+          ' <<< "$protection" >/dev/null
           gh api "repos/$GITHUB_REPOSITORY/immutable-releases" --jq '.enabled' | grep -qx true
           rulesets="$(gh api "repos/$GITHUB_REPOSITORY/rulesets?targets=tag&includes_parents=true&per_page=100")"
           tag_ref="refs/tags/$TAG"

@@ -4,6 +4,12 @@ Date: 2026-08-24
 
 Repository baseline: [`ede7b4f5de4f835023f99281ee6118950102a566`](https://github.com/miannilisso/nwl-surfacekit/tree/ede7b4f5de4f835023f99281ee6118950102a566)
 
+Status: historical compatibility snapshot. The candidate versions and
+actionable constraints below record the August decision point; they are not
+the current repository pins. The 2026-10-05 toolchain, verification results,
+and intentional compatibility holds are recorded in the
+[current enterprise-readiness audit](2026-08-24-surfacekit-enterprise-readiness.md).
+
 Scope: dependency compatibility and the `@nwl/surfacekit` package contract; no dependency or configuration changes are made by this document.
 
 ## Executive conclusion
@@ -115,7 +121,7 @@ Every compatibility statement above is based on first-party documentation, offic
 
 ## Implementation note
 
-The implemented migration uses `@eslint/compat@2.1.0` to adapt
+The current implementation uses `@eslint/compat@2.1.1` to adapt
 `eslint-plugin-react@7.37.5` to ESLint 10 and a pnpm `allowedVersions` rule
 scoped to that exact plugin/version pair. `pnpm peers check` and the full
 workspace lint pass with this configuration. This is an empirical repository
@@ -125,4 +131,4 @@ compatibility exception, not upstream peer support, and remains tracked until
 Source inspection also corrected the original unused-dependency assumption for
 `@shadcn/react`: `message-scroller.tsx` imports
 `@shadcn/react/message-scroller`, so the dependency was retained and upgraded
-to `0.3.0`. The unused direct `date-fns` and `zod` declarations were removed.
+to `0.3.1`. The unused direct `date-fns` and `zod` declarations were removed.

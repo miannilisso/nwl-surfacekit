@@ -96,6 +96,31 @@ function checkPolicy() {
   if (!statusChecks.includes(REQUIRED_CHECK)) {
     fail(`${REQUIRED_CHECK} must be required on main`)
   }
+  const reviews = protection.required_pull_request_reviews
+  const reviewBypass = reviews?.bypass_pull_request_allowances
+  const hasNoReviewBypass =
+    reviewBypass == null ||
+    (typeof reviewBypass === "object" &&
+      ["users", "teams", "apps"].every(
+        (actorType) =>
+          Array.isArray(reviewBypass[actorType]) &&
+          reviewBypass[actorType].length === 0
+      ))
+  const mainProtectionIsComplete =
+    reviews !== null &&
+    typeof reviews === "object" &&
+    reviews.dismiss_stale_reviews === true &&
+    Number.isInteger(reviews.required_approving_review_count) &&
+    reviews.required_approving_review_count >= 1 &&
+    hasNoReviewBypass &&
+    protection.required_conversation_resolution?.enabled === true &&
+    protection.enforce_admins?.enabled === true &&
+    protection.required_linear_history?.enabled === true &&
+    protection.allow_force_pushes?.enabled === false &&
+    protection.allow_deletions?.enabled === false
+  if (!mainProtectionIsComplete) {
+    fail("required main protection is incomplete")
+  }
 
   const immutable = githubJson(`repos/${repository}/immutable-releases`)
   if (immutable.enabled !== true) fail("immutable releases must be enabled")

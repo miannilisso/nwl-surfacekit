@@ -50,6 +50,22 @@ const protectedTagRuleset = {
   rules: [{ type: "update" }, { type: "deletion" }],
 }
 
+const protectedMain = {
+  required_status_checks: {
+    contexts: ["verification-required"],
+    checks: [],
+  },
+  required_pull_request_reviews: {
+    dismiss_stale_reviews: true,
+    required_approving_review_count: 1,
+  },
+  required_conversation_resolution: { enabled: true },
+  enforce_admins: { enabled: true },
+  required_linear_history: { enabled: true },
+  allow_force_pushes: { enabled: false },
+  allow_deletions: { enabled: false },
+}
+
 function completeConfig(): MockConfig {
   return {
     ancestor: true,
@@ -66,12 +82,7 @@ function completeConfig(): MockConfig {
       ],
     },
     liveTagCommits: [commit],
-    protection: {
-      required_status_checks: {
-        contexts: ["verification-required"],
-        checks: [],
-      },
-    },
+    protection: protectedMain,
     rulesetDetails: { "7": protectedTagRuleset },
     rulesets: [{ id: 7 }],
     runs: {
@@ -310,6 +321,95 @@ it("rejects mutable release policy", async () => {
       expect(result.stderr).toContain("immutable releases must be enabled")
     }
   )
+})
+
+it.each([
+  [
+    "pull request reviews",
+    { ...protectedMain, required_pull_request_reviews: undefined },
+  ],
+  [
+    "one approval",
+    {
+      ...protectedMain,
+      required_pull_request_reviews: {
+        ...protectedMain.required_pull_request_reviews,
+        required_approving_review_count: 0,
+      },
+    },
+  ],
+  [
+    "an integer approval count",
+    {
+      ...protectedMain,
+      required_pull_request_reviews: {
+        ...protectedMain.required_pull_request_reviews,
+        required_approving_review_count: 1.5,
+      },
+    },
+  ],
+  [
+    "review bypass prohibition",
+    {
+      ...protectedMain,
+      required_pull_request_reviews: {
+        ...protectedMain.required_pull_request_reviews,
+        bypass_pull_request_allowances: {
+          users: [{ login: "release-admin" }],
+          teams: [],
+          apps: [],
+        },
+      },
+    },
+  ],
+  [
+    "stale approval dismissal",
+    {
+      ...protectedMain,
+      required_pull_request_reviews: {
+        ...protectedMain.required_pull_request_reviews,
+        dismiss_stale_reviews: false,
+      },
+    },
+  ],
+  [
+    "conversation resolution",
+    { ...protectedMain, required_conversation_resolution: { enabled: false } },
+  ],
+  ["administrator enforcement", { ...protectedMain, enforce_admins: null }],
+  [
+    "linear history",
+    { ...protectedMain, required_linear_history: { enabled: false } },
+  ],
+  [
+    "force-push prohibition",
+    { ...protectedMain, allow_force_pushes: { enabled: true } },
+  ],
+  [
+    "deletion prohibition",
+    { ...protectedMain, allow_deletions: { enabled: true } },
+  ],
+] as const)("rejects main protection without %s", async (_, protection) => {
+  const recheck = await workflowRun(
+    ".github/workflows/release.yml",
+    "Recheck immutable release and tag protection"
+  )
+  await withMockCommands({ protection }, async ({ env, root }) => {
+    for (const [program, args] of [
+      ["node", [releaseGate, "policy"]],
+      ["bash", ["-c", recheck]],
+    ] as const) {
+      const result = await execute(program, [...args], { cwd: root, env })
+      expect(result, `${program}: ${result.stderr}`).toMatchObject({
+        ok: false,
+      })
+      if (program === "node") {
+        expect(result.stderr).toContain(
+          "required main protection is incomplete"
+        )
+      }
+    }
+  })
 })
 
 it("rejects tag protection that allows update or deletion", async () => {

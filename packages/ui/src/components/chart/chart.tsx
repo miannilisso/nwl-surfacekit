@@ -19,6 +19,7 @@ const NAMED_COLOR_PATTERN = /^[a-z]+$/i
 const COLOR_FUNCTION_PATTERN =
   /^(?:var|rgb|rgba|hsl|hsla|hwb|lab|lch|oklab|oklch|color|color-mix|light-dark)\(/i
 const STRUCTURAL_STYLE_TOKEN_PATTERN = /[<>{};@\\]|\/\*|\*\//
+const NETWORK_RESOURCE_FUNCTION_PATTERN = /\burl\s*\(/i
 type TooltipNameType = number | string
 type RuntimeImportMeta = ImportMeta & { env?: { PROD?: boolean } }
 
@@ -124,7 +125,11 @@ function hasBalancedParentheses(value: string) {
 function isSafeChartColor(value: string) {
   const color = value.trim()
 
-  if (!color || STRUCTURAL_STYLE_TOKEN_PATTERN.test(color)) {
+  if (
+    !color ||
+    STRUCTURAL_STYLE_TOKEN_PATTERN.test(color) ||
+    NETWORK_RESOURCE_FUNCTION_PATTERN.test(color)
+  ) {
     return false
   }
 
